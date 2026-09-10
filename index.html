@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>CAVA</title>
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22CAVA%22%2C%22short_name%22%3A%22CAVA%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230E1C19%22%2C%22theme_color%22%3A%22%230E1C19%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%253E%253Crect%20width%3D%27512%27%20height%3D%27512%27%20fill%3D%27%25230E1C19%27%2F%253E%253Cpath%20d%3D%27M208%2080h96v88c0%2024%2040%2056%2040%20104v144a16%2016%200%200%201-16%2016H184a16%2016%200%200%201-16-16V272c0-48%2040-80%2040-104z%27%20fill%3D%27%2523E5A33C%27%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D">
+<link rel="manifest" href="manifest.json">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1C19'/%3E%3Cpath d='M26 10h12v11c0 3 5 7 5 13v18a2 2 0 0 1-2 2H23a2 2 0 0 1-2-2V34c0-6 5-10 5-13z' fill='%23E5A33C'/%3E%3C/svg%3E">
 <style>
 :root{
@@ -321,6 +321,7 @@ const CFG_DEF = {
   igtf: false,
   igtfPct: 3,
   autoTasas: true,
+  soloConsulta: false,
   minimoDefault: 6
 };
 
@@ -573,6 +574,8 @@ function registrarVenta(pago, t) {
   const grupoDivisa = ['efectivo_usd', 'binance'].indexOf(pago.metodo) >= 0;
   const cobradoUsd = pago.metodo === 'mixto' ? nz(pago.parteUsd) : (grupoDivisa ? tt.efectivo : 0);
   const cobradoBs = pago.metodo === 'mixto' ? nz(pago.parteBs) : (grupoDivisa ? 0 : tt.bs);
+  const metodoUsd = pago.metodo === 'mixto' ? (pago.metodoUsd || 'efectivo_usd') : (grupoDivisa ? pago.metodo : null);
+  const metodoBs = pago.metodo === 'mixto' ? (pago.metodoBs || 'pago_movil') : (grupoDivisa ? null : pago.metodo);
   const ingresoReal = cobradoUsd + (t.usdt > 0 ? cobradoBs / t.usdt : 0);
   const v = {
     id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
@@ -590,7 +593,7 @@ function registrarVenta(pago, t) {
     }),
     totalLista: tt.lista, totalBs: tt.bs, totalEfectivo: tt.efectivo,
     costoTotal: tt.costo, unidades: tt.unidades,
-    metodo: pago.metodo, cobradoUsd, cobradoBs, igtf: nz(pago.igtf),
+    metodo: pago.metodo, metodoUsd, metodoBs, cobradoUsd, cobradoBs, igtf: nz(pago.igtf),
     bcv: t.bcv, usdt: t.usdt, tasaVenta: t.tasaVenta, descuentoPct: t.descuentoPct,
     ingresoReal, gananciaNominal: tt.lista - tt.costo, gananciaReal: ingresoReal - tt.costo,
     anulada: false
@@ -626,13 +629,24 @@ function anularVenta(id) {
   return true;
 }
 
+/* ---------- formas de pago ---------- */
+const METODOS = [
+  { id: 'punto', nombre: 'Punto de venta', moneda: 'bs' },
+  { id: 'efectivo_bs', nombre: 'Efectivo en bolívares', moneda: 'bs' },
+  { id: 'pago_movil', nombre: 'Pago móvil o transferencia', moneda: 'bs' },
+  { id: 'efectivo_usd', nombre: 'Efectivo en divisas', moneda: 'usd' },
+  { id: 'binance', nombre: 'Binance USDT', moneda: 'usd' }
+];
+function nombreMetodo(id) { const m = METODOS.find(x => x.id === id); return m ? m.nombre : (id || '—'); }
+function cobrosVacios() { const o = {}; METODOS.forEach(m => o[m.id] = 0); return o; }
+
 /* ---------- cierre del día ---------- */
 function resumenDia(fecha, ventas) {
   const vs = (ventas || S.ventas).filter(v => v.fecha === fecha && !v.anulada);
   const r = {
     fecha, nVentas: vs.length, unidades: 0, ventaLista: 0, ventaBs: 0, ventaUsd: 0,
     ingresoReal: 0, costo: 0, gananciaNominal: 0, gananciaReal: 0, descuentos: 0,
-    porMetodo: {}, porUsuario: {}, top: []
+    porMetodo: {}, porUsuario: {}, cobros: cobrosVacios(), top: []
   };
   const acumProd = {};
   vs.forEach(v => {
@@ -645,6 +659,10 @@ function resumenDia(fecha, ventas) {
     r.gananciaNominal += v.gananciaNominal;
     r.gananciaReal += v.gananciaReal;
     r.porMetodo[v.metodo] = (r.porMetodo[v.metodo] || 0) + v.ingresoReal;
+    const mBs = v.metodoBs || (['efectivo_usd', 'binance', 'mixto'].indexOf(v.metodo) < 0 ? v.metodo : null);
+    const mUsd = v.metodoUsd || (['efectivo_usd', 'binance'].indexOf(v.metodo) >= 0 ? v.metodo : null);
+    if (v.cobradoBs > 0 && mBs && r.cobros[mBs] !== undefined) r.cobros[mBs] += v.cobradoBs;
+    if (v.cobradoUsd > 0 && mUsd && r.cobros[mUsd] !== undefined) r.cobros[mUsd] += v.cobradoUsd;
     r.porUsuario[v.usuario] = (r.porUsuario[v.usuario] || 0) + v.ingresoReal;
     v.items.forEach(it => {
       const k = it.nombre;
@@ -671,7 +689,7 @@ function cerrarDia(fecha) {
     efectivoUsd: r.ventaUsd, bs: r.ventaBs,
     bcv: t ? t.bcv : 0, usdt: t ? t.usdt : 0, tasaVenta: t ? t.tasaVenta : 0,
     proyeccion: t ? t.proyeccion : 0, descuentoPct: t ? t.descuentoPct : 0,
-    porMetodo: r.porMetodo, porUsuario: r.porUsuario,
+    porMetodo: r.porMetodo, porUsuario: r.porUsuario, cobros: r.cobros,
     cerrado: ahora(), usuario: S.config.usuario
   };
   const i = S.cierres.findIndex(x => x.fecha === fecha);
@@ -909,6 +927,7 @@ const ICONOS = {
 };
 
 function irA(v) {
+  if (S.config.soloConsulta && (v === 'vender' || v === 'cargar')) v = 'inicio';
   VISTA = v;
   $$('.vista').forEach(s => s.classList.remove('on'));
   const el = $('#v-' + v);
@@ -974,13 +993,15 @@ function renderFranja() {
 }
 
 function renderNav() {
-  const tabs = [['inicio', 'Inicio'], ['vender', 'Vender'], ['cargar', 'Cargar'], ['stock', 'Stock'], ['cierre', 'Cierre']];
+  let tabs = [['inicio', 'Inicio'], ['vender', 'Vender'], ['cargar', 'Cargar'], ['stock', 'Stock'], ['cierre', 'Cierre']];
+  if (S.config.soloConsulta) tabs = tabs.filter(t => t[0] !== 'vender' && t[0] !== 'cargar');
   $('#barraNav').innerHTML = tabs.map(([k, n]) =>
     '<button class="' + (VISTA === k ? 'on' : '') + '" onclick="irA(\'' + k + '\')">' +
     '<svg viewBox="0 0 24 24">' + ICONOS[k] + '</svg>' + n + '</button>').join('');
 }
 
 function render() {
+  if (S.config.soloConsulta && (VISTA === 'vender' || VISTA === 'cargar')) return irA('inicio');
   renderFranja(); renderNav();
   $('#principal').className = (VISTA === 'vender' && carrito.length) ? 'conbarra' : '';
   const f = {
@@ -1009,7 +1030,9 @@ function renderInicio() {
     '<div><b class="num">' + fmtNum(r.margen, 0) + '%</b><span>margen</span></div>' +
     '</div>';
 
-  h += '<button class="btn oro enorme" onclick="irA(\'vender\')">Vender</button>';
+  h += S.config.soloConsulta
+    ? '<div class="aviso-caja">Este aparato es solo para consultar. Las ventas y la carga se hacen desde el teléfono de la caja.</div>'
+    : '<button class="btn oro enorme" onclick="irA(\'vender\')">Vender</button>';
 
   if (bajo.length) {
     h += '<h3>Se está acabando</h3><div class="lista">' +
@@ -1223,6 +1246,12 @@ function pantallaPago(metodo) {
     h += '<p class="nota">Anota cuánto entra por cada lado. Lo que falte en dólares se completa en bolívares.</p>' +
       '<label>Parte en divisa (dólares)</label>' +
       '<input id="mx" type="number" inputmode="decimal" step="0.01" value="0" oninput="calcMixto()">' +
+      '<label>¿Cómo entra esa divisa?</label><select id="mxu">' +
+      METODOS.filter(m => m.moneda === 'usd').map(m => '<option value="' + m.id + '">' + m.nombre + '</option>').join('') +
+      '</select>' +
+      '<label>¿Cómo entra el resto en bolívares?</label><select id="mxb">' +
+      METODOS.filter(m => m.moneda === 'bs').map(m => '<option value="' + m.id + '"' + (m.id === 'pago_movil' ? ' selected' : '') + '>' + m.nombre + '</option>').join('') +
+      '</select>' +
       '<div id="mxinfo" class="aviso-caja" style="margin-top:12px"></div>' +
       '<button class="btn verde" onclick="confirmarPago(\'mixto\')">Confirmar venta</button>';
   } else if (enDivisa) {
@@ -1270,6 +1299,8 @@ function confirmarPago(metodo) {
     const d = $('#mxinfo');
     pago.parteUsd = parseFloat(d.dataset.usd || 0);
     pago.parteBs = parseFloat(d.dataset.bs || 0);
+    pago.metodoUsd = $('#mxu') ? $('#mxu').value : 'efectivo_usd';
+    pago.metodoBs = $('#mxb') ? $('#mxb').value : 'pago_movil';
   }
   const v = registrarVenta(pago, t);
   ultimaVenta = v;
@@ -1658,9 +1689,11 @@ function renderCierre() {
     '</table></div>';
 
   h += '<h3>Cómo te pagaron</h3><div class="tarjeta"><table class="mini">' +
-    '<tr><td>Efectivo en dólares</td><td class="num">$' + fmtUsd(r.ventaUsd) + '</td></tr>' +
-    '<tr><td>Bolívares recibidos</td><td class="num">' + fmtBs(r.ventaBs) + ' Bs</td></tr>' +
-    (t && t.usdt ? '<tr><td>Esos bolívares en divisa</td><td class="num">$' + fmtUsd(r.ventaBs / t.usdt) + '</td></tr>' : '') +
+    METODOS.map(m => '<tr><td>' + m.nombre + '</td><td class="num">' +
+      (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id])) + '</td></tr>').join('') +
+    '<tr><td><b>Total en bolívares</b></td><td class="num">' + fmtBs(r.ventaBs) + ' Bs</td></tr>' +
+    '<tr><td><b>Total en divisa</b></td><td class="num">$' + fmtUsd(r.ventaUsd) + '</td></tr>' +
+    (t && t.usdt ? '<tr><td>Esos bolívares valen</td><td class="num">$' + fmtUsd(r.ventaBs / t.usdt) + '</td></tr>' : '') +
     '</table></div>';
 
   if (Object.keys(r.porUsuario).length > 1) {
@@ -1677,8 +1710,10 @@ function renderCierre() {
   }
 
   h += '<h3>Acciones</h3>';
-  h += '<button class="btn ' + (cerrado ? '' : 'oro') + '" onclick="hacerCierre()">' +
-    (cerrado ? 'Volver a calcular el cierre' : 'Cerrar el día') + '</button>';
+  if (!S.config.soloConsulta) {
+    h += '<button class="btn ' + (cerrado ? '' : 'oro') + '" onclick="hacerCierre()">' +
+      (cerrado ? 'Volver a calcular el cierre' : 'Cerrar el día') + '</button>';
+  }
   h += '<button class="btn" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel de ganancias</button>';
   h += '<button class="btn" style="margin-top:8px" onclick="mandarResumen()">Mandar resumen por WhatsApp</button>';
   h += '<button class="btn chico" style="margin-top:8px" onclick="verVentasHoy()">Ver las ventas de hoy</button>';
@@ -1731,8 +1766,8 @@ function mandarResumen() {
     'Ganancia: $' + fmtUsd(r.gananciaReal) + '\n' +
     'Margen: ' + fmtNum(r.margen, 1) + '%\n' +
     '────────────────\n' +
-    'Efectivo $: ' + fmtUsd(r.ventaUsd) + '\n' +
-    'Bolívares: ' + fmtBs(r.ventaBs) + '\n' +
+    METODOS.map(m => m.nombre + ': ' +
+      (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id]))).join('\n') + '\n' +
     (t ? 'Tasa de venta: ' + fmtNum(t.tasaVenta, 2) + ' · USDT ' + fmtNum(t.usdt, 2) + '\n' : '') +
     (r.top.length ? '\nLo que más dejó:\n' + r.top.map(x => '· ' + x.nombre + ' — $' + fmtUsd(x.ganancia)).join('\n') : '');
   if (navigator.share) {
@@ -1755,13 +1790,31 @@ async function exportarExcel() {
   const fechas = Array.from(new Set(todasVentas.map(v => v.fecha))).sort();
   const resumen = [['Fecha', 'BCV', 'Proyección', 'Tasa de venta', 'USDT', 'Descuento %', 'Ventas', 'Unidades',
     'Venta lista $', 'Descuentos $', 'Entró $', 'Costo $', 'Ganancia nominal $', 'Ganancia real $', 'Margen %',
-    'Efectivo $', 'Bolívares Bs']];
+    'Punto de venta Bs', 'Efectivo Bs', 'Pago móvil Bs', 'Efectivo divisas $', 'Binance $',
+    'Total Bs', 'Total divisas $']];
   fechas.forEach(f => {
     const r = resumenDia(f, todasVentas);
     const t = S.tasas.find(x => x.fecha === f) || {};
     resumen.push([f, nz(t.bcv), nz(t.proyeccion), nz(t.tasaVenta), nz(t.usdt), nz(t.descuentoPct),
       r.nVentas, r.unidades, r.ventaLista, r.descuentos, r.ingresoReal, r.costo,
-      r.gananciaNominal, r.gananciaReal, r.margen, r.ventaUsd, r.ventaBs]);
+      r.gananciaNominal, r.gananciaReal, r.margen,
+      r.cobros.punto, r.cobros.efectivo_bs, r.cobros.pago_movil,
+      r.cobros.efectivo_usd, r.cobros.binance,
+      r.ventaBs, r.ventaUsd]);
+  });
+
+  // hoja nueva: una fila por venta con cómo entró la plata
+  const cobros = [['Fecha', 'Hora', 'Quién', 'Venta', 'Forma de pago',
+    'Método en bolívares', 'Monto Bs', 'Método en divisa', 'Monto $',
+    'Total en divisa $', 'Costo $', 'Ganancia real $', 'Anulada']];
+  todasVentas.forEach(v => {
+    const mBs = v.metodoBs || (['efectivo_usd', 'binance', 'mixto'].indexOf(v.metodo) < 0 ? v.metodo : null);
+    const mUsd = v.metodoUsd || (['efectivo_usd', 'binance'].indexOf(v.metodo) >= 0 ? v.metodo : null);
+    cobros.push([v.fecha, hora(v.ts), v.usuario, v.id,
+      v.metodo === 'mixto' ? 'Combinado' : nombreMetodo(v.metodo),
+      mBs ? nombreMetodo(mBs) : '', nz(v.cobradoBs),
+      mUsd ? nombreMetodo(mUsd) : '', nz(v.cobradoUsd),
+      nz(v.ingresoReal), nz(v.costoTotal), nz(v.gananciaReal), v.anulada ? 'sí' : 'no']);
   });
 
   const detalle = [['Fecha', 'Hora', 'Quién', 'Venta', 'Producto', 'Presentación', 'Cantidad', 'Unidades',
@@ -1769,7 +1822,7 @@ async function exportarExcel() {
   todasVentas.forEach(v => v.items.forEach(it => {
     detalle.push([v.fecha, hora(v.ts), v.usuario, v.id, it.nombre, it.presNombre, it.cant, it.unidades,
       it.costoUnit, it.precioLista, it.precioBs, it.precioEfectivo, it.subtotalLista, it.gananciaLinea,
-      v.metodo, v.anulada ? 'sí' : 'no']);
+      v.metodo === 'mixto' ? 'Combinado' : nombreMetodo(v.metodo), v.anulada ? 'sí' : 'no']);
   }));
 
   const inventario = [['Código', 'Producto', 'Presentación', 'Categoría', 'Stock', 'Costo $', 'Precio $',
@@ -1792,7 +1845,8 @@ async function exportarExcel() {
     t.usdt > 0 ? (1 - t.bcv / t.usdt) * 100 : 0, t.origen]));
 
   const hojas = [
-    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 11, 14], filas: resumen },
+    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 16, 13, 15, 17, 12, 13, 16], filas: resumen },
+    { nombre: 'Cobros_Por_Venta', columnas: [11, 7, 10, 14, 14, 24, 13, 20, 11, 15, 10, 14, 9], filas: cobros },
     { nombre: 'Ventas_Detalle', columnas: [11, 7, 10, 12, 26, 13, 9, 9, 11, 13, 12, 15, 11, 11, 14, 9], filas: detalle },
     { nombre: 'Inventario', columnas: [16, 26, 13, 12, 8, 9, 9, 12, 12, 9, 12], filas: inventario },
     { nombre: 'Movimientos', columnas: [11, 7, 10, 26, 12, 9, 11, 24], filas: movs },
@@ -1912,6 +1966,11 @@ function renderAjustes() {
 
   h += '<button class="btn verde" onclick="guardarAjustes()">Guardar ajustes</button>';
 
+  h += '<h3>Para qué sirve este aparato</h3><div class="tarjeta">' +
+    '<div class="campo-inline"><label>Solo consultar, sin vender ni cargar</label>' +
+    '<input type="checkbox" id="ccons" ' + (c.soloConsulta ? 'checked' : '') + ' onchange="cambiarModo(this.checked)"></div>' +
+    '<p class="nota">Enciéndelo en los teléfonos que no son la caja. Esconde Vender y Cargar para que nadie cobre desde el aparato equivocado por costumbre.</p></div>';
+
   h += '<h3>Tus datos</h3><div class="tarjeta">' +
     '<p class="nota">Todo vive dentro de este teléfono. Si lo pierdes o lo formateas, se pierde. Baja un respaldo cada tanto.</p>' +
     '<button class="btn" style="margin-top:10px" onclick="bajarRespaldo()">Bajar respaldo</button>' +
@@ -1925,6 +1984,24 @@ function renderAjustes() {
 
   h += '<button class="btn chico" style="margin-top:14px" onclick="irA(\'ayuda\')">Cómo se usa</button>';
   $('#v-ajustes').innerHTML = h;
+}
+
+function cambiarModo(activo) {
+  if (activo && (S.ventas.length || S.productos.length)) {
+    abrirHoja('<div class="asa"></div><h4>¿Este aparato deja de vender?</h4>' +
+      '<p class="nota">Se esconden Vender y Cargar. Lo que ya está guardado acá no se borra, pero deja de moverse: para verlo al día habrá que restaurar el respaldo de la caja.</p>' +
+      '<button class="btn oro" style="margin-top:14px" onclick="confirmarModo(true)">Sí, solo consultar</button>' +
+      '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();render()">Mejor no</button>');
+    return;
+  }
+  confirmarModo(activo);
+}
+function confirmarModo(activo) {
+  S.config.soloConsulta = !!activo;
+  guardar(['config']);
+  cerrarHoja();
+  brindis(activo ? 'Aparato en modo consulta' : 'Aparato habilitado para vender');
+  irA('inicio');
 }
 
 function elegirUsuario(i) {
@@ -1945,6 +2022,7 @@ function guardarAjustes() {
   c.redondeoBs = Math.max(0, parseFloat($('#crb').value) || 0);
   c.redondeoUsd = Math.max(0, parseFloat($('#cru').value) || 0);
   c.igtf = $('#cigtf').checked;
+  if ($('#ccons')) c.soloConsulta = $('#ccons').checked;
   // recalcula la tasa de hoy con los parámetros nuevos
   const t = tasaDe(hoyISO());
   if (t) guardarTasa(calcularTasa(hoyISO(), t.bcv, t.usdt, t.origen));
@@ -2066,6 +2144,10 @@ async function sembrarEjemplo() {
   });
   reindexar();
   guardar(['productos']);
+}
+
+if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { }));
 }
 
 document.addEventListener('DOMContentLoaded', arrancar);
