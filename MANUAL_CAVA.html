@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CAVA · Manual</title>
+<style>
+:root{--papel:#FBFAF7;--tinta:#16221F;--botella:#1E3A33;--ambar:#B87415;--gris:#6C7C77;--linea:#E2E0D8;--suave:#F2F0E9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--tinta);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6;font-size:16.5px}
+.hoja{max-width:720px;margin:0 auto;padding:40px 26px 80px}
+h1{font-size:34px;line-height:1.1;margin:0 0 6px;font-weight:700;letter-spacing:-.02em}
+.bajada{color:var(--gris);font-size:16px;margin:0 0 34px}
+h2{font-size:23px;margin:44px 0 4px;font-weight:680;letter-spacing:-.01em;color:var(--botella)}
+h2 .no{color:var(--ambar);font-variant-numeric:tabular-nums;margin-right:9px}
+h3{font-size:16.5px;margin:26px 0 6px;font-weight:650}
+p{margin:9px 0}
+ol,ul{margin:9px 0;padding-left:22px}
+li{margin:7px 0}
+hr{border:0;border-top:1px solid var(--linea);margin:40px 0}
+.caja{background:var(--suave);border-left:3px solid var(--ambar);padding:14px 17px;margin:18px 0;border-radius:0 8px 8px 0}
+.caja.ojo{border-left-color:#B23B2C;background:#FCF2F0}
+.caja p:first-child{margin-top:0}.caja p:last-child{margin-bottom:0}
+.caja b{color:var(--botella)}
+code{background:var(--suave);padding:2px 6px;border-radius:5px;font-size:14px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:15.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--linea);vertical-align:top}
+th{background:var(--botella);color:#fff;font-weight:600}
+td:first-child{white-space:nowrap;font-weight:600;color:var(--botella)}
+.reglas{border:2px solid var(--botella);border-radius:12px;padding:22px 24px;margin:26px 0}
+.reglas h3{margin-top:0;font-size:19px;color:var(--botella)}
+.reglas ol{padding-left:20px}
+.reglas li{margin:11px 0;font-size:16px}
+.pie{margin-top:56px;padding-top:18px;border-top:1px solid var(--linea);color:var(--gris);font-size:14px}
+@media print{
+  body{font-size:11.5pt}
+  .hoja{max-width:none;padding:0}
+  h2{page-break-after:avoid;margin-top:26px}
+  .caja,.reglas,table{page-break-inside:avoid}
+  .noimp{display:none}
+}
+</style>
+</head>
+<body>
+<div class="hoja">
+
+<h1>CAVA</h1>
+<p class="bajada">Manual de la licorería. Para Anthony y su esposa.</p>
+
+<p>Esta aplicación lleva el inventario, cobra en bolívares y en divisa con los precios del día, descuenta lo que se vende y al final del día te dice cuánto ganaste de verdad. Todo vive dentro del teléfono: no hace falta internet para vender.</p>
+
+<hr>
+
+<h2><span class="no">1</span>Ponerla en el celular</h2>
+
+<p>Hay dos maneras. Léelas las dos antes de elegir, porque una vez que empieces a cargar productos conviene quedarse en la misma.</p>
+
+<h3>Manera rápida — el archivo directo</h3>
+<p>Funciona en cinco minutos y sin internet, pero la cámara probablemente no abra. Se vende escribiendo el código o tocando los botones rápidos, que igual es lo que más se usa.</p>
+<ol>
+  <li>Pasa el archivo <code>CAVA.html</code> al celular. Sirve por cable, por WhatsApp enviándotelo a ti mismo, por Telegram o por correo.</li>
+  <li>Guárdalo en la carpeta de Descargas.</li>
+  <li>Ábrelo con Chrome. Si el teléfono pregunta con qué app abrirlo, elige Chrome.</li>
+  <li>En Chrome, toca los tres puntos de arriba a la derecha y elige <b>Agregar a pantalla principal</b>.</li>
+  <li>Listo: ya tienes el ícono en el escritorio del teléfono.</li>
+</ol>
+
+<h3>Manera completa — publicada en internet</h3>
+<p>Toma unos veinte minutos la primera vez. A cambio, la cámara funciona, se instala como aplicación de verdad sin barra de navegador, y después se puede convertir en APK.</p>
+<ol>
+  <li>Crea una cuenta gratis en <code>github.com</code>.</li>
+  <li>Crea un repositorio nuevo, público, llamado <code>cava</code>.</li>
+  <li>Sube dos archivos: <code>CAVA.html</code> pero renombrado como <code>index.html</code>, y <code>manifest.json</code>.</li>
+  <li>Entra a <b>Settings</b> → <b>Pages</b>, y en «Source» elige la rama <code>main</code> y la carpeta raíz. Guarda.</li>
+  <li>A los dos minutos tu dirección queda lista: <code>https://TUUSUARIO.github.io/cava/</code></li>
+  <li>Abre esa dirección en el Chrome del celular, toca los tres puntos y elige <b>Instalar aplicación</b>.</li>
+</ol>
+
+<div class="caja ojo">
+<p><b>Importante:</b> los datos se guardan pegados a la dirección desde donde abriste la app. Si empiezas con el archivo local y después te pasas a la dirección de internet, la app nueva aparece vacía. No se perdió nada, pero tienes que bajar el respaldo desde la vieja y restaurarlo en la nueva. Por eso conviene decidir el camino desde el principio.</p>
+</div>
+
+<h3>Y el APK, ¿cuándo?</h3>
+<p>Una vez que esté publicada por la manera completa, entra a <code>pwabuilder.com</code> desde la computadora, pega la dirección de tu app y el sitio te arma el APK firmado para instalar o subir a Google Play. Es un botón, no hace falta programar nada.</p>
+
+<hr>
+
+<h2><span class="no">2</span>El primer día</h2>
+
+<p>La app viene con diez productos de mentira para que practiquen sin miedo. Prueben todo lo que quieran: vendan, carguen, cierren el día. Cuando ya se sientan cómodos, entren a <b>Ajustes</b> y toquen <b>Borrar todo y empezar de cero</b>. Ahí empieza lo serio.</p>
+
+<p>Después de borrar, hagan esto en orden:</p>
+<ol>
+  <li>En <b>Ajustes</b>, pongan el nombre del negocio y los dos nombres de ustedes.</li>
+  <li>En <b>Tasas</b>, toquen <b>Bajar tasas de internet</b>.</li>
+  <li>En <b>Cargar</b>, empiecen a meter los productos.</li>
+</ol>
+
+<div class="caja">
+<p><b>Sobre los días de cobertura.</b> En Ajustes hay un número llamado «días de cobertura», que viene en 1. Ese número es cada cuántos días cambias los bolívares que recibes. Si los cambias el mismo día, déjalo en 1. Si se te acumulan tres días antes de pasarlos a divisa, ponlo en 3 y la app te cubre esa subida.</p>
+</div>
+
+<hr>
+
+<h2><span class="no">3</span>Cargar el inventario</h2>
+
+<p>Toca <b>Cargar</b>. Escanea el código con el botón de la derecha, o escríbelo y dale a la tecla de enviar.</p>
+
+<p><b>Si el producto ya existe</b>, la app te pregunta cuántos entraron y cuánto costó cada uno. Si escaneaste el código de la caja, pon el costo de <b>la caja completa</b>: la app divide sola entre las unidades que trae.</p>
+
+<p><b>Si el código es nuevo</b>, te lleva a darlo de alta. Ahí importa una pregunta: <em>«ese código que escaneaste, ¿de qué es?»</em>. Contesta si es de una unidad suelta, de un six-pack o de una caja. Con eso la app sabe cuántas botellas descontar cada vez que lo lean.</p>
+
+<h3>Una botella, varios códigos</h3>
+<p>Una misma cerveza tiene un código en la lata y otro en la caja. Los dos se cargan en el mismo producto: entra a <b>Stock</b>, toca el producto, y abajo verás la lista de códigos. Ahí puedes agregar el de la caja, el del six-pack, o un segundo código de la unidad si te llegó otro lote con etiqueta distinta.</p>
+
+<p>El inventario siempre se cuenta en unidades sueltas. Una caja de 24 no es «una caja»: son 24 botellas. Cuando lean el código de la caja al vender, se descuentan 24.</p>
+
+<h3>Los botones rápidos</h3>
+<p>Al editar un producto hay una casilla que dice «botón rápido al vender». Márcala en lo que vendes cada dos minutos: cerveza suelta, hielo, cigarros, agua. Esos productos aparecen como botones grandes en la pantalla de vender y no hay que escanearlos.</p>
+
+<hr>
+
+<h2><span class="no">4</span>Vender</h2>
+
+<p>Esta es la pantalla que más van a usar. Toca <b>Vender</b>.</p>
+
+<table>
+<tr><th>Para hacer esto</th><th>Haz esto</th></tr>
+<tr><td>Agregar algo</td><td>Escanéalo con el botón ⛶, o toca su botón rápido, o escribe el nombre y dale a enviar</td></tr>
+<tr><td>Poner dos iguales</td><td>Escanéalo dos veces, o toca el <b>+</b> del renglón</td></tr>
+<tr><td>Quitar uno</td><td>Toca el <b>−</b> del renglón</td></tr>
+<tr><td>Sacar el renglón</td><td>Toca la <b>×</b> de la derecha</td></tr>
+<tr><td>Cobrar algo que no está cargado</td><td>Escribe cualquier cosa que no exista y elige «producto suelto»</td></tr>
+<tr><td>Empezar de nuevo</td><td>Toca <b>Vaciar</b></td></tr>
+</table>
+
+<p>Abajo, siempre a la vista, están los dos totales: los bolívares a la izquierda y la divisa a la derecha. Cuando esté todo, toca <b>Cobrar</b> y elige cómo paga el cliente.</p>
+
+<p>Si paga en dólares en efectivo, puedes escribir con cuánto paga y la app te calcula el vuelto en bolívares. Si paga una parte en verde y otra por pago móvil, elige <b>Combinado</b>.</p>
+
+<div class="caja">
+<p><b>Si te equivocaste después de cobrar:</b> en la misma pantalla de Vender aparece «Anular esa venta». Tócala y el inventario vuelve solo a su sitio. También puedes anular cualquier venta del día desde <b>Cierre</b> → «Ver las ventas de hoy».</p>
+</div>
+
+<h3>Si se rompe una botella</h3>
+<p>No la dejes pasar. Entra a <b>Stock</b>, toca el producto y usa el botón <b>Merma</b>. Anota qué pasó. Si no se registran las botellas rotas, en dos semanas el inventario no cuadra con la realidad y deja de servir para algo.</p>
+
+<hr>
+
+<h2><span class="no">5</span>Cerrar el día</h2>
+
+<p>Al terminar, toca <b>Cierre</b> y luego <b>Cerrar el día</b>. Ahí queda guardado el resumen de la jornada.</p>
+
+<p>Vas a ver dos números de ganancia. Vale la pena entender la diferencia porque no son un capricho:</p>
+
+<table>
+<tr><th>Número</th><th>Qué significa</th></tr>
+<tr><td>Ganancia nominal</td><td>Precio de venta menos costo, en el papel. El número bonito.</td></tr>
+<tr><td>Ganancia real</td><td>Lo mismo, pero valorando los bolívares que recibiste a lo que de verdad valen cuando los cambias. El número cierto.</td></tr>
+</table>
+
+<p>Si venden en bolívares al precio del BCV, esos bolívares no valen lo que dice el BCV: valen lo que te dan al pasarlos a divisa. La ganancia real es la que hay que mirar para decidir qué comprar el mes que viene.</p>
+
+<p>El botón de <b>WhatsApp</b> arma el resumen del día listo para mandárselo al otro. Útil cuando uno cierra y el otro no estuvo.</p>
+
+<hr>
+
+<h2><span class="no">6</span>El Excel</h2>
+
+<p>En <b>Cierre</b>, el botón <b>Bajar el Excel de ganancias</b> arma un archivo con cinco hojas:</p>
+
+<table>
+<tr><td>Resumen_Diario</td><td>Una fila por día, con las tasas, lo vendido y las dos ganancias. Es la hoja para sumar el mes.</td></tr>
+<tr><td>Ventas_Detalle</td><td>Una fila por producto vendido, con la ganancia de cada renglón y quién lo vendió.</td></tr>
+<tr><td>Inventario</td><td>Foto del stock: qué hay, cuánto costó, cuánto vale, cuánto tiempo lleva sin venderse.</td></tr>
+<tr><td>Movimientos</td><td>Entradas, ventas, ajustes y mermas.</td></tr>
+<tr><td>Tasas</td><td>Histórico del BCV, el USDT y la brecha.</td></tr>
+</table>
+
+<p>El archivo se arma completo cada vez, con todo el historial desde el principio. No lo va parchando, así que nunca se descuadra. Puedes bajarlo cuando quieras: cada vez sale al día.</p>
+
+<hr>
+
+<h2><span class="no">7</span>El respaldo</h2>
+
+<div class="caja ojo">
+<p><b>Esto no es opcional.</b> Todo vive dentro del teléfono. Si se pierde, si se moja, si lo formatean o si le limpian los datos a Chrome, se va todo. Una vez por semana, en <b>Ajustes</b>, toquen <b>Bajar respaldo</b>. Es un archivo chiquito. Guárdenlo en Drive, en el correo, o mándenselo por WhatsApp. Con ese archivo se recupera todo en el teléfono que sea.</p>
+</div>
+
+<hr>
+
+<h2><span class="no">8</span>Por qué hay dos precios</h2>
+
+<p>Esta parte es para que los dos digan lo mismo cuando un cliente pregunte.</p>
+
+<p>El dólar tiene dos valores en Venezuela: el del Banco Central y el que se consigue en la calle o en Binance. Cuando cobramos en bolívares, esos bolívares se convierten después a la tasa de Binance, que es más alta. Por eso, cobrar en efectivo cuesta menos: es la misma plata para nosotros.</p>
+
+<p>Un ejemplo con números: si algo vale 10 dólares y el BCV está en 820 mientras Binance está en 932, el cliente paga <b>8.268 bolívares</b> o <b>8,85 dólares</b> en efectivo. Los dos caminos nos dejan lo mismo. El descuento no es un regalo, es un empate.</p>
+
+<p>Además, la app le suma unos bolívares a la tasa del BCV, calculados según cuánto viene subiendo el dólar los últimos tres días. Eso es lo que evita que, mientras los bolívares se quedan en la cuenta esperando el cambio, la subida se nos coma la ganancia.</p>
+
+<hr>
+
+<h2><span class="no">9</span>Si algo sale mal</h2>
+
+<table>
+<tr><th>Pasa esto</th><th>Haz esto</th></tr>
+<tr><td>La franja de arriba está en rojo</td><td>Falta la tasa del día. Toca la franja y bájala, o métela a mano.</td></tr>
+<tr><td>La cámara no abre</td><td>Si abriste la app desde el archivo local, es normal: Chrome no da cámara a los archivos. Escribe el código o usa los botones rápidos. Para tener cámara, hay que publicarla (manera completa del paso 1).</td></tr>
+<tr><td>Escanea pero no encuentra nada</td><td>Ese código no está cargado. La app te ofrece darlo de alta ahí mismo.</td></tr>
+<tr><td>El código está borrado o roto</td><td>Escribe el nombre del producto y dale a enviar.</td></tr>
+<tr><td>No hay internet</td><td>Vender funciona igual. Solo mete la tasa a mano en Tasas.</td></tr>
+<tr><td>Los precios se ven raros</td><td>Revisa en Tasas que el BCV y el USDT estén bien escritos. Ahí mismo se ve el cálculo desglosado.</td></tr>
+<tr><td>El stock no cuadra</td><td>Entra a Stock, toca el producto y corrige el número de existencia. Queda anotado como ajuste.</td></tr>
+</table>
+
+<div class="reglas">
+<h3>Las cinco reglas</h3>
+<ol>
+  <li><b>Cada mañana, la tasa.</b> Antes de vender nada, entra a Tasas y actualízala.</li>
+  <li><b>Todo lo que entra, se carga.</b> Si llega mercancía y no se carga, el inventario deja de servir.</li>
+  <li><b>Todo lo que se rompe, se anota.</b> Botella rota es merma, no es aire.</li>
+  <li><b>Cada noche, cerrar el día.</b> Dos toques y queda el registro.</li>
+  <li><b>Cada semana, el respaldo.</b> Un archivo. Para que nunca duela perder el teléfono.</li>
+</ol>
+</div>
+
+<p class="pie">CAVA — versión 1.0. Sistema de control interno de la licorería. No emite facturas ni tickets con validez fiscal.</p>
+
+</div>
+</body>
+</html>

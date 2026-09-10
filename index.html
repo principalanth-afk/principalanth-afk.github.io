@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0E1C19">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CAVA</title>
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22CAVA%22%2C%22short_name%22%3A%22CAVA%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230E1C19%22%2C%22theme_color%22%3A%22%230E1C19%22%2C%22orientation%22%3A%22portrait%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20512%20512%27%253E%253Crect%20width%3D%27512%27%20height%3D%27512%27%20fill%3D%27%25230E1C19%27%2F%253E%253Cpath%20d%3D%27M208%2080h96v88c0%2024%2040%2056%2040%20104v144a16%2016%200%200%201-16%2016H184a16%2016%200%200%201-16-16V272c0-48%2040-80%2040-104z%27%20fill%3D%27%2523E5A33C%27%2F%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1C19'/%3E%3Cpath d='M26 10h12v11c0 3 5 7 5 13v18a2 2 0 0 1-2 2H23a2 2 0 0 1-2-2V34c0-6 5-10 5-13z' fill='%23E5A33C'/%3E%3C/svg%3E">
+<style>
+:root{
+  --fondo:#0E1C19; --panel:#152925; --panel2:#1D3830; --linea:#2B4A41;
+  --texto:#EDE4D2; --tenue:#8FA79E; --ambar:#E5A33C; --ambar-op:#3A2E13;
+  --verde:#56A97A; --rojo:#CF5546; --azul:#5E93B8;
+  --r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--fondo); color:var(--texto);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px; line-height:1.45; overscroll-behavior:none;
+}
+.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--ambar)}
+:focus-visible{outline:2px solid var(--ambar);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- cabecera: la franja de tasas ---- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:40;background:var(--panel);
+  border-bottom:1px solid var(--linea);padding:env(safe-area-inset-top) 0 0;
+}
+.franja{display:flex;align-items:stretch;height:52px}
+.franja .tasas{flex:1;display:flex;align-items:center;gap:14px;padding:0 14px;min-width:0;overflow:hidden}
+.franja .tasas:active{background:var(--panel2)}
+.tdato{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.tdato b{font-size:15px;font-weight:650;white-space:nowrap}
+.tdato span{font-size:10.5px;color:var(--tenue);white-space:nowrap}
+.tdato.destaca b{color:var(--ambar)}
+.franja .eng{width:52px;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--linea);color:var(--tenue);font-size:20px}
+.aviso{background:var(--rojo);color:#fff;font-size:12.5px;padding:6px 14px;display:none}
+.aviso.on{display:block}
+
+/* ---- contenido ---- */
+main{padding:calc(52px + env(safe-area-inset-top)) 0 calc(66px + env(safe-area-inset-bottom));min-height:100%}
+main.conbarra{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
+.vista{display:none;padding:14px}
+.vista.on{display:block}
+h2{font-size:20px;font-weight:660;margin:2px 0 14px}
+h3{font-size:13px;font-weight:600;color:var(--tenue);margin:22px 0 8px;letter-spacing:.01em}
+h3:first-child{margin-top:2px}
+p.nota{color:var(--tenue);font-size:13.5px;margin:6px 0}
+
+/* ---- barra inferior ---- */
+nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;
+  background:var(--panel);border-top:1px solid var(--linea);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav button{flex:1;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--tenue);font-size:10.5px}
+nav button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--ambar)}
+
+/* ---- piezas ---- */
+.tarjeta{background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.grande{display:flex;gap:10px;margin-bottom:12px}
+.grande>div{flex:1;background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);padding:12px 12px 13px}
+.grande b{display:block;font-size:23px;font-weight:660;line-height:1.15}
+.grande span{font-size:11px;color:var(--tenue)}
+.grande .oro b{color:var(--ambar)}
+
+.btn{display:block;width:100%;padding:15px;border-radius:var(--r);background:var(--panel2);color:var(--texto);font-size:16px;font-weight:600;text-align:center;border:1px solid var(--linea)}
+.btn:active{transform:scale(.99)}
+.btn.oro{background:var(--ambar);color:#1A1207;border-color:var(--ambar)}
+.btn.verde{background:var(--verde);color:#07130C;border-color:var(--verde)}
+.btn.rojo{background:transparent;color:var(--rojo);border-color:var(--rojo)}
+.btn.enorme{padding:22px;font-size:19px;font-weight:700}
+.btn.chico{padding:10px;font-size:14px}
+.fila{display:flex;gap:8px}
+.fila>*{flex:1}
+
+label{display:block;font-size:12.5px;color:var(--tenue);margin:12px 0 5px}
+input,select,textarea{
+  width:100%;padding:12px;border-radius:10px;background:var(--fondo);
+  border:1px solid var(--linea);color:var(--texto)
+}
+input[type=checkbox]{width:auto}
+.campo-inline{display:flex;align-items:center;gap:10px;margin:12px 0}
+.campo-inline label{margin:0;flex:1;color:var(--texto);font-size:14.5px}
+.campo-inline input,.campo-inline select{width:auto;min-width:90px;text-align:right}
+
+/* ---- listas ---- */
+.item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-bottom:1px solid var(--linea)}
+.item:last-child{border-bottom:0}
+.item .cuerpo{flex:1;min-width:0}
+.item .tit{font-size:15px;font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .sub{font-size:12px;color:var(--tenue);margin-top:1px}
+.item .der{text-align:right;white-space:nowrap}
+.item .der b{display:block;font-size:15px;font-weight:620}
+.item .der span{font-size:11px;color:var(--tenue)}
+.lista{background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
+.punto{width:9px;height:9px;border-radius:50%;flex:none}
+.p-rojo{background:var(--rojo)} .p-ama{background:var(--ambar)} .p-verde{background:var(--verde)}
+.vacio{text-align:center;color:var(--tenue);padding:34px 18px;font-size:14px}
+.vacio b{display:block;color:var(--texto);font-size:16px;margin-bottom:5px;font-weight:600}
+
+/* ---- vender ---- */
+.buscador{display:flex;gap:8px;margin-bottom:12px}
+.buscador input{flex:1;font-size:17px;padding:14px}
+.buscador button{width:56px;flex:none;border-radius:10px;background:var(--panel2);border:1px solid var(--linea);font-size:22px}
+.favs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.favs button{background:var(--panel);border:1px solid var(--linea);border-radius:11px;padding:10px 7px;min-height:60px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.favs button:active{background:var(--panel2);border-color:var(--ambar)}
+.favs .n{font-size:12px;font-weight:560;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.favs .pz{font-size:10.5px;color:var(--ambar)}
+.cant{display:flex;align-items:center;gap:0;background:var(--fondo);border:1px solid var(--linea);border-radius:9px;overflow:hidden}
+.cant button{width:32px;height:32px;font-size:18px;color:var(--tenue)}
+.cant b{min-width:26px;text-align:center;font-size:15px}
+
+/* ---- la barra del dinero ---- */
+.dinero{
+  position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));z-index:35;
+  background:var(--panel);border-top:2px solid var(--ambar);display:none
+}
+.dinero.on{display:block}
+.dinero .cifras{display:flex}
+.dinero .cifras>div{flex:1;padding:10px 14px 11px}
+.dinero .cifras>div+div{border-left:1px solid var(--linea)}
+.dinero .cifras b{display:block;font-size:22px;font-weight:680;line-height:1.15}
+.dinero .cifras span{font-size:10.5px;color:var(--tenue)}
+.dinero .oro b{color:var(--ambar)}
+.dinero .pie{display:flex;gap:8px;padding:0 10px 10px}
+
+/* ---- modales ---- */
+.velo{position:fixed;inset:0;z-index:60;background:rgba(6,14,12,.82);display:none;align-items:flex-end}
+.velo.on{display:flex}
+.hoja{
+  width:100%;max-height:92vh;overflow-y:auto;background:var(--panel);
+  border-radius:18px 18px 0 0;border-top:1px solid var(--linea);
+  padding:16px 16px calc(20px + env(safe-area-inset-bottom))
+}
+.hoja h4{margin:0 0 4px;font-size:18px;font-weight:650}
+.asa{width:38px;height:4px;border-radius:2px;background:var(--linea);margin:0 auto 14px}
+
+/* ---- cámara ---- */
+#camara{position:fixed;inset:0;z-index:70;background:#000;display:none;flex-direction:column}
+#camara.on{display:flex}
+#camara video{flex:1;width:100%;object-fit:cover}
+.mira{position:absolute;left:8%;right:8%;top:32%;height:22%;border:2px solid var(--ambar);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+.camtop{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;color:#fff;font-size:14px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.cambot{position:absolute;bottom:0;left:0;right:0;padding:14px 14px calc(18px + env(safe-area-inset-bottom))}
+
+/* ---- varios ---- */
+.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;background:var(--panel2);border:1px solid var(--linea);color:var(--tenue)}
+.chip.oro{color:var(--ambar);border-color:var(--ambar-op);background:var(--ambar-op)}
+.chip.rojo{color:var(--rojo);border-color:#3B1D19;background:#3B1D19}
+.aviso-caja{background:var(--ambar-op);border:1px solid #4A3A18;border-radius:11px;padding:11px 13px;font-size:13.5px;margin-bottom:12px}
+.aviso-caja.mal{background:#331915;border-color:#4E2620}
+table.mini{width:100%;border-collapse:collapse;font-size:13px}
+table.mini td{padding:6px 0;border-bottom:1px solid var(--linea)}
+table.mini td:last-child{text-align:right;font-weight:600}
+table.mini tr:last-child td{border-bottom:0}
+#brindis{position:fixed;left:14px;right:14px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:80;background:var(--verde);color:#07130C;padding:13px 16px;border-radius:12px;font-weight:600;font-size:14.5px;display:none;text-align:center}
+#brindis.mal{background:var(--rojo);color:#fff}
+#brindis.on{display:block}
+.grafico{display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 4px}
+.grafico div{flex:1;background:var(--panel2);border-radius:2px 2px 0 0;min-height:2px}
+.grafico div:last-child{background:var(--ambar)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="franja">
+    <div class="tasas" id="franjaTasas" onclick="irA('tasas')"></div>
+    <button class="eng" onclick="irA('ajustes')" aria-label="Ajustes">⚙</button>
+  </div>
+  <div class="aviso" id="avisoTasa"></div>
+</header>
+
+<main id="principal">
+  <section class="vista" id="v-inicio"></section>
+  <section class="vista" id="v-vender"></section>
+  <section class="vista" id="v-cargar"></section>
+  <section class="vista" id="v-stock"></section>
+  <section class="vista" id="v-cierre"></section>
+  <section class="vista" id="v-tasas"></section>
+  <section class="vista" id="v-ajustes"></section>
+  <section class="vista" id="v-ayuda"></section>
+</main>
+
+<div class="dinero" id="barraDinero"></div>
+
+<nav id="barraNav"></nav>
+
+<div class="velo" id="velo"><div class="hoja" id="hoja"></div></div>
+
+<div id="camara">
+  <video id="video" playsinline muted></video>
+  <div class="mira"></div>
+  <div class="camtop" id="camTexto">Apunta al código de barras</div>
+  <div class="cambot"><button class="btn" onclick="cerrarCamara()">Cerrar cámara</button></div>
+</div>
+
+<div id="brindis"></div>
+
+<script>/* ==========================================================================
+   CAVA — núcleo
+   ========================================================================== */
+'use strict';
+
+/* ---------- utilidades ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const pad = n => String(n).padStart(2, '0');
+const hoyISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const mesDe = f => f.slice(0, 7);
+const ahora = () => new Date().toISOString();
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const nz = v => (typeof v === 'number' && isFinite(v)) ? v : 0;
+
+function fmtBs(n) {
+  return nz(n).toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function fmtUsd(n) {
+  return nz(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtNum(n, d) {
+  d = d === undefined ? 2 : d;
+  return nz(n).toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function fechaLarga(f) {
+  const [y, m, d] = f.split('-').map(Number);
+  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  return d + ' de ' + meses[m - 1] + ' de ' + y;
+}
+function hora(iso) { const d = new Date(iso); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+function redondear(v, paso) {
+  if (!paso || paso <= 0) return v;
+  return Math.round(v / paso) * paso;
+}
+function diasEntre(a, b) {
+  return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
+}
+function restarDias(f, n) {
+  const d = new Date(f + 'T00:00:00');
+  d.setDate(d.getDate() - n);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+
+/* ---------- almacenamiento (IndexedDB con respaldo en localStorage) ---------- */
+const DB = (function () {
+  let db = null, modo = 'idb';
+  function abrir() {
+    return new Promise(res => {
+      if (!window.indexedDB) { modo = 'ls'; return res(); }
+      let req;
+      try { req = indexedDB.open('cava', 1); } catch (e) { modo = 'ls'; return res(); }
+      req.onupgradeneeded = e => { e.target.result.createObjectStore('kv'); };
+      req.onsuccess = e => { db = e.target.result; res(); };
+      req.onerror = () => { modo = 'ls'; res(); };
+      setTimeout(() => { if (!db && modo === 'idb') { modo = 'ls'; res(); } }, 3000);
+    });
+  }
+  function get(k) {
+    if (modo === 'ls' || !db) {
+      try { const v = localStorage.getItem('cava:' + k); return Promise.resolve(v ? JSON.parse(v) : null); }
+      catch (e) { return Promise.resolve(null); }
+    }
+    return new Promise(res => {
+      try {
+        const r = db.transaction('kv', 'readonly').objectStore('kv').get(k);
+        r.onsuccess = () => res(r.result === undefined ? null : r.result);
+        r.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+  }
+  function set(k, v) {
+    if (modo === 'ls' || !db) {
+      try { localStorage.setItem('cava:' + k, JSON.stringify(v)); } catch (e) { }
+      return Promise.resolve();
+    }
+    return new Promise(res => {
+      try {
+        const r = db.transaction('kv', 'readwrite').objectStore('kv').put(v, k);
+        r.onsuccess = () => res(); r.onerror = () => res();
+      } catch (e) { res(); }
+    });
+  }
+  function borrarTodo() {
+    if (modo === 'ls' || !db) {
+      Object.keys(localStorage).filter(k => k.indexOf('cava:') === 0).forEach(k => localStorage.removeItem(k));
+      return Promise.resolve();
+    }
+    return new Promise(res => {
+      const r = db.transaction('kv', 'readwrite').objectStore('kv').clear();
+      r.onsuccess = () => res(); r.onerror = () => res();
+    });
+  }
+  return { abrir, get, set, borrarTodo, get modo() { return modo; } };
+})();
+
+/* ---------- estado ---------- */
+const CFG_DEF = {
+  negocio: 'Mi licorería',
+  usuarios: ['Anthony', 'Esposa'],
+  usuario: 'Anthony',
+  modoRecargo: 'B',        // A = recargo visible en la tasa · B = recargo dentro del precio
+  diasCobertura: 1,
+  topeProyeccionPct: 2,
+  topeDescuentoPct: 20,
+  pisoDescuentoPct: 1,
+  redondeoBs: 1,
+  redondeoUsd: 0.05,
+  igtf: false,
+  igtfPct: 3,
+  autoTasas: true,
+  minimoDefault: 6
+};
+
+let S = {
+  config: Object.assign({}, CFG_DEF),
+  productos: [],
+  tasas: [],       // {fecha,bcv,usdt,promedio3d,proyeccion,tasaVenta,descuentoPct,origen,hora}
+  cierres: [],
+  ventas: [],      // solo el mes en curso
+  movs: [],        // solo el mes en curso
+  meses: [],
+  mesCargado: null
+};
+
+let guardarPendiente = null;
+function guardar(claves) {
+  clearTimeout(guardarPendiente);
+  const k = claves || ['config', 'productos', 'tasas', 'cierres', 'ventas', 'movs', 'meses'];
+  guardarPendiente = setTimeout(() => {
+    const m = S.mesCargado;
+    k.forEach(x => {
+      if (x === 'ventas') DB.set('ventas_' + m, S.ventas);
+      else if (x === 'movs') DB.set('movs_' + m, S.movs);
+      else DB.set(x, S[x]);
+    });
+  }, 150);
+}
+function guardarYa() {
+  clearTimeout(guardarPendiente);
+  const m = S.mesCargado;
+  return Promise.all([
+    DB.set('config', S.config), DB.set('productos', S.productos), DB.set('tasas', S.tasas),
+    DB.set('cierres', S.cierres), DB.set('meses', S.meses),
+    DB.set('ventas_' + m, S.ventas), DB.set('movs_' + m, S.movs)
+  ]);
+}
+
+async function cargarEstado() {
+  await DB.abrir();
+  const [cfg, prods, tasas, cierres, meses] = await Promise.all([
+    DB.get('config'), DB.get('productos'), DB.get('tasas'), DB.get('cierres'), DB.get('meses')
+  ]);
+  S.config = Object.assign({}, CFG_DEF, cfg || {});
+  S.productos = prods || [];
+  S.tasas = tasas || [];
+  S.cierres = cierres || [];
+  S.meses = meses || [];
+  const m = mesDe(hoyISO());
+  S.mesCargado = m;
+  if (S.meses.indexOf(m) < 0) { S.meses.push(m); S.meses.sort(); }
+  S.ventas = (await DB.get('ventas_' + m)) || [];
+  S.movs = (await DB.get('movs_' + m)) || [];
+  reindexar();
+}
+
+async function cargarMes(m) {
+  if (m === S.mesCargado) return { ventas: S.ventas, movs: S.movs };
+  const v = (await DB.get('ventas_' + m)) || [];
+  const mv = (await DB.get('movs_' + m)) || [];
+  return { ventas: v, movs: mv };
+}
+
+/* ---------- índice de códigos ---------- */
+let IDX = new Map();
+function reindexar() {
+  IDX = new Map();
+  S.productos.forEach(p => {
+    (p.pres || []).forEach((pr, i) => {
+      const c = (pr.codigo || '').trim();
+      if (c) IDX.set(c.toUpperCase(), { id: p.id, pres: i });
+    });
+  });
+}
+function buscarCodigo(cod) {
+  const r = IDX.get(String(cod).trim().toUpperCase());
+  if (!r) return null;
+  const p = S.productos.find(x => x.id === r.id);
+  if (!p) return null;
+  return { p, pres: r.pres };
+}
+function producto(id) { return S.productos.find(p => p.id === id); }
+
+/* ---------- motor de tasas ---------- */
+function tasaDe(fecha) { return S.tasas.find(t => t.fecha === fecha) || null; }
+
+function bcvHaceNDias(fecha, n) {
+  const objetivo = restarDias(fecha, n);
+  // busca el registro con fecha <= objetivo más cercano
+  const orden = S.tasas.filter(t => t.fecha <= objetivo).sort((a, b) => a.fecha < b.fecha ? 1 : -1);
+  return orden.length ? orden[0] : null;
+}
+
+function calcularTasa(fecha, bcv, usdt, origen) {
+  const c = S.config;
+  bcv = nz(bcv); usdt = nz(usdt);
+  const ref = bcvHaceNDias(fecha, 3);
+  let prom = 0, base = null;
+  if (ref && ref.bcv > 0) {
+    const dd = diasEntre(ref.fecha, fecha);
+    if (dd > 0) { prom = (bcv - ref.bcv) / dd; base = ref; }
+  }
+  if (prom < 0 || !isFinite(prom)) prom = 0;
+  const tope = bcv * (c.topeProyeccionPct / 100);
+  let proy = prom * c.diasCobertura;
+  let topado = false;
+  if (proy > tope) { proy = tope; topado = true; }
+  const tasaVenta = bcv + proy;
+
+  let desc = usdt > 0 ? (1 - tasaVenta / usdt) * 100 : 0;
+  if (!isFinite(desc) || desc < 0) desc = 0;
+  if (desc > c.topeDescuentoPct) desc = c.topeDescuentoPct;
+  if (desc < c.pisoDescuentoPct) desc = 0;
+
+  return {
+    fecha, bcv, usdt,
+    promedio3d: prom, proyeccion: proy, tasaVenta, descuentoPct: desc,
+    origen: origen || 'manual', hora: ahora(), topado,
+    refFecha: base ? base.fecha : null, refBcv: base ? base.bcv : null
+  };
+}
+
+function guardarTasa(t) {
+  const i = S.tasas.findIndex(x => x.fecha === t.fecha);
+  if (i >= 0) S.tasas[i] = t; else S.tasas.push(t);
+  S.tasas.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+  guardar(['tasas']);
+}
+
+async function bajarTasas() {
+  const out = { bcv: null, usdt: null, error: null };
+  try {
+    const [a, b] = await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial', { cache: 'no-store' }).then(r => r.json()),
+      fetch('https://ve.dolarapi.com/v1/dolares/paralelo', { cache: 'no-store' }).then(r => r.json())
+    ]);
+    out.bcv = nz(a.promedio) || nz(a.venta);
+    out.usdt = nz(b.promedio) || nz(b.venta);
+    if (!out.bcv || !out.usdt) out.error = 'La fuente respondió sin valores.';
+  } catch (e) {
+    out.error = 'Sin conexión con la fuente de tasas.';
+  }
+  return out;
+}
+
+/* tasa vigente: la de hoy, o la última conocida marcada como heredada */
+function tasaVigente() {
+  const h = hoyISO();
+  const t = tasaDe(h);
+  if (t) return t;
+  const ult = S.tasas.length ? S.tasas[S.tasas.length - 1] : null;
+  if (!ult) return null;
+  return Object.assign({}, ult, { heredada: true, fechaOriginal: ult.fecha, fecha: h });
+}
+
+/* ---------- precios ---------- */
+/* Regla única:  Bs = P * tasaVenta      ·      Efectivo $ = P * (1 - desc)      */
+function precioBase(p, ipres) {
+  const pr = (p.pres || [])[ipres] || { factor: 1 };
+  if (pr.precio != null && pr.precio !== '' && nz(pr.precio) > 0) return nz(pr.precio);
+  return nz(p.precio) * nz(pr.factor || 1);
+}
+function costoBase(p, ipres) {
+  const pr = (p.pres || [])[ipres] || { factor: 1 };
+  return nz(p.costo) * nz(pr.factor || 1);
+}
+function preciosDe(P, t, p) {
+  if (!t) return { bs: 0, efectivo: 0, lista: P, desc: 0 };
+  const aplica = !p || p.aplicaDesc !== false;
+  const desc = aplica ? t.descuentoPct : 0;
+  // sin redondear: el redondeo se aplica una sola vez, sobre el total de la venta
+  return { bs: P * t.tasaVenta, efectivo: P * (1 - desc / 100), lista: P, desc };
+}
+/* lo que se exhibe según modo A/B */
+function vistaTasa(t) {
+  if (!t) return { tasa: 0, etiqueta: 'sin tasa', desc: 0 };
+  if (S.config.modoRecargo === 'A') return { tasa: t.tasaVenta, etiqueta: 'tasa de venta', desc: t.descuentoPct };
+  const d = t.usdt > 0 ? Math.max(0, (1 - t.bcv / t.usdt) * 100) : 0;
+  return { tasa: t.bcv, etiqueta: 'tasa BCV', desc: d };
+}
+
+/* ---------- inventario ---------- */
+function movimiento(tipo, prodId, unidades, costo, ref, nota) {
+  const m = {
+    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
+    productoId: prodId, tipo, unidades, costo: nz(costo), ref: ref || '', nota: nota || ''
+  };
+  S.movs.push(m);
+  guardar(['movs']);
+  return m;
+}
+function ajustarStock(prodId, delta) {
+  const p = producto(prodId);
+  if (!p) return;
+  p.stock = nz(p.stock) + delta;
+  p.actualizado = ahora();
+  if (delta > 0) p.ultimaEntrada = hoyISO();
+  else p.ultimaVenta = hoyISO();
+  guardar(['productos']);
+}
+
+/* ---------- ventas ---------- */
+let carrito = [];
+
+function agregarCarrito(p, ipres, cant) {
+  cant = cant || 1;
+  const ex = carrito.find(l => l.productoId === p.id && l.pres === ipres);
+  if (ex) { ex.cant += cant; return ex; }
+  const l = {
+    productoId: p.id, pres: ipres,
+    nombre: p.nombre, presNombre: (p.pres[ipres] || {}).nombre || 'Unidad',
+    factor: nz((p.pres[ipres] || {}).factor) || 1,
+    cant: cant,
+    precioBase: precioBase(p, ipres),
+    costoBase: costoBase(p, ipres),
+    aplicaDesc: p.aplicaDesc !== false,
+    suelto: false
+  };
+  carrito.push(l);
+  return l;
+}
+function agregarSuelto(nombre, montoUsd) {
+  carrito.push({
+    productoId: null, pres: 0, nombre: nombre || 'Producto suelto', presNombre: 'suelto',
+    factor: 1, cant: 1, precioBase: nz(montoUsd), costoBase: 0, aplicaDesc: true, suelto: true
+  });
+}
+function totalesCarrito(t) {
+  let lista = 0, bs = 0, efectivo = 0, costo = 0, unidades = 0;
+  carrito.forEach(l => {
+    const p = l.productoId ? producto(l.productoId) : null;
+    const pr = preciosDe(l.precioBase, t, p);
+    lista += pr.lista * l.cant;
+    bs += pr.bs * l.cant;
+    efectivo += pr.efectivo * l.cant;
+    costo += l.costoBase * l.cant;
+    unidades += l.factor * l.cant;
+  });
+  const c = S.config;
+  return {
+    lista, costo, unidades,
+    bs: redondear(bs, c.redondeoBs),
+    efectivo: redondear(efectivo, c.redondeoUsd),
+    bsCrudo: bs, efectivoCrudo: efectivo
+  };
+}
+
+function registrarVenta(pago, t) {
+  // pago: {metodo, recibidoUsd, recibidoBs, vueltoBs, igtf}
+  const tt = totalesCarrito(t);
+  const grupoDivisa = ['efectivo_usd', 'binance'].indexOf(pago.metodo) >= 0;
+  const cobradoUsd = pago.metodo === 'mixto' ? nz(pago.parteUsd) : (grupoDivisa ? tt.efectivo : 0);
+  const cobradoBs = pago.metodo === 'mixto' ? nz(pago.parteBs) : (grupoDivisa ? 0 : tt.bs);
+  const ingresoReal = cobradoUsd + (t.usdt > 0 ? cobradoBs / t.usdt : 0);
+  const v = {
+    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
+    items: carrito.map(l => {
+      const p = l.productoId ? producto(l.productoId) : null;
+      const pr = preciosDe(l.precioBase, t, p);
+      return {
+        productoId: l.productoId, nombre: l.nombre, presNombre: l.presNombre,
+        cant: l.cant, factor: l.factor, unidades: l.factor * l.cant,
+        costoUnit: l.costoBase, precioLista: pr.lista, precioBs: pr.bs, precioEfectivo: pr.efectivo,
+        descPct: pr.desc,
+        subtotalLista: pr.lista * l.cant,
+        gananciaLinea: 0
+      };
+    }),
+    totalLista: tt.lista, totalBs: tt.bs, totalEfectivo: tt.efectivo,
+    costoTotal: tt.costo, unidades: tt.unidades,
+    metodo: pago.metodo, cobradoUsd, cobradoBs, igtf: nz(pago.igtf),
+    bcv: t.bcv, usdt: t.usdt, tasaVenta: t.tasaVenta, descuentoPct: t.descuentoPct,
+    ingresoReal, gananciaNominal: tt.lista - tt.costo, gananciaReal: ingresoReal - tt.costo,
+    anulada: false
+  };
+  // reparte la ganancia real por línea, proporcional al peso de cada una
+  v.items.forEach(it => {
+    const peso = tt.lista > 0 ? it.subtotalLista / tt.lista : 0;
+    it.gananciaLinea = (ingresoReal * peso) - (it.costoUnit * it.cant);
+  });
+  S.ventas.push(v);
+  // descuenta inventario
+  v.items.forEach(it => {
+    if (!it.productoId) return;
+    ajustarStock(it.productoId, -it.unidades);
+    movimiento('venta', it.productoId, -it.unidades, it.costoUnit / (it.factor || 1), v.id, '');
+  });
+  guardar(['ventas', 'productos', 'movs']);
+  carrito = [];
+  return v;
+}
+
+function anularVenta(id) {
+  const v = S.ventas.find(x => x.id === id);
+  if (!v || v.anulada) return false;
+  v.anulada = true;
+  v.anuladaTs = ahora();
+  v.items.forEach(it => {
+    if (!it.productoId) return;
+    ajustarStock(it.productoId, it.unidades);
+    movimiento('devolucion', it.productoId, it.unidades, it.costoUnit / (it.factor || 1), v.id, 'anulación');
+  });
+  guardar(['ventas', 'productos', 'movs']);
+  return true;
+}
+
+/* ---------- cierre del día ---------- */
+function resumenDia(fecha, ventas) {
+  const vs = (ventas || S.ventas).filter(v => v.fecha === fecha && !v.anulada);
+  const r = {
+    fecha, nVentas: vs.length, unidades: 0, ventaLista: 0, ventaBs: 0, ventaUsd: 0,
+    ingresoReal: 0, costo: 0, gananciaNominal: 0, gananciaReal: 0, descuentos: 0,
+    porMetodo: {}, porUsuario: {}, top: []
+  };
+  const acumProd = {};
+  vs.forEach(v => {
+    r.unidades += v.unidades;
+    r.ventaLista += v.totalLista;
+    r.ventaBs += v.cobradoBs;
+    r.ventaUsd += v.cobradoUsd;
+    r.ingresoReal += v.ingresoReal;
+    r.costo += v.costoTotal;
+    r.gananciaNominal += v.gananciaNominal;
+    r.gananciaReal += v.gananciaReal;
+    r.porMetodo[v.metodo] = (r.porMetodo[v.metodo] || 0) + v.ingresoReal;
+    r.porUsuario[v.usuario] = (r.porUsuario[v.usuario] || 0) + v.ingresoReal;
+    v.items.forEach(it => {
+      const k = it.nombre;
+      if (!acumProd[k]) acumProd[k] = { nombre: k, unidades: 0, ganancia: 0, venta: 0 };
+      acumProd[k].unidades += it.unidades;
+      acumProd[k].ganancia += it.gananciaLinea;
+      acumProd[k].venta += it.subtotalLista;
+    });
+  });
+  r.descuentos = r.ventaLista - r.ingresoReal;
+  r.top = Object.values(acumProd).sort((a, b) => b.ganancia - a.ganancia).slice(0, 5);
+  r.margen = r.ingresoReal > 0 ? (r.gananciaReal / r.ingresoReal) * 100 : 0;
+  return r;
+}
+
+function cerrarDia(fecha) {
+  const t = tasaDe(fecha) || tasaVigente();
+  const r = resumenDia(fecha);
+  const c = {
+    fecha: r.fecha, nVentas: r.nVentas, unidades: r.unidades,
+    ventaLista: r.ventaLista, ingresoReal: r.ingresoReal, costo: r.costo,
+    gananciaNominal: r.gananciaNominal, gananciaReal: r.gananciaReal,
+    descuentos: r.descuentos, margen: r.margen,
+    efectivoUsd: r.ventaUsd, bs: r.ventaBs,
+    bcv: t ? t.bcv : 0, usdt: t ? t.usdt : 0, tasaVenta: t ? t.tasaVenta : 0,
+    proyeccion: t ? t.proyeccion : 0, descuentoPct: t ? t.descuentoPct : 0,
+    porMetodo: r.porMetodo, porUsuario: r.porUsuario,
+    cerrado: ahora(), usuario: S.config.usuario
+  };
+  const i = S.cierres.findIndex(x => x.fecha === fecha);
+  if (i >= 0) S.cierres[i] = c; else S.cierres.push(c);
+  S.cierres.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
+  guardar(['cierres']);
+  return c;
+}
+
+/* ---------- análisis ---------- */
+function capitalDormido(dias) {
+  const h = hoyISO();
+  return S.productos.filter(p => p.activo !== false && nz(p.stock) > 0)
+    .map(p => {
+      const ult = p.ultimaVenta || p.creadoFecha || h;
+      return { p, dias: diasEntre(ult, h), valor: nz(p.stock) * nz(p.costo) };
+    })
+    .filter(x => x.dias >= dias)
+    .sort((a, b) => b.valor - a.valor);
+}
+function bajoMinimo() {
+  return S.productos.filter(p => p.activo !== false && nz(p.stock) <= nz(p.minimo))
+    .sort((a, b) => nz(a.stock) - nz(b.stock));
+}
+function valorInventario() {
+  let costo = 0, venta = 0;
+  S.productos.forEach(p => {
+    if (p.activo === false) return;
+    costo += nz(p.stock) * nz(p.costo);
+    venta += nz(p.stock) * nz(p.precio);
+  });
+  return { costo, venta };
+}
+</script>
+<script>/* ==========================================================================
+   Generador .xlsx sin librerías: ZIP (store) + XML de Excel
+   ========================================================================== */
+'use strict';
+
+const CRC_TABLA = (function () {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(u8) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_TABLA[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function texto(s) { return new TextEncoder().encode(s); }
+
+function zipCrear(archivos) {
+  // archivos: [{nombre, datos:Uint8Array}]
+  const partes = [];
+  const central = [];
+  let offset = 0;
+  const d = new Date();
+  const hora = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() / 2)) & 0xFFFF;
+  const fecha = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+
+  archivos.forEach(a => {
+    const nombre = texto(a.nombre);
+    const datos = a.datos;
+    const crc = crc32(datos);
+    const lh = new Uint8Array(30 + nombre.length);
+    const dv = new DataView(lh.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true);      // versión
+    dv.setUint16(6, 0, true);       // flags
+    dv.setUint16(8, 0, true);       // método = store
+    dv.setUint16(10, hora, true);
+    dv.setUint16(12, fecha, true);
+    dv.setUint32(14, crc, true);
+    dv.setUint32(18, datos.length, true);
+    dv.setUint32(22, datos.length, true);
+    dv.setUint16(26, nombre.length, true);
+    dv.setUint16(28, 0, true);
+    lh.set(nombre, 30);
+    partes.push(lh, datos);
+
+    const ch = new Uint8Array(46 + nombre.length);
+    const cv = new DataView(ch.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, hora, true);
+    cv.setUint16(14, fecha, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, datos.length, true);
+    cv.setUint32(24, datos.length, true);
+    cv.setUint16(28, nombre.length, true);
+    cv.setUint32(42, offset, true);
+    ch.set(nombre, 46);
+    central.push(ch);
+
+    offset += lh.length + datos.length;
+  });
+
+  let tamCentral = 0;
+  central.forEach(c => tamCentral += c.length);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(8, archivos.length, true);
+  ev.setUint16(10, archivos.length, true);
+  ev.setUint32(12, tamCentral, true);
+  ev.setUint32(16, offset, true);
+
+  let total = offset + tamCentral + 22;
+  const out = new Uint8Array(total);
+  let pos = 0;
+  partes.forEach(p => { out.set(p, pos); pos += p.length; });
+  central.forEach(c => { out.set(c, pos); pos += c.length; });
+  out.set(eocd, pos);
+  return out;
+}
+
+function escX(s) {
+  return String(s == null ? '' : s)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+function colLetra(n) {
+  let s = '';
+  n = n + 1;
+  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+/* hoja: {nombre, columnas:[ancho], filas:[[celda,...]]}  celda: número | string | {v, s} */
+function hojaXML(hoja) {
+  let cols = '';
+  if (hoja.columnas && hoja.columnas.length) {
+    cols = '<cols>' + hoja.columnas.map((w, i) =>
+      '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>';
+  }
+  const filas = hoja.filas.map((fila, ri) => {
+    const celdas = fila.map((c, ci) => {
+      const ref = colLetra(ci) + (ri + 1);
+      let v = c, estilo = ri === 0 ? 1 : 0;
+      if (c && typeof c === 'object' && !Array.isArray(c)) { v = c.v; estilo = c.s != null ? c.s : estilo; }
+      if (v === null || v === undefined || v === '') return '<c r="' + ref + '" s="' + estilo + '"/>';
+      if (typeof v === 'number' && isFinite(v)) {
+        if (ri > 0 && estilo === 0) estilo = 2;
+        return '<c r="' + ref + '" s="' + estilo + '"><v>' + v + '</v></c>';
+      }
+      return '<c r="' + ref + '" s="' + estilo + '" t="inlineStr"><is><t xml:space="preserve">' + escX(v) + '</t></is></c>';
+    }).join('');
+    return '<row r="' + (ri + 1) + '">' + celdas + '</row>';
+  }).join('');
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    cols + '<sheetData>' + filas + '</sheetData></worksheet>';
+}
+
+function construirXLSX(hojas) {
+  const n = hojas.length;
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    hojas.map((h, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') +
+    '</Types>';
+
+  const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>';
+
+  const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
+    hojas.map((h, i) => '<sheet name="' + escX(h.nombre) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') +
+    '</sheets></workbook>';
+
+  const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    hojas.map((h, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') +
+    '<Relationship Id="rId' + (n + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+    '</Relationships>';
+
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts>' +
+    '<fonts count="2">' +
+    '<font><sz val="11"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
+    '</fonts>' +
+    '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF1F3A33"/><bgColor indexed="64"/></patternFill></fill></fills>' +
+    '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="3">' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
+    '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
+    '</cellXfs>' +
+    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+    '</styleSheet>';
+
+  const archivos = [
+    { nombre: '[Content_Types].xml', datos: texto(contentTypes) },
+    { nombre: '_rels/.rels', datos: texto(rels) },
+    { nombre: 'xl/workbook.xml', datos: texto(workbook) },
+    { nombre: 'xl/_rels/workbook.xml.rels', datos: texto(wbRels) },
+    { nombre: 'xl/styles.xml', datos: texto(styles) }
+  ];
+  hojas.forEach((h, i) => archivos.push({ nombre: 'xl/worksheets/sheet' + (i + 1) + '.xml', datos: texto(hojaXML(h)) }));
+  return zipCrear(archivos);
+}
+</script>
+<script>/* ==========================================================================
+   CAVA — interfaz
+   ========================================================================== */
+'use strict';
+
+let VISTA = 'inicio';
+const ICONOS = {
+  inicio: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
+  vender: '<path d="M4 6h3l2.4 10.2a2 2 0 0 0 2 1.5h6.5a2 2 0 0 0 2-1.6L21.5 9H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>',
+  cargar: '<path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 17v3h16v-3"/>',
+  stock: '<path d="M4 7h16v13H4z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 11h4"/>',
+  cierre: '<path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/>'
+};
+
+function irA(v) {
+  VISTA = v;
+  $$('.vista').forEach(s => s.classList.remove('on'));
+  const el = $('#v-' + v);
+  if (el) el.classList.add('on');
+  window.scrollTo(0, 0);
+  render();
+}
+
+function brindis(msg, mal) {
+  const b = $('#brindis');
+  b.textContent = msg;
+  b.className = 'on' + (mal ? ' mal' : '');
+  clearTimeout(b._t);
+  b._t = setTimeout(() => b.className = '', 2600);
+}
+function abrirHoja(html) { $('#hoja').innerHTML = html; $('#velo').classList.add('on'); }
+function cerrarHoja() { $('#velo').classList.remove('on'); $('#hoja').innerHTML = ''; }
+$('#velo').addEventListener('click', e => { if (e.target.id === 'velo') cerrarHoja(); });
+
+function pitar(ok) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = ok ? 1180 : 320;
+    g.gain.setValueAtTime(.12, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .13);
+    o.start(); o.stop(ctx.currentTime + .14);
+    setTimeout(() => ctx.close(), 300);
+  } catch (e) { }
+  if (navigator.vibrate) navigator.vibrate(ok ? 35 : [50, 40, 50]);
+}
+
+function descargar(nombre, datos, tipo) {
+  const blob = datos instanceof Blob ? datos : new Blob([datos], { type: tipo || 'application/octet-stream' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+}
+
+/* ====================== cabecera y navegación ====================== */
+function renderFranja() {
+  const t = tasaVigente();
+  const f = $('#franjaTasas');
+  const av = $('#avisoTasa');
+  if (!t) {
+    f.innerHTML = '<div class="tdato destaca"><b>Falta la tasa de hoy</b><span>toca aquí para cargarla</span></div>';
+    av.className = 'aviso on';
+    av.textContent = 'Sin tasa cargada no se puede vender. Toca la franja de arriba.';
+    return;
+  }
+  const v = vistaTasa(t);
+  f.innerHTML =
+    '<div class="tdato"><b class="num">' + fmtNum(v.tasa, 2) + '</b><span>' + v.etiqueta + '</span></div>' +
+    '<div class="tdato"><b class="num">' + fmtNum(t.usdt, 2) + '</b><span>USDT Binance</span></div>' +
+    '<div class="tdato destaca"><b class="num">' + fmtNum(t.descuentoPct, 1) + '%</b><span>descuento divisa</span></div>';
+  if (t.heredada) {
+    av.className = 'aviso on';
+    av.textContent = 'Estás usando la tasa del ' + fechaLarga(t.fechaOriginal) + '. Actualízala antes de vender.';
+  } else av.className = 'aviso';
+}
+
+function renderNav() {
+  const tabs = [['inicio', 'Inicio'], ['vender', 'Vender'], ['cargar', 'Cargar'], ['stock', 'Stock'], ['cierre', 'Cierre']];
+  $('#barraNav').innerHTML = tabs.map(([k, n]) =>
+    '<button class="' + (VISTA === k ? 'on' : '') + '" onclick="irA(\'' + k + '\')">' +
+    '<svg viewBox="0 0 24 24">' + ICONOS[k] + '</svg>' + n + '</button>').join('');
+}
+
+function render() {
+  renderFranja(); renderNav();
+  $('#principal').className = (VISTA === 'vender' && carrito.length) ? 'conbarra' : '';
+  const f = {
+    inicio: renderInicio, vender: renderVender, cargar: renderCargar, stock: renderStock,
+    cierre: renderCierre, tasas: renderTasas, ajustes: renderAjustes, ayuda: renderAyuda
+  }[VISTA];
+  if (f) f();
+  renderDinero();
+}
+
+/* ====================== inicio ====================== */
+function renderInicio() {
+  const r = resumenDia(hoyISO());
+  const bajo = bajoMinimo();
+  const inv = valorInventario();
+  const cerrado = S.cierres.some(c => c.fecha === hoyISO());
+  let h = '<h2>' + S.config.negocio + '</h2>';
+
+  h += '<div class="grande">' +
+    '<div><b class="num">$' + fmtUsd(r.ingresoReal) + '</b><span>vendido hoy</span></div>' +
+    '<div class="oro"><b class="num">$' + fmtUsd(r.gananciaReal) + '</b><span>ganancia de hoy</span></div>' +
+    '</div>' +
+    '<div class="grande">' +
+    '<div><b class="num">' + r.nVentas + '</b><span>ventas</span></div>' +
+    '<div><b class="num">' + fmtNum(r.unidades, 0) + '</b><span>unidades</span></div>' +
+    '<div><b class="num">' + fmtNum(r.margen, 0) + '%</b><span>margen</span></div>' +
+    '</div>';
+
+  h += '<button class="btn oro enorme" onclick="irA(\'vender\')">Vender</button>';
+
+  if (bajo.length) {
+    h += '<h3>Se está acabando</h3><div class="lista">' +
+      bajo.slice(0, 6).map(p =>
+        '<div class="item" onclick="editarProducto(\'' + p.id + '\')">' +
+        '<div class="punto ' + (nz(p.stock) <= 0 ? 'p-rojo' : 'p-ama') + '"></div>' +
+        '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
+        '<div class="sub">' + esc(p.presentacion || '') + '</div></div>' +
+        '<div class="der"><b class="num">' + fmtNum(p.stock, 0) + '</b><span>mínimo ' + fmtNum(p.minimo, 0) + '</span></div></div>'
+      ).join('') + '</div>';
+    if (bajo.length > 6) h += '<p class="nota">y ' + (bajo.length - 6) + ' más en la pestaña Stock.</p>';
+  }
+
+  h += '<h3>El negocio hoy</h3><div class="tarjeta"><table class="mini">' +
+    '<tr><td>Productos cargados</td><td class="num">' + S.productos.filter(p => p.activo !== false).length + '</td></tr>' +
+    '<tr><td>Inventario a precio de costo</td><td class="num">$' + fmtUsd(inv.costo) + '</td></tr>' +
+    '<tr><td>Inventario a precio de venta</td><td class="num">$' + fmtUsd(inv.venta) + '</td></tr>' +
+    '<tr><td>Día cerrado</td><td>' + (cerrado ? 'sí' : 'todavía no') + '</td></tr>' +
+    '</table></div>';
+
+  h += '<div class="fila"><button class="btn chico" onclick="irA(\'tasas\')">Tasas</button>' +
+    '<button class="btn chico" onclick="irA(\'ayuda\')">Cómo se usa</button></div>';
+  $('#v-inicio').innerHTML = h;
+}
+
+/* ====================== vender ====================== */
+let ultimaVenta = null, ultimoEscaneo = { cod: '', t: 0 }, codigoPendiente = '';
+
+function renderVender() {
+  const t = tasaVigente();
+  let h = '<div class="buscador">' +
+    '<input id="entrada" placeholder="Código o nombre" autocomplete="off" enterkeyhint="done">' +
+    '<button onclick="escanear()" aria-label="Escanear">⛶</button></div>';
+
+  if (!t) {
+    h += '<div class="aviso-caja mal">Carga la tasa del día antes de vender. ' +
+      '<a onclick="irA(\'tasas\')">Ir a Tasas</a></div>';
+  }
+
+  const favs = productosFrecuentes();
+  if (favs.length) {
+    h += '<div class="favs">' + favs.slice(0, carrito.length ? 6 : 9).map(p => {
+      const pr = preciosDe(precioBase(p, 0), t, p);
+      return '<button onclick="tocarFav(\'' + p.id + '\')">' +
+        '<span class="n">' + esc(p.nombre) + '</span>' +
+        '<span class="pz num">$' + fmtUsd(pr.efectivo) + '</span></button>';
+    }).join('') + '</div>';
+  }
+
+  if (!carrito.length) {
+    h += '<div class="vacio"><b>Nada en la cuenta todavía</b>' +
+      'Escanea, toca un producto de arriba, o escribe el nombre.</div>';
+    if (ultimaVenta) {
+      h += '<div class="tarjeta"><div style="font-size:13px;color:var(--tenue)">Última venta ' +
+        hora(ultimaVenta.ts) + ' · $' + fmtUsd(ultimaVenta.ingresoReal) + '</div>' +
+        '<button class="btn rojo chico" style="margin-top:10px" onclick="deshacerUltima()">Anular esa venta</button></div>';
+    }
+  } else {
+    h += '<div class="lista">' + carrito.map((l, i) => {
+      const p = l.productoId ? producto(l.productoId) : null;
+      const pr = preciosDe(l.precioBase, t, p);
+      return '<div class="item">' +
+        '<div class="cant"><button onclick="cambiarCant(' + i + ',-1)">−</button>' +
+        '<b class="num">' + l.cant + '</b>' +
+        '<button onclick="cambiarCant(' + i + ',1)">+</button></div>' +
+        '<div class="cuerpo"><div class="tit">' + esc(l.nombre) + '</div>' +
+        '<div class="sub">' + esc(l.presNombre) + (l.factor > 1 ? ' · ' + (l.factor * l.cant) + ' unidades' : '') + '</div></div>' +
+        '<div class="der"><b class="num">$' + fmtUsd(pr.efectivo * l.cant) + '</b>' +
+        '<span class="num">Bs ' + fmtBs(pr.bs * l.cant) + '</span></div>' +
+        '<button style="color:var(--tenue);padding:0 4px;font-size:19px" onclick="quitarLinea(' + i + ')">×</button>' +
+        '</div>';
+    }).join('') + '</div>';
+  }
+  $('#v-vender').innerHTML = h;
+
+  const inp = $('#entrada');
+  if (inp) {
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { procesarEntrada(inp.value); inp.value = ''; } });
+    inp.addEventListener('input', () => { if (inp.value.length > 2) sugerir(inp.value); });
+  }
+}
+
+function productosFrecuentes() {
+  const marcados = S.productos.filter(p => p.favorito && p.activo !== false);
+  if (marcados.length) return marcados.slice(0, 9);
+  const cuenta = {};
+  S.ventas.forEach(v => !v.anulada && v.items.forEach(it => {
+    if (it.productoId) cuenta[it.productoId] = (cuenta[it.productoId] || 0) + it.unidades;
+  }));
+  return Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a]).slice(0, 9)
+    .map(id => producto(id)).filter(Boolean);
+}
+
+function tocarFav(id) {
+  const p = producto(id);
+  if (!p) return;
+  if ((p.pres || []).length > 1) return elegirPresentacion(p);
+  agregarCarrito(p, 0, 1); pitar(true); render();
+}
+
+function procesarEntrada(txt) {
+  txt = (txt || '').trim();
+  if (!txt) return;
+  const hit = buscarCodigo(txt);
+  if (hit) { agregarCarrito(hit.p, hit.pres, 1); pitar(true); render(); return; }
+  const q = txt.toLowerCase();
+  const encontrados = S.productos.filter(p => p.activo !== false &&
+    (p.nombre + ' ' + (p.presentacion || '') + ' ' + (p.categoria || '')).toLowerCase().includes(q));
+  if (encontrados.length === 1) { tocarFav(encontrados[0].id); return; }
+  if (encontrados.length > 1) return listaElegir(encontrados);
+  pitar(false);
+  codigoPendiente = txt;
+  abrirHoja('<div class="asa"></div><h4>No conozco ese código</h4>' +
+    '<p class="nota">' + esc(txt) + '</p>' +
+    '<button class="btn oro" style="margin-top:14px" onclick="cerrarHoja();altaProducto(codigoPendiente)">Darlo de alta ahora</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();pedirSuelto()">Cobrarlo como producto suelto</button>');
+}
+
+function sugerir(q) { /* la búsqueda se resuelve al presionar Enter; se deja el hook para el futuro */ }
+
+function listaElegir(lista) {
+  abrirHoja('<div class="asa"></div><h4>¿Cuál de estos?</h4><div class="lista" style="margin-top:10px">' +
+    lista.slice(0, 12).map(p =>
+      '<div class="item" onclick="cerrarHoja();tocarFav(\'' + p.id + '\')">' +
+      '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
+      '<div class="sub">' + esc(p.presentacion || '') + ' · quedan ' + fmtNum(p.stock, 0) + '</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(p.precio) + '</b></div></div>').join('') + '</div>');
+}
+
+function elegirPresentacion(p) {
+  const t = tasaVigente();
+  abrirHoja('<div class="asa"></div><h4>' + esc(p.nombre) + '</h4>' +
+    '<p class="nota">¿Cómo lo vas a vender?</p><div class="lista" style="margin-top:10px">' +
+    p.pres.map((pr, i) => {
+      const precio = preciosDe(precioBase(p, i), t, p);
+      return '<div class="item" onclick="cerrarHoja();agregarCarrito(producto(\'' + p.id + '\'),' + i + ',1);pitar(true);render()">' +
+        '<div class="cuerpo"><div class="tit">' + esc(pr.nombre) + '</div>' +
+        '<div class="sub">' + pr.factor + (pr.factor === 1 ? ' unidad' : ' unidades') + '</div></div>' +
+        '<div class="der"><b class="num">$' + fmtUsd(precio.efectivo) + '</b>' +
+        '<span class="num">Bs ' + fmtBs(precio.bs) + '</span></div></div>';
+    }).join('') + '</div>');
+}
+
+function cambiarCant(i, d) {
+  carrito[i].cant += d;
+  if (carrito[i].cant <= 0) carrito.splice(i, 1);
+  render();
+}
+function quitarLinea(i) { carrito.splice(i, 1); render(); }
+function vaciarCarrito() { carrito = []; render(); }
+
+function pedirSuelto() {
+  abrirHoja('<div class="asa"></div><h4>Producto suelto</h4>' +
+    '<p class="nota">Para cobrar algo que no está cargado. No descuenta inventario.</p>' +
+    '<label>Qué es</label><input id="sn" placeholder="Hielo, vaso, cigarro...">' +
+    '<label>Precio en dólares</label><input id="sm" type="number" inputmode="decimal" step="0.01" placeholder="1.50">' +
+    '<button class="btn oro" style="margin-top:16px" onclick="confirmarSuelto()">Agregar</button>');
+  setTimeout(() => $('#sn') && $('#sn').focus(), 100);
+}
+function confirmarSuelto() {
+  const n = $('#sn').value.trim(), m = parseFloat($('#sm').value);
+  if (!m || m <= 0) return brindis('Falta el precio', true);
+  agregarSuelto(n || 'Producto suelto', m);
+  cerrarHoja(); pitar(true); render();
+}
+
+/* ---- la barra del dinero ---- */
+function renderDinero() {
+  const b = $('#barraDinero');
+  if (VISTA !== 'vender' || !carrito.length) { b.className = 'dinero'; return; }
+  const t = tasaVigente();
+  const tt = totalesCarrito(t);
+  b.className = 'dinero on';
+  b.innerHTML =
+    '<div class="cifras">' +
+    '<div><b class="num">' + fmtBs(tt.bs) + '</b><span>bolívares</span></div>' +
+    '<div class="oro"><b class="num">$' + fmtUsd(tt.efectivo) + '</b><span>efectivo o Binance</span></div>' +
+    '</div><div class="pie">' +
+    '<button class="btn chico" style="flex:0 0 34%" onclick="vaciarCarrito()">Vaciar</button>' +
+    '<button class="btn oro chico" onclick="abrirCobro()">Cobrar</button></div>';
+}
+
+/* ---- cobro ---- */
+function abrirCobro() {
+  const t = tasaVigente();
+  if (!t) return brindis('Falta la tasa del día', true);
+  const tt = totalesCarrito(t);
+  abrirHoja('<div class="asa"></div><h4>¿Cómo paga?</h4>' +
+    '<p class="nota">' + fmtBs(tt.bs) + ' Bs  ·  $' + fmtUsd(tt.efectivo) + ' en divisa</p>' +
+    '<div style="margin-top:14px">' +
+    '<button class="btn" onclick="pantallaPago(\'efectivo_usd\')">Efectivo en dólares · $' + fmtUsd(tt.efectivo) + '</button>' +
+    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'binance\')">Binance USDT · $' + fmtUsd(tt.efectivo) + '</button>' +
+    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'pago_movil\')">Pago móvil o transferencia · ' + fmtBs(tt.bs) + ' Bs</button>' +
+    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'efectivo_bs\')">Efectivo en bolívares · ' + fmtBs(tt.bs) + ' Bs</button>' +
+    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'punto\')">Punto de venta · ' + fmtBs(tt.bs) + ' Bs</button>' +
+    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'mixto\')">Combinado</button>' +
+    '</div>');
+}
+
+function pantallaPago(metodo) {
+  const t = tasaVigente();
+  const tt = totalesCarrito(t);
+  const enDivisa = ['efectivo_usd', 'binance'].indexOf(metodo) >= 0;
+  const nombres = {
+    efectivo_usd: 'Efectivo en dólares', binance: 'Binance USDT', pago_movil: 'Pago móvil o transferencia',
+    efectivo_bs: 'Efectivo en bolívares', punto: 'Punto de venta', mixto: 'Pago combinado'
+  };
+  let h = '<div class="asa"></div><h4>' + nombres[metodo] + '</h4>';
+
+  if (metodo === 'mixto') {
+    h += '<p class="nota">Anota cuánto entra por cada lado. Lo que falte en dólares se completa en bolívares.</p>' +
+      '<label>Parte en divisa (dólares)</label>' +
+      '<input id="mx" type="number" inputmode="decimal" step="0.01" value="0" oninput="calcMixto()">' +
+      '<div id="mxinfo" class="aviso-caja" style="margin-top:12px"></div>' +
+      '<button class="btn verde" onclick="confirmarPago(\'mixto\')">Confirmar venta</button>';
+  } else if (enDivisa) {
+    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.efectivo) + '</b><span>a cobrar</span></div></div>' +
+      '<label>¿Con cuánto paga? (opcional)</label>' +
+      '<input id="rec" type="number" inputmode="decimal" step="0.01" placeholder="' + fmtUsd(tt.efectivo) + '" oninput="calcVuelto()">' +
+      '<div id="vuelto" class="aviso-caja" style="margin-top:12px;display:none"></div>' +
+      '<button class="btn verde" style="margin-top:14px" onclick="confirmarPago(\'' + metodo + '\')">Confirmar venta</button>';
+  } else {
+    h += '<div class="grande" style="margin-top:4px"><div><b class="num">' + fmtBs(tt.bs) + '</b><span>bolívares a cobrar</span></div></div>' +
+      '<button class="btn verde" style="margin-top:14px" onclick="confirmarPago(\'' + metodo + '\')">Confirmar venta</button>';
+  }
+  h += '<button class="btn chico" style="margin-top:8px" onclick="abrirCobro()">Volver</button>';
+  abrirHoja(h);
+}
+
+function calcVuelto() {
+  const t = tasaVigente(), tt = totalesCarrito(t);
+  const rec = parseFloat($('#rec').value);
+  const d = $('#vuelto');
+  if (!rec || rec < tt.efectivo) { d.style.display = 'none'; return; }
+  const dif = rec - tt.efectivo;
+  d.style.display = 'block';
+  d.innerHTML = 'Vuelto: <b class="num">' + fmtBs(redondear(dif * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b>' +
+    ' <span style="color:var(--tenue)">(equivale a $' + fmtUsd(dif) + ')</span>';
+}
+function calcMixto() {
+  const t = tasaVigente(), tt = totalesCarrito(t);
+  const usd = Math.max(0, parseFloat($('#mx').value) || 0);
+  const restanteUsd = Math.max(0, tt.efectivo - usd);
+  // lo que falta se cobra en bolívares, a la tasa de venta y sin el descuento de divisa
+  const f = Math.max(0.01, 1 - t.descuentoPct / 100);
+  const faltaBs = redondear((restanteUsd / f) * t.tasaVenta, S.config.redondeoBs);
+  $('#mxinfo').innerHTML = 'Recibes <b class="num">$' + fmtUsd(usd) + '</b> en divisa y ' +
+    '<b class="num">' + fmtBs(faltaBs) + ' Bs</b> por el resto.';
+  $('#mxinfo').dataset.bs = faltaBs;
+  $('#mxinfo').dataset.usd = usd;
+}
+
+function confirmarPago(metodo) {
+  const t = tasaVigente();
+  if (!t) return brindis('Falta la tasa del día', true);
+  const pago = { metodo };
+  if (metodo === 'mixto') {
+    const d = $('#mxinfo');
+    pago.parteUsd = parseFloat(d.dataset.usd || 0);
+    pago.parteBs = parseFloat(d.dataset.bs || 0);
+  }
+  const v = registrarVenta(pago, t);
+  ultimaVenta = v;
+  cerrarHoja(); pitar(true);
+  brindis('Vendido · $' + fmtUsd(v.ingresoReal) + ' · ganancia $' + fmtUsd(v.gananciaReal));
+  render();
+}
+
+function deshacerUltima() {
+  if (!ultimaVenta) return;
+  if (anularVenta(ultimaVenta.id)) {
+    brindis('Venta anulada, el inventario volvió a su sitio');
+    ultimaVenta = null; render();
+  }
+}
+
+/* ====================== cámara ====================== */
+let stream = null, detector = null, escaneando = false, cbEscaneo = null, escaneoUnico = false;
+
+async function escanear(cb, unaVez) {
+  cbEscaneo = cb || (cod => { procesarEntrada(cod); });
+  escaneoUnico = !!unaVez;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    return brindis('Este navegador no da acceso a la cámara. Escribe el código.', true);
+  }
+  $('#camara').classList.add('on');
+  $('#camTexto').textContent = 'Abriendo la cámara...';
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
+    const v = $('#video');
+    v.srcObject = stream;
+    await v.play();
+  } catch (e) {
+    cerrarCamara();
+    return brindis('No se pudo abrir la cámara. Revisa el permiso, o escribe el código.', true);
+  }
+  if (!('BarcodeDetector' in window)) {
+    $('#camTexto').textContent = 'Este navegador no lee códigos. Cierra y escribe el código a mano.';
+    return;
+  }
+  try {
+    detector = new window.BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'codabar', 'itf']
+    });
+  } catch (e) {
+    detector = new window.BarcodeDetector();
+  }
+  $('#camTexto').textContent = 'Apunta al código de barras';
+  escaneando = true;
+  bucleEscaneo();
+}
+
+async function bucleEscaneo() {
+  if (!escaneando) return;
+  const v = $('#video');
+  try {
+    const codes = await detector.detect(v);
+    if (codes && codes.length) {
+      const cod = codes[0].rawValue;
+      const t = Date.now();
+      if (!(cod === ultimoEscaneo.cod && t - ultimoEscaneo.t < 1400)) {
+        ultimoEscaneo = { cod, t };
+        const conocido = !!buscarCodigo(cod);
+        pitar(conocido);
+        $('#camTexto').textContent = conocido ? 'Leído: ' + cod : 'Código nuevo: ' + cod;
+        const cb = cbEscaneo;
+        if (!conocido || escaneoUnico) { escaneando = false; cerrarCamara(); cb(cod); return; }
+        cb(cod);
+      }
+    }
+  } catch (e) { }
+  requestAnimationFrame(bucleEscaneo);
+}
+
+function cerrarCamara() {
+  escaneando = false;
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  $('#video').srcObject = null;
+  $('#camara').classList.remove('on');
+  render();
+}
+
+/* ====================== cargar mercancía ====================== */
+function renderCargar() {
+  let h = '<h2>Cargar mercancía</h2>' +
+    '<div class="buscador">' +
+    '<input id="entradaCarga" placeholder="Código del producto" autocomplete="off" enterkeyhint="done">' +
+    '<button onclick="escanear(cargaPorCodigo, true)" aria-label="Escanear">⛶</button></div>' +
+    '<p class="nota">Escanea o escribe el código. Si ya existe te pido cantidad y costo; si es nuevo, lo damos de alta.</p>';
+
+  const entradasHoy = S.movs.filter(m => m.fecha === hoyISO() && m.tipo === 'entrada');
+  if (entradasHoy.length) {
+    h += '<h3>Cargado hoy</h3><div class="lista">' + entradasHoy.slice().reverse().slice(0, 15).map(m => {
+      const p = producto(m.productoId);
+      return '<div class="item"><div class="cuerpo"><div class="tit">' + esc(p ? p.nombre : '?') + '</div>' +
+        '<div class="sub">' + hora(m.ts) + ' · ' + esc(m.usuario) + '</div></div>' +
+        '<div class="der"><b class="num">+' + fmtNum(m.unidades, 0) + '</b><span>a $' + fmtUsd(m.costo) + '</span></div></div>';
+    }).join('') + '</div>';
+  }
+  h += '<button class="btn" style="margin-top:14px" onclick="altaProducto(\'\')">Dar de alta un producto sin escanear</button>';
+  $('#v-cargar').innerHTML = h;
+  const inp = $('#entradaCarga');
+  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') { cargaPorCodigo(inp.value); inp.value = ''; } });
+}
+
+function cargaPorCodigo(cod) {
+  cod = (cod || '').trim();
+  if (!cod) return;
+  const hit = buscarCodigo(cod);
+  if (!hit) { pitar(false); return altaProducto(cod); }
+  const pr = hit.p.pres[hit.pres];
+  abrirHoja('<div class="asa"></div><h4>' + esc(hit.p.nombre) + '</h4>' +
+    '<p class="nota">Entra por: <b>' + esc(pr.nombre) + '</b>' + (pr.factor > 1 ? ' (' + pr.factor + ' unidades cada una)' : '') +
+    ' · quedan ' + fmtNum(hit.p.stock, 0) + ' unidades</p>' +
+    '<label>¿Cuántas ' + esc(pr.nombre.toLowerCase()) + (pr.factor > 1 ? 's' : 'es') + ' entraron?</label>' +
+    '<input id="cc" type="number" inputmode="numeric" value="1" oninput="previaCarga(' + pr.factor + ')">' +
+    '<label>¿Cuánto costó cada ' + esc(pr.nombre.toLowerCase()) + ' en dólares?</label>' +
+    '<input id="ck" type="number" inputmode="decimal" step="0.01" value="' + (nz(hit.p.costo) * pr.factor).toFixed(2) + '" oninput="previaCarga(' + pr.factor + ')">' +
+    '<div id="cprev" class="aviso-caja" style="margin-top:12px"></div>' +
+    '<button class="btn verde" onclick="confirmarCarga(\'' + hit.p.id + '\',' + hit.pres + ')">Cargar al inventario</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();editarProducto(\'' + hit.p.id + '\')">Editar este producto</button>');
+  setTimeout(() => previaCarga(pr.factor), 30);
+}
+
+function previaCarga(factor) {
+  const c = parseFloat($('#cc').value) || 0, k = parseFloat($('#ck').value) || 0;
+  const unidades = c * factor, costoUnit = factor > 0 ? k / factor : k;
+  $('#cprev').innerHTML = 'Entran <b class="num">' + fmtNum(unidades, 0) + ' unidades</b>' +
+    (factor > 1 ? ' · costo por unidad <b class="num">$' + fmtUsd(costoUnit) + '</b>' : '') +
+    ' · inversión <b class="num">$' + fmtUsd(c * k) + '</b>';
+}
+
+function confirmarCarga(id, ipres) {
+  const p = producto(id);
+  const factor = nz(p.pres[ipres].factor) || 1;
+  const c = parseFloat($('#cc').value) || 0, k = parseFloat($('#ck').value) || 0;
+  if (c <= 0) return brindis('Falta la cantidad', true);
+  const unidades = c * factor, costoUnit = k / factor;
+  if (costoUnit > 0) p.costo = costoUnit;
+  ajustarStock(id, unidades);
+  movimiento('entrada', id, unidades, costoUnit, '', p.pres[ipres].nombre + ' x' + c);
+  cerrarHoja(); pitar(true);
+  brindis('Entraron ' + fmtNum(unidades, 0) + ' unidades de ' + p.nombre);
+  render();
+}
+
+/* ---- alta de producto ---- */
+function altaProducto(codigo) {
+  codigoPendiente = codigo || '';
+  abrirHoja('<div class="asa"></div><h4>Producto nuevo</h4>' +
+    (codigo ? '<p class="nota">Código leído: <b>' + esc(codigo) + '</b></p>' : '') +
+    '<label>Nombre</label><input id="an" placeholder="Ron Cacique 500">' +
+    '<label>Presentación</label><input id="ap" placeholder="750 ml">' +
+    '<label>Categoría</label><input id="ag" placeholder="Ron" list="cats">' +
+    '<datalist id="cats">' + categorias().map(c => '<option value="' + esc(c) + '">').join('') + '</datalist>' +
+    (codigo ? '<label>Ese código que escaneaste, ¿de qué es?</label>' +
+      '<select id="atipo" onchange="previaAlta()"><option value="1">De una unidad suelta</option>' +
+      '<option value="6">De un six-pack (6 unidades)</option>' +
+      '<option value="12">De una caja de 12</option>' +
+      '<option value="24">De una caja de 24</option>' +
+      '<option value="36">De una caja de 36</option></select>' : '') +
+    '<label>Costo por unidad, en dólares</label><input id="ak" type="number" inputmode="decimal" step="0.01" oninput="previaAlta()">' +
+    '<label>Precio de venta por unidad, en dólares</label><input id="av" type="number" inputmode="decimal" step="0.01" oninput="previaAlta()">' +
+    '<label>Cantidad que estás cargando (en unidades)</label><input id="aq" type="number" inputmode="numeric" value="0">' +
+    '<label>Avísame cuando queden menos de</label><input id="am" type="number" inputmode="numeric" value="' + S.config.minimoDefault + '">' +
+    '<div class="campo-inline"><label>Ponerlo en los botones rápidos</label><input type="checkbox" id="af"></div>' +
+    '<div id="aprev" class="aviso-caja" style="display:none"></div>' +
+    '<button class="btn verde" onclick="confirmarAlta()">Guardar producto</button>');
+  setTimeout(() => $('#an') && $('#an').focus(), 100);
+}
+
+function previaAlta() {
+  const k = parseFloat($('#ak').value) || 0, v = parseFloat($('#av').value) || 0;
+  const d = $('#aprev');
+  if (!k || !v) { d.style.display = 'none'; return; }
+  const t = tasaVigente();
+  const margen = ((v - k) / v) * 100;
+  const pr = preciosDe(v, t, null);
+  d.style.display = 'block';
+  d.className = 'aviso-caja' + (v <= k ? ' mal' : '');
+  d.innerHTML = v <= k
+    ? 'El precio de venta no puede ser menor o igual al costo.'
+    : 'Margen <b class="num">' + fmtNum(margen, 1) + '%</b> · ganas <b class="num">$' + fmtUsd(v - k) + '</b> por unidad.<br>' +
+    'Se vendería a <b class="num">' + fmtBs(pr.bs) + ' Bs</b> o <b class="num">$' + fmtUsd(pr.efectivo) + '</b> en divisa.';
+}
+
+function categorias() {
+  return Array.from(new Set(S.productos.map(p => p.categoria).filter(Boolean))).sort();
+}
+
+function confirmarAlta() {
+  const codigo = codigoPendiente || '';
+  const nombre = $('#an').value.trim();
+  if (!nombre) return brindis('Falta el nombre', true);
+  const costo = parseFloat($('#ak').value) || 0;
+  const precio = parseFloat($('#av').value) || 0;
+  if (precio <= 0) return brindis('Falta el precio de venta', true);
+  const factorCod = $('#atipo') ? parseInt($('#atipo').value, 10) : 1;
+  const cant = parseFloat($('#aq').value) || 0;
+
+  const pres = [{ nombre: 'Unidad', factor: 1, codigo: factorCod === 1 ? codigo : '', precio: null }];
+  if (factorCod > 1) {
+    const nom = factorCod === 6 ? 'Six-pack' : 'Caja de ' + factorCod;
+    pres.push({ nombre: nom, factor: factorCod, codigo: codigo, precio: null });
+  }
+  const p = {
+    id: uid(), nombre, presentacion: $('#ap').value.trim(), categoria: $('#ag').value.trim(),
+    costo, precio, stock: cant, minimo: parseFloat($('#am').value) || 0,
+    aplicaDesc: true, favorito: $('#af').checked, activo: true, pres,
+    creado: ahora(), creadoFecha: hoyISO(), actualizado: ahora()
+  };
+  S.productos.push(p);
+  reindexar();
+  if (cant > 0) movimiento('entrada', p.id, cant, costo, '', 'alta');
+  guardar(['productos']);
+  cerrarHoja(); pitar(true);
+  brindis(nombre + ' quedó cargado');
+  render();
+}
+
+/* ====================== stock ====================== */
+let filtroStock = '', ordenStock = 'nombre';
+
+function renderStock() {
+  const inv = valorInventario();
+  let lista = S.productos.filter(p => p.activo !== false);
+  if (filtroStock) {
+    const q = filtroStock.toLowerCase();
+    lista = lista.filter(p => (p.nombre + ' ' + (p.categoria || '') + ' ' + (p.presentacion || '')).toLowerCase().includes(q));
+  }
+  if (ordenStock === 'bajo') lista.sort((a, b) => nz(a.stock) - nz(b.stock));
+  else if (ordenStock === 'margen') lista.sort((a, b) => ((b.precio - b.costo) / (b.precio || 1)) - ((a.precio - a.costo) / (a.precio || 1)));
+  else lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+  let h = '<h2>Inventario</h2>' +
+    '<div class="grande"><div><b class="num">$' + fmtUsd(inv.costo) + '</b><span>invertido en mercancía</span></div>' +
+    '<div class="oro"><b class="num">$' + fmtUsd(inv.venta - inv.costo) + '</b><span>ganancia por vender</span></div></div>' +
+    '<div class="buscador"><input id="fs" placeholder="Buscar" value="' + esc(filtroStock) + '" autocomplete="off"></div>' +
+    '<div class="fila" style="margin-bottom:12px">' +
+    ['nombre', 'bajo', 'margen'].map(o => '<button class="btn chico ' + (ordenStock === o ? 'oro' : '') + '" onclick="ordenStock=\'' + o + '\';render()">' +
+      ({ nombre: 'A-Z', bajo: 'Se acaba', margen: 'Margen' })[o] + '</button>').join('') + '</div>';
+
+  if (!lista.length) {
+    h += '<div class="vacio"><b>Todavía no hay productos</b>Ve a Cargar y escanea el primero.</div>';
+  } else {
+    const t = tasaVigente();
+    h += '<div class="lista">' + lista.map(p => {
+      const st = nz(p.stock), mn = nz(p.minimo);
+      const clase = st <= 0 ? 'p-rojo' : (st <= mn ? 'p-ama' : 'p-verde');
+      const pr = preciosDe(nz(p.precio), t, p);
+      const margen = p.precio > 0 ? ((p.precio - p.costo) / p.precio) * 100 : 0;
+      return '<div class="item" onclick="editarProducto(\'' + p.id + '\')">' +
+        '<div class="punto ' + clase + '"></div>' +
+        '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
+        '<div class="sub">' + fmtNum(st, 0) + ' en stock · margen ' + fmtNum(margen, 0) + '% · costó $' + fmtUsd(p.costo) + '</div></div>' +
+        '<div class="der"><b class="num">$' + fmtUsd(pr.efectivo) + '</b><span class="num">Bs ' + fmtBs(pr.bs) + '</span></div></div>';
+    }).join('') + '</div>';
+  }
+
+  const dormido = capitalDormido(30);
+  if (dormido.length) {
+    const total = dormido.reduce((s, x) => s + x.valor, 0);
+    h += '<h3>Plata dormida</h3>' +
+      '<div class="aviso-caja">Tienes <b class="num">$' + fmtUsd(total) + '</b> en ' + dormido.length +
+      ' producto' + (dormido.length > 1 ? 's' : '') + ' que no se venden hace más de 30 días.</div>' +
+      '<div class="lista">' + dormido.slice(0, 8).map(x =>
+        '<div class="item" onclick="editarProducto(\'' + x.p.id + '\')"><div class="cuerpo">' +
+        '<div class="tit">' + esc(x.p.nombre) + '</div><div class="sub">' + x.dias + ' días quieto</div></div>' +
+        '<div class="der"><b class="num">$' + fmtUsd(x.valor) + '</b><span>' + fmtNum(x.p.stock, 0) + ' unidades</span></div></div>').join('') + '</div>';
+  }
+  $('#v-stock').innerHTML = h;
+  const fs = $('#fs');
+  if (fs) fs.addEventListener('input', () => { filtroStock = fs.value; const pos = fs.selectionStart; render(); const n = $('#fs'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
+}
+
+function editarProducto(id) {
+  const p = producto(id);
+  if (!p) return;
+  abrirHoja('<div class="asa"></div><h4>' + esc(p.nombre) + '</h4>' +
+    '<label>Nombre</label><input id="en" value="' + esc(p.nombre) + '">' +
+    '<label>Presentación</label><input id="ep" value="' + esc(p.presentacion || '') + '">' +
+    '<label>Categoría</label><input id="eg" value="' + esc(p.categoria || '') + '">' +
+    '<div class="fila"><div><label>Costo unidad $</label><input id="ek" type="number" step="0.01" value="' + nz(p.costo) + '"></div>' +
+    '<div><label>Precio unidad $</label><input id="ev" type="number" step="0.01" value="' + nz(p.precio) + '"></div></div>' +
+    '<div class="fila"><div><label>En stock</label><input id="es" type="number" value="' + nz(p.stock) + '"></div>' +
+    '<div><label>Mínimo</label><input id="em" type="number" value="' + nz(p.minimo) + '"></div></div>' +
+    '<div class="campo-inline"><label>Aplica descuento en divisa</label><input type="checkbox" id="ed" ' + (p.aplicaDesc !== false ? 'checked' : '') + '></div>' +
+    '<div class="campo-inline"><label>Botón rápido al vender</label><input type="checkbox" id="ef" ' + (p.favorito ? 'checked' : '') + '></div>' +
+    '<h3>Códigos de barras</h3>' +
+    p.pres.map((pr, i) =>
+      '<div class="fila" style="margin-bottom:6px"><div style="flex:0 0 34%"><input value="' + esc(pr.nombre) + '" id="pn' + i + '"></div>' +
+      '<div style="flex:0 0 18%"><input type="number" value="' + pr.factor + '" id="pf' + i + '" title="unidades"></div>' +
+      '<div><input value="' + esc(pr.codigo || '') + '" id="pc' + i + '" placeholder="código"></div></div>').join('') +
+    '<button class="btn chico" onclick="agregarPres(\'' + id + '\')">Agregar otra presentación</button>' +
+    '<div class="fila" style="margin-top:16px">' +
+    '<button class="btn rojo chico" onclick="pedirMerma(\'' + id + '\')">Merma</button>' +
+    '<button class="btn verde" onclick="guardarProducto(\'' + id + '\')">Guardar</button></div>' +
+    '<button class="btn rojo chico" style="margin-top:8px" onclick="borrarProducto(\'' + id + '\')">Quitar del catálogo</button>');
+}
+
+function agregarPres(id) {
+  guardarProducto(id, true);
+  const p = producto(id);
+  p.pres.push({ nombre: 'Caja', factor: 24, codigo: '', precio: null });
+  guardar(['productos']); reindexar();
+  editarProducto(id);
+}
+
+function guardarProducto(id, silencioso) {
+  const p = producto(id);
+  p.nombre = $('#en').value.trim() || p.nombre;
+  p.presentacion = $('#ep').value.trim();
+  p.categoria = $('#eg').value.trim();
+  p.costo = parseFloat($('#ek').value) || 0;
+  p.precio = parseFloat($('#ev').value) || 0;
+  const nuevoStock = parseFloat($('#es').value) || 0;
+  if (nuevoStock !== nz(p.stock)) {
+    movimiento('ajuste', id, nuevoStock - nz(p.stock), p.costo, '', 'ajuste manual');
+    p.stock = nuevoStock;
+  }
+  p.minimo = parseFloat($('#em').value) || 0;
+  p.aplicaDesc = $('#ed').checked;
+  p.favorito = $('#ef').checked;
+  p.pres.forEach((pr, i) => {
+    if ($('#pn' + i)) pr.nombre = $('#pn' + i).value.trim() || pr.nombre;
+    if ($('#pf' + i)) pr.factor = parseFloat($('#pf' + i).value) || 1;
+    if ($('#pc' + i)) pr.codigo = $('#pc' + i).value.trim();
+  });
+  p.actualizado = ahora();
+  reindexar(); guardar(['productos', 'movs']);
+  if (!silencioso) { cerrarHoja(); brindis('Guardado'); render(); }
+}
+
+function borrarProducto(id) {
+  const p = producto(id);
+  abrirHoja('<div class="asa"></div><h4>¿Quitar ' + esc(p.nombre) + '?</h4>' +
+    '<p class="nota">Deja de aparecer al vender, pero las ventas viejas se conservan.</p>' +
+    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarBorrar(\'' + id + '\')">Sí, quitarlo</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="editarProducto(\'' + id + '\')">Mejor no</button>');
+}
+function confirmarBorrar(id) {
+  const p = producto(id);
+  p.activo = false; reindexar(); guardar(['productos']);
+  cerrarHoja(); brindis('Quitado del catálogo'); render();
+}
+
+function pedirMerma(id) {
+  const p = producto(id);
+  abrirHoja('<div class="asa"></div><h4>Merma de ' + esc(p.nombre) + '</h4>' +
+    '<p class="nota">Botella rota, vencida, o consumo de la casa. Sale del inventario y queda registrado.</p>' +
+    '<label>¿Cuántas unidades?</label><input id="mq" type="number" inputmode="numeric" value="1">' +
+    '<label>¿Qué pasó?</label><input id="mn" placeholder="Se cayó una caja">' +
+    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarMerma(\'' + id + '\')">Registrar merma</button>');
+}
+function confirmarMerma(id) {
+  const q = parseFloat($('#mq').value) || 0;
+  if (q <= 0) return brindis('Falta la cantidad', true);
+  const p = producto(id);
+  ajustarStock(id, -q);
+  movimiento('merma', id, -q, p.costo, '', $('#mn').value.trim());
+  cerrarHoja(); brindis('Merma registrada · $' + fmtUsd(q * p.costo) + ' perdidos');
+  render();
+}
+
+/* ====================== cierre ====================== */
+function renderCierre() {
+  const hoy = hoyISO();
+  const r = resumenDia(hoy);
+  const cerrado = S.cierres.find(c => c.fecha === hoy);
+  const t = tasaVigente();
+
+  let h = '<h2>Cierre del día</h2><p class="nota">' + fechaLarga(hoy) + '</p>';
+  h += '<div class="grande" style="margin-top:12px">' +
+    '<div><b class="num">$' + fmtUsd(r.ingresoReal) + '</b><span>entró hoy</span></div>' +
+    '<div class="oro"><b class="num">$' + fmtUsd(r.gananciaReal) + '</b><span>ganancia real</span></div></div>';
+
+  h += '<div class="tarjeta"><table class="mini">' +
+    '<tr><td>Ventas</td><td class="num">' + r.nVentas + '</td></tr>' +
+    '<tr><td>Unidades</td><td class="num">' + fmtNum(r.unidades, 0) + '</td></tr>' +
+    '<tr><td>Venta a precio de lista</td><td class="num">$' + fmtUsd(r.ventaLista) + '</td></tr>' +
+    '<tr><td>Descuentos que diste</td><td class="num">$' + fmtUsd(r.descuentos) + '</td></tr>' +
+    '<tr><td>Costo de lo vendido</td><td class="num">$' + fmtUsd(r.costo) + '</td></tr>' +
+    '<tr><td>Ganancia nominal</td><td class="num">$' + fmtUsd(r.gananciaNominal) + '</td></tr>' +
+    '<tr><td>Ganancia real en divisa</td><td class="num">$' + fmtUsd(r.gananciaReal) + '</td></tr>' +
+    '<tr><td>Margen</td><td class="num">' + fmtNum(r.margen, 1) + '%</td></tr>' +
+    '</table></div>';
+
+  h += '<h3>Cómo te pagaron</h3><div class="tarjeta"><table class="mini">' +
+    '<tr><td>Efectivo en dólares</td><td class="num">$' + fmtUsd(r.ventaUsd) + '</td></tr>' +
+    '<tr><td>Bolívares recibidos</td><td class="num">' + fmtBs(r.ventaBs) + ' Bs</td></tr>' +
+    (t && t.usdt ? '<tr><td>Esos bolívares en divisa</td><td class="num">$' + fmtUsd(r.ventaBs / t.usdt) + '</td></tr>' : '') +
+    '</table></div>';
+
+  if (Object.keys(r.porUsuario).length > 1) {
+    h += '<h3>Quién vendió</h3><div class="tarjeta"><table class="mini">' +
+      Object.keys(r.porUsuario).map(u => '<tr><td>' + esc(u) + '</td><td class="num">$' + fmtUsd(r.porUsuario[u]) + '</td></tr>').join('') +
+      '</table></div>';
+  }
+
+  if (r.top.length) {
+    h += '<h3>Lo que más dejó hoy</h3><div class="lista">' + r.top.map(x =>
+      '<div class="item"><div class="cuerpo"><div class="tit">' + esc(x.nombre) + '</div>' +
+      '<div class="sub">' + fmtNum(x.unidades, 0) + ' unidades</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(x.ganancia) + '</b><span>ganancia</span></div></div>').join('') + '</div>';
+  }
+
+  h += '<h3>Acciones</h3>';
+  h += '<button class="btn ' + (cerrado ? '' : 'oro') + '" onclick="hacerCierre()">' +
+    (cerrado ? 'Volver a calcular el cierre' : 'Cerrar el día') + '</button>';
+  h += '<button class="btn" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel de ganancias</button>';
+  h += '<button class="btn" style="margin-top:8px" onclick="mandarResumen()">Mandar resumen por WhatsApp</button>';
+  h += '<button class="btn chico" style="margin-top:8px" onclick="verVentasHoy()">Ver las ventas de hoy</button>';
+
+  if (S.cierres.length) {
+    h += '<h3>Días anteriores</h3><div class="lista">' + S.cierres.slice().reverse().slice(0, 20).map(c =>
+      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(c.fecha) + '</div>' +
+      '<div class="sub">' + c.nVentas + ' ventas · ' + fmtNum(c.unidades, 0) + ' unidades</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(c.gananciaReal) + '</b><span>$' + fmtUsd(c.ingresoReal) + ' vendido</span></div></div>'
+    ).join('') + '</div>';
+    const mes = S.cierres.filter(c => mesDe(c.fecha) === mesDe(hoy));
+    const gm = mes.reduce((s, c) => s + c.gananciaReal, 0);
+    const vm = mes.reduce((s, c) => s + c.ingresoReal, 0);
+    h += '<div class="aviso-caja" style="margin-top:12px">En lo que va del mes llevas <b class="num">$' +
+      fmtUsd(vm) + '</b> vendidos y <b class="num">$' + fmtUsd(gm) + '</b> de ganancia.</div>';
+  }
+  $('#v-cierre').innerHTML = h;
+}
+
+function hacerCierre() {
+  const c = cerrarDia(hoyISO());
+  brindis('Día cerrado · ganancia $' + fmtUsd(c.gananciaReal));
+  render();
+}
+
+function verVentasHoy() {
+  const vs = S.ventas.filter(v => v.fecha === hoyISO()).slice().reverse();
+  if (!vs.length) return brindis('Todavía no hay ventas hoy');
+  abrirHoja('<div class="asa"></div><h4>Ventas de hoy</h4><div class="lista" style="margin-top:10px">' +
+    vs.map(v => '<div class="item"><div class="cuerpo">' +
+      '<div class="tit">' + hora(v.ts) + ' · ' + v.items.length + ' renglón' + (v.items.length > 1 ? 'es' : '') +
+      (v.anulada ? ' <span class="chip rojo">anulada</span>' : '') + '</div>' +
+      '<div class="sub">' + esc(v.items.map(i => i.nombre).join(', ')).slice(0, 60) + '</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(v.ingresoReal) + '</b>' +
+      (v.anulada ? '' : '<span onclick="anularDesdeLista(\'' + v.id + '\')" style="color:var(--rojo)">anular</span>') +
+      '</div></div>').join('') + '</div>');
+}
+function anularDesdeLista(id) {
+  if (anularVenta(id)) { brindis('Venta anulada'); cerrarHoja(); render(); }
+}
+
+function mandarResumen() {
+  const r = resumenDia(hoyISO());
+  const t = tasaVigente();
+  const txt = S.config.negocio + ' — ' + fechaLarga(hoyISO()) + '\n' +
+    '────────────────\n' +
+    'Ventas: ' + r.nVentas + '\n' +
+    'Unidades: ' + fmtNum(r.unidades, 0) + '\n' +
+    'Entró: $' + fmtUsd(r.ingresoReal) + '\n' +
+    'Ganancia: $' + fmtUsd(r.gananciaReal) + '\n' +
+    'Margen: ' + fmtNum(r.margen, 1) + '%\n' +
+    '────────────────\n' +
+    'Efectivo $: ' + fmtUsd(r.ventaUsd) + '\n' +
+    'Bolívares: ' + fmtBs(r.ventaBs) + '\n' +
+    (t ? 'Tasa de venta: ' + fmtNum(t.tasaVenta, 2) + ' · USDT ' + fmtNum(t.usdt, 2) + '\n' : '') +
+    (r.top.length ? '\nLo que más dejó:\n' + r.top.map(x => '· ' + x.nombre + ' — $' + fmtUsd(x.ganancia)).join('\n') : '');
+  if (navigator.share) {
+    navigator.share({ text: txt }).catch(() => { });
+  } else {
+    window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
+  }
+}
+
+/* ---- excel ---- */
+async function exportarExcel() {
+  brindis('Armando el archivo...');
+  let todasVentas = [], todosMovs = [];
+  for (const m of S.meses) {
+    const d = await cargarMes(m);
+    todasVentas = todasVentas.concat(d.ventas);
+    todosMovs = todosMovs.concat(d.movs);
+  }
+  // asegura que el día de hoy tenga resumen aunque no se haya cerrado
+  const fechas = Array.from(new Set(todasVentas.map(v => v.fecha))).sort();
+  const resumen = [['Fecha', 'BCV', 'Proyección', 'Tasa de venta', 'USDT', 'Descuento %', 'Ventas', 'Unidades',
+    'Venta lista $', 'Descuentos $', 'Entró $', 'Costo $', 'Ganancia nominal $', 'Ganancia real $', 'Margen %',
+    'Efectivo $', 'Bolívares Bs']];
+  fechas.forEach(f => {
+    const r = resumenDia(f, todasVentas);
+    const t = S.tasas.find(x => x.fecha === f) || {};
+    resumen.push([f, nz(t.bcv), nz(t.proyeccion), nz(t.tasaVenta), nz(t.usdt), nz(t.descuentoPct),
+      r.nVentas, r.unidades, r.ventaLista, r.descuentos, r.ingresoReal, r.costo,
+      r.gananciaNominal, r.gananciaReal, r.margen, r.ventaUsd, r.ventaBs]);
+  });
+
+  const detalle = [['Fecha', 'Hora', 'Quién', 'Venta', 'Producto', 'Presentación', 'Cantidad', 'Unidades',
+    'Costo unit $', 'Precio lista $', 'Precio Bs', 'Precio efectivo $', 'Subtotal $', 'Ganancia $', 'Pago', 'Anulada']];
+  todasVentas.forEach(v => v.items.forEach(it => {
+    detalle.push([v.fecha, hora(v.ts), v.usuario, v.id, it.nombre, it.presNombre, it.cant, it.unidades,
+      it.costoUnit, it.precioLista, it.precioBs, it.precioEfectivo, it.subtotalLista, it.gananciaLinea,
+      v.metodo, v.anulada ? 'sí' : 'no']);
+  }));
+
+  const inventario = [['Código', 'Producto', 'Presentación', 'Categoría', 'Stock', 'Costo $', 'Precio $',
+    'Valor costo $', 'Valor venta $', 'Margen %', 'Última venta']];
+  S.productos.forEach(p => {
+    const cod = (p.pres.find(x => x.factor === 1) || p.pres[0] || {}).codigo || '';
+    inventario.push([cod, p.nombre, p.presentacion || '', p.categoria || '', nz(p.stock), nz(p.costo), nz(p.precio),
+      nz(p.stock) * nz(p.costo), nz(p.stock) * nz(p.precio),
+      p.precio > 0 ? ((p.precio - p.costo) / p.precio) * 100 : 0, p.ultimaVenta || '']);
+  });
+
+  const movs = [['Fecha', 'Hora', 'Quién', 'Producto', 'Tipo', 'Unidades', 'Costo unit $', 'Nota']];
+  todosMovs.forEach(m => {
+    const p = producto(m.productoId);
+    movs.push([m.fecha, hora(m.ts), m.usuario, p ? p.nombre : m.productoId, m.tipo, m.unidades, m.costo, m.nota || '']);
+  });
+
+  const tasas = [['Fecha', 'BCV', 'USDT', 'Promedio 3 días', 'Proyección', 'Tasa de venta', 'Descuento %', 'Brecha %', 'Origen']];
+  S.tasas.forEach(t => tasas.push([t.fecha, t.bcv, t.usdt, t.promedio3d, t.proyeccion, t.tasaVenta, t.descuentoPct,
+    t.usdt > 0 ? (1 - t.bcv / t.usdt) * 100 : 0, t.origen]));
+
+  const hojas = [
+    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 11, 14], filas: resumen },
+    { nombre: 'Ventas_Detalle', columnas: [11, 7, 10, 12, 26, 13, 9, 9, 11, 13, 12, 15, 11, 11, 14, 9], filas: detalle },
+    { nombre: 'Inventario', columnas: [16, 26, 13, 12, 8, 9, 9, 12, 12, 9, 12], filas: inventario },
+    { nombre: 'Movimientos', columnas: [11, 7, 10, 26, 12, 9, 11, 24], filas: movs },
+    { nombre: 'Tasas', columnas: [11, 10, 10, 14, 11, 13, 11, 10, 9], filas: tasas }
+  ];
+  const bytes = construirXLSX(hojas);
+  const nombre = 'CAVA_' + S.config.negocio.replace(/[^a-zA-Z0-9]/g, '_') + '_' + hoyISO() + '.xlsx';
+  descargar(nombre, new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  brindis('Excel listo, revisa tus descargas');
+}
+
+/* ====================== tasas ====================== */
+function renderTasas() {
+  const hoy = hoyISO();
+  const t = tasaDe(hoy);
+  const vig = tasaVigente();
+  let h = '<h2>Tasas del día</h2>';
+
+  if (!t) h += '<div class="aviso-caja mal">Todavía no has cargado la tasa de hoy.</div>';
+
+  h += '<button class="btn oro" onclick="bajarAuto()">Bajar tasas de internet</button>' +
+    '<p class="nota">Toma el BCV y el paralelo de ve.dolarapi.com. Si no hay internet, métela a mano abajo.</p>';
+
+  h += '<div class="tarjeta" style="margin-top:14px">' +
+    '<label>BCV de hoy (Bs por dólar)</label><input id="tbcv" type="number" step="0.0001" value="' + (t ? t.bcv : (vig ? vig.bcv : '')) + '" oninput="previaTasa()">' +
+    '<label>USDT Binance de hoy (Bs por dólar)</label><input id="tusdt" type="number" step="0.0001" value="' + (t ? t.usdt : (vig ? vig.usdt : '')) + '" oninput="previaTasa()">' +
+    '<div id="tprev" style="margin-top:12px"></div>' +
+    '<button class="btn verde" style="margin-top:12px" onclick="guardarTasaManual()">Guardar la tasa de hoy</button>' +
+    '</div>';
+
+  if (S.tasas.length) {
+    const ult = S.tasas.slice(-15);
+    const min = Math.min.apply(null, ult.map(x => x.bcv));
+    const max = Math.max.apply(null, ult.map(x => x.bcv));
+    const rango = (max - min) || 1;
+    h += '<h3>Cómo viene subiendo el BCV</h3>' +
+      '<div class="grafico">' + ult.map(x =>
+        '<div style="height:' + (12 + ((x.bcv - min) / rango) * 58) + 'px" title="' + x.fecha + ': ' + fmtNum(x.bcv, 2) + '"></div>').join('') + '</div>' +
+      '<p class="nota">' + fmtNum(min, 2) + ' → ' + fmtNum(max, 2) + ' Bs en los últimos ' + ult.length + ' registros</p>';
+
+    h += '<h3>Historial</h3><div class="lista">' + S.tasas.slice().reverse().slice(0, 30).map(x =>
+      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(x.fecha) + '</div>' +
+      '<div class="sub">BCV ' + fmtNum(x.bcv, 2) + ' · venta ' + fmtNum(x.tasaVenta, 2) + ' · ' + esc(x.origen || 'manual') + '</div></div>' +
+      '<div class="der"><b class="num">' + fmtNum(x.descuentoPct, 1) + '%</b><span>USDT ' + fmtNum(x.usdt, 0) + '</span></div></div>'
+    ).join('') + '</div>';
+  }
+  h += '<button class="btn chico" style="margin-top:14px" onclick="irA(\'ajustes\')">Cambiar cómo se calcula</button>';
+  $('#v-tasas').innerHTML = h;
+  previaTasa();
+}
+
+function previaTasa() {
+  const bcv = parseFloat($('#tbcv').value) || 0;
+  const usdt = parseFloat($('#tusdt').value) || 0;
+  const d = $('#tprev');
+  if (!bcv || !usdt) { d.innerHTML = '<p class="nota">Mete las dos tasas para ver el cálculo.</p>'; return; }
+  const t = calcularTasa(hoyISO(), bcv, usdt, 'manual');
+  const brecha = (1 - bcv / usdt) * 100;
+  d.innerHTML = '<table class="mini">' +
+    '<tr><td>Sube en promedio (últimos 3 días)</td><td class="num">' + fmtNum(t.promedio3d, 2) + ' Bs/día</td></tr>' +
+    '<tr><td>Proyección a ' + S.config.diasCobertura + ' día' + (S.config.diasCobertura > 1 ? 's' : '') + (t.topado ? ' (topada)' : '') + '</td><td class="num">+' + fmtNum(t.proyeccion, 2) + ' Bs</td></tr>' +
+    '<tr><td><b>Tasa a la que vendes</b></td><td class="num">' + fmtNum(t.tasaVenta, 2) + '</td></tr>' +
+    '<tr><td>Brecha BCV contra USDT</td><td class="num">' + fmtNum(brecha, 2) + '%</td></tr>' +
+    '<tr><td><b>Descuento en divisa</b></td><td class="num">' + fmtNum(t.descuentoPct, 2) + '%</td></tr>' +
+    '</table>' +
+    '<div class="aviso-caja" style="margin-top:10px">Algo de <b>$10</b> se vende a <b class="num">' +
+    fmtBs(redondear(10 * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b> o <b class="num">$' +
+    fmtUsd(redondear(10 * (1 - t.descuentoPct / 100), 0.01)) + '</b> en efectivo.</div>' +
+    (t.refFecha ? '<p class="nota">Comparado contra el BCV del ' + t.refFecha + ' (' + fmtNum(t.refBcv, 2) + ').</p>'
+      : '<p class="nota">Todavía no hay 3 días de historia, así que la proyección va en cero. Se corrige sola.</p>');
+}
+
+function guardarTasaManual() {
+  const bcv = parseFloat($('#tbcv').value) || 0;
+  const usdt = parseFloat($('#tusdt').value) || 0;
+  if (!bcv || !usdt) return brindis('Faltan las tasas', true);
+  guardarTasa(calcularTasa(hoyISO(), bcv, usdt, 'manual'));
+  brindis('Tasa guardada'); render();
+}
+
+async function bajarAuto() {
+  brindis('Buscando las tasas...');
+  const r = await bajarTasas();
+  if (r.error || !r.bcv) return brindis(r.error || 'No se pudo', true);
+  guardarTasa(calcularTasa(hoyISO(), r.bcv, r.usdt, 'auto'));
+  brindis('Tasas actualizadas'); render();
+}
+
+/* ====================== ajustes ====================== */
+function renderAjustes() {
+  const c = S.config;
+  let h = '<h2>Ajustes</h2>';
+
+  h += '<h3>Quién está atendiendo</h3><div class="fila">' +
+    c.usuarios.map((u, i) => '<button class="btn chico ' + (c.usuario === u ? 'oro' : '') + '" onclick="elegirUsuario(' + i + ')">' + esc(u) + '</button>').join('') +
+    '</div>';
+
+  h += '<h3>El negocio</h3><div class="tarjeta">' +
+    '<label>Nombre</label><input id="cneg" value="' + esc(c.negocio) + '">' +
+    '<label>Nombres de quienes atienden (separados por coma)</label><input id="cusr" value="' + esc(c.usuarios.join(', ')) + '">' +
+    '</div>';
+
+  h += '<h3>Cómo se calcula el precio</h3><div class="tarjeta">' +
+    '<label>Dónde va el recargo por la subida del dólar</label>' +
+    '<select id="cmodo"><option value="B"' + (c.modoRecargo === 'B' ? ' selected' : '') + '>Dentro del precio (exhibes la tasa BCV)</option>' +
+    '<option value="A"' + (c.modoRecargo === 'A' ? ' selected' : '') + '>En la tasa (exhibes la tasa de venta)</option></select>' +
+    '<p class="nota">El dinero que cobras es idéntico en las dos. Cambia solo qué número se ve.</p>' +
+    '<div class="campo-inline"><label>Días de cobertura</label><input id="ccob" type="number" min="0" max="7" value="' + c.diasCobertura + '"></div>' +
+    '<p class="nota">Cada cuántos días conviertes los bolívares. Si conviertes el mismo día, deja 1.</p>' +
+    '<div class="campo-inline"><label>Tope de la proyección (% del BCV)</label><input id="ctop" type="number" step="0.5" value="' + c.topeProyeccionPct + '"></div>' +
+    '<div class="campo-inline"><label>Tope del descuento (%)</label><input id="ctd" type="number" step="1" value="' + c.topeDescuentoPct + '"></div>' +
+    '<div class="campo-inline"><label>Piso del descuento (%)</label><input id="cpd" type="number" step="0.5" value="' + c.pisoDescuentoPct + '"></div>' +
+    '<div class="campo-inline"><label>Redondear bolívares a</label><input id="crb" type="number" step="1" value="' + c.redondeoBs + '"></div>' +
+    '<div class="campo-inline"><label>Redondear dólares a</label><input id="cru" type="number" step="0.05" value="' + c.redondeoUsd + '"></div>' +
+    '<div class="campo-inline"><label>Cobrar IGTF ' + c.igtfPct + '% en divisa</label><input type="checkbox" id="cigtf" ' + (c.igtf ? 'checked' : '') + '></div>' +
+    '</div>';
+
+  h += '<button class="btn verde" onclick="guardarAjustes()">Guardar ajustes</button>';
+
+  h += '<h3>Tus datos</h3><div class="tarjeta">' +
+    '<p class="nota">Todo vive dentro de este teléfono. Si lo pierdes o lo formateas, se pierde. Baja un respaldo cada tanto.</p>' +
+    '<button class="btn" style="margin-top:10px" onclick="bajarRespaldo()">Bajar respaldo</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="pedirRestaurar()">Restaurar desde un respaldo</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel</button>' +
+    '</div>';
+
+  h += '<div class="tarjeta"><p class="nota">Guardado en: ' + (DB.modo === 'idb' ? 'base de datos del navegador' : 'almacenamiento simple') +
+    ' · ' + S.productos.length + ' productos · ' + S.ventas.length + ' ventas este mes</p>' +
+    '<button class="btn rojo chico" style="margin-top:10px" onclick="pedirBorrarTodo()">Borrar todo y empezar de cero</button></div>';
+
+  h += '<button class="btn chico" style="margin-top:14px" onclick="irA(\'ayuda\')">Cómo se usa</button>';
+  $('#v-ajustes').innerHTML = h;
+}
+
+function elegirUsuario(i) {
+  const u = S.config.usuarios[i];
+  if (u) { S.config.usuario = u; guardar(['config']); render(); }
+}
+
+function guardarAjustes() {
+  const c = S.config;
+  c.negocio = $('#cneg').value.trim() || c.negocio;
+  const us = $('#cusr').value.split(',').map(s => s.trim()).filter(Boolean);
+  if (us.length) { c.usuarios = us; if (us.indexOf(c.usuario) < 0) c.usuario = us[0]; }
+  c.modoRecargo = $('#cmodo').value;
+  c.diasCobertura = Math.max(0, parseFloat($('#ccob').value) || 0);
+  c.topeProyeccionPct = Math.max(0, parseFloat($('#ctop').value) || 0);
+  c.topeDescuentoPct = Math.max(0, parseFloat($('#ctd').value) || 0);
+  c.pisoDescuentoPct = Math.max(0, parseFloat($('#cpd').value) || 0);
+  c.redondeoBs = Math.max(0, parseFloat($('#crb').value) || 0);
+  c.redondeoUsd = Math.max(0, parseFloat($('#cru').value) || 0);
+  c.igtf = $('#cigtf').checked;
+  // recalcula la tasa de hoy con los parámetros nuevos
+  const t = tasaDe(hoyISO());
+  if (t) guardarTasa(calcularTasa(hoyISO(), t.bcv, t.usdt, t.origen));
+  guardar(['config']);
+  brindis('Ajustes guardados'); render();
+}
+
+async function bajarRespaldo() {
+  const datos = { version: 1, fecha: ahora(), config: S.config, productos: S.productos, tasas: S.tasas, cierres: S.cierres, meses: S.meses, ventas: {}, movs: {} };
+  for (const m of S.meses) {
+    const d = await cargarMes(m);
+    datos.ventas[m] = d.ventas; datos.movs[m] = d.movs;
+  }
+  descargar('respaldo_cava_' + hoyISO() + '.json', JSON.stringify(datos), 'application/json');
+  brindis('Respaldo bajado');
+}
+
+function pedirRestaurar() {
+  abrirHoja('<div class="asa"></div><h4>Restaurar respaldo</h4>' +
+    '<p class="nota">Reemplaza todo lo que hay ahora por lo que traiga el archivo.</p>' +
+    '<input type="file" id="arch" accept=".json" style="margin-top:14px">' +
+    '<button class="btn rojo" style="margin-top:14px" onclick="hacerRestaurar()">Restaurar</button>');
+}
+function hacerRestaurar() {
+  const f = $('#arch').files[0];
+  if (!f) return brindis('Elige el archivo', true);
+  const r = new FileReader();
+  r.onload = async () => {
+    try {
+      const d = JSON.parse(r.result);
+      S.config = Object.assign({}, CFG_DEF, d.config || {});
+      S.productos = d.productos || []; S.tasas = d.tasas || [];
+      S.cierres = d.cierres || []; S.meses = d.meses || [];
+      for (const m of Object.keys(d.ventas || {})) await DB.set('ventas_' + m, d.ventas[m]);
+      for (const m of Object.keys(d.movs || {})) await DB.set('movs_' + m, d.movs[m]);
+      const mm = mesDe(hoyISO());
+      S.mesCargado = mm;
+      S.ventas = (d.ventas || {})[mm] || []; S.movs = (d.movs || {})[mm] || [];
+      if (S.meses.indexOf(mm) < 0) S.meses.push(mm);
+      reindexar(); await guardarYa();
+      cerrarHoja(); brindis('Restaurado'); render();
+    } catch (e) { brindis('El archivo no sirve', true); }
+  };
+  r.readAsText(f);
+}
+
+function pedirBorrarTodo() {
+  abrirHoja('<div class="asa"></div><h4>¿Borrar todo?</h4>' +
+    '<p class="nota">Se van los productos, las ventas y el historial. No hay vuelta atrás. Baja un respaldo antes si tienes dudas.</p>' +
+    '<button class="btn chico" style="margin-top:14px" onclick="bajarRespaldo()">Primero bajar respaldo</button>' +
+    '<button class="btn rojo" style="margin-top:8px" onclick="hacerBorrarTodo()">Sí, borrar todo</button>');
+}
+async function hacerBorrarTodo() {
+  await DB.borrarTodo();
+  location.reload();
+}
+
+/* ====================== ayuda ====================== */
+function renderAyuda() {
+  $('#v-ayuda').innerHTML = '<h2>Cómo se usa</h2>' +
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Todos los días, al abrir</h4>' +
+    '<p class="nota">Entra a Tasas y toca "Bajar tasas de internet". Con eso queda listo el precio del día. Si no hay señal, escribe el BCV y el USDT a mano.</p></div>' +
+
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Para vender</h4>' +
+    '<p class="nota">Toca Vender. Escanea con el botón de la derecha, o toca uno de los botones rápidos, o escribe el nombre y dale a la tecla de enviar. Cuando esté todo, toca Cobrar y elige cómo paga. Los dos totales — bolívares y divisa — están siempre abajo.</p></div>' +
+
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Si escaneas de más</h4>' +
+    '<p class="nota">Toca el signo menos para bajar la cantidad, o la equis para sacar el renglón. Si ya cobraste, en Vender aparece "Anular esa venta" y el inventario vuelve a su sitio.</p></div>' +
+
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Cuando llega mercancía</h4>' +
+    '<p class="nota">Toca Cargar y escanea. Si el producto ya existe te pide cuántas entraron y cuánto costaron. Si escaneaste una caja, pon el costo de la caja completa: la app divide sola. Si el código es nuevo, te lleva a darlo de alta.</p></div>' +
+
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Al terminar el día</h4>' +
+    '<p class="nota">Toca Cierre y luego "Cerrar el día". Ahí ves cuánto entró, cuánto ganaste de verdad y qué producto dejó más. El botón del Excel baja el archivo con todo el historial.</p></div>' +
+
+    '<div class="tarjeta"><h4 style="margin:0 0 8px">Una vez por semana</h4>' +
+    '<p class="nota">En Ajustes, baja un respaldo. Es un archivo chiquito. Si el teléfono se pierde o se moja, con ese archivo recuperas todo.</p></div>' +
+
+    '<button class="btn" onclick="irA(\'inicio\')">Volver al inicio</button>';
+}
+
+/* ====================== arranque ====================== */
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function arrancar() {
+  await cargarEstado();
+  if (!S.productos.length && !S.tasas.length) await sembrarEjemplo();
+  irA(S.tasas.length ? 'inicio' : 'tasas');
+  if (S.config.autoTasas && !tasaDe(hoyISO())) {
+    const r = await bajarTasas();
+    if (!r.error && r.bcv) { guardarTasa(calcularTasa(hoyISO(), r.bcv, r.usdt, 'auto')); render(); }
+  }
+}
+
+async function sembrarEjemplo() {
+  const demo = [
+    ['Cerveza Polar Pilsen', 'lata 269 cc', 'Cerveza', 0.62, 0.90, 96, 24, true, 24],
+    ['Cerveza Solera Verde', 'lata 269 cc', 'Cerveza', 0.68, 1.00, 48, 24, true, 24],
+    ['Ron Cacique 500 Añejo', '750 ml', 'Ron', 6.10, 9.50, 12, 3, true, 12],
+    ['Ron Santa Teresa 1796', '750 ml', 'Ron', 21.00, 31.00, 4, 2, false, 6],
+    ['Whisky Old Parr', '750 ml', 'Whisky', 26.00, 38.00, 3, 2, false, 6],
+    ['Vodka Absolut', '750 ml', 'Vodka', 14.50, 22.00, 5, 2, false, 6],
+    ['Ponche Crema', '750 ml', 'Licor', 5.20, 8.00, 8, 3, false, 12],
+    ['Agua Minalba', '600 ml', 'Bebidas', 0.35, 0.70, 40, 12, true, 24],
+    ['Hielo', 'bolsa 2 kg', 'Otros', 0.60, 1.25, 20, 6, true, 1],
+    ['Cigarrillos Belmont', 'cajetilla', 'Cigarrillos', 1.40, 1.90, 25, 10, true, 10]
+  ];
+  S.productos = demo.map((d, i) => {
+    const pres = [{ nombre: 'Unidad', factor: 1, codigo: 'DEMO' + pad(i + 1), precio: null }];
+    if (d[8] > 1) pres.push({ nombre: 'Caja de ' + d[8], factor: d[8], codigo: 'DEMOC' + pad(i + 1), precio: null });
+    return {
+      id: uid(), nombre: d[0], presentacion: d[1], categoria: d[2], costo: d[3], precio: d[4],
+      stock: d[5], minimo: d[6], favorito: d[7], aplicaDesc: true, activo: true, pres,
+      creado: ahora(), creadoFecha: hoyISO(), actualizado: ahora(), demo: true
+    };
+  });
+  reindexar();
+  guardar(['productos']);
+}
+
+document.addEventListener('DOMContentLoaded', arrancar);
+if (document.readyState !== 'loading') arrancar();
+
+/* acceso desde la consola del navegador, útil para revisar o depurar */
+window.CAVA = {
+  version: '1.0',
+  get S() { return S; },
+  get carrito() { return carrito; }, set carrito(v) { carrito = v; },
+  hoyISO, tasaVigente, calcularTasa, guardarTasa, preciosDe, totalesCarrito,
+  registrarVenta, resumenDia, cerrarDia, anularVenta, producto, buscarCodigo,
+  exportarExcel, bajarRespaldo, render
+};
+</script>
+</body>
+</html>
