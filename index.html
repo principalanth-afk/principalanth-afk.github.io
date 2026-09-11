@@ -926,6 +926,7 @@ function construirXLSX(hojas) {
    ========================================================================== */
 'use strict';
 
+const VERSION = '1.2';
 let VISTA = 'inicio';
 const ICONOS = {
   inicio: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
@@ -1987,7 +1988,8 @@ function renderAjustes() {
     '<button class="btn chico" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel</button>' +
     '</div>';
 
-  h += '<div class="tarjeta"><p class="nota">Guardado en: ' + (DB.modo === 'idb' ? 'base de datos del navegador' : 'almacenamiento simple') +
+  h += '<div class="tarjeta"><p class="nota"><b style="color:var(--ambar)">CAVA versión ' + VERSION + '</b><br>' +
+    'Guardado en: ' + (DB.modo === 'idb' ? 'base de datos del navegador' : 'almacenamiento simple') +
     ' · ' + S.productos.length + ' productos · ' + S.ventas.length + ' ventas este mes</p>' +
     '<button class="btn rojo chico" style="margin-top:10px" onclick="pedirBorrarTodo()">Borrar todo y empezar de cero</button></div>';
 
@@ -2163,7 +2165,17 @@ async function sembrarEjemplo() {
 }
 
 if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => { }));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => { try { reg.update(); } catch (e) { } })
+      .catch(() => { });
+  });
+  let recargando = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (recargando) return;
+    recargando = true;
+    location.reload();
+  });
 }
 
 document.addEventListener('DOMContentLoaded', arrancar);
@@ -2171,7 +2183,7 @@ if (document.readyState !== 'loading') arrancar();
 
 /* acceso desde la consola del navegador, útil para revisar o depurar */
 window.CAVA = {
-  version: '1.0',
+  version: VERSION,
   get S() { return S; },
   get carrito() { return carrito; }, set carrito(v) { carrito = v; },
   hoyISO, tasaVigente, calcularTasa, guardarTasa, preciosDe, totalesCarrito,
