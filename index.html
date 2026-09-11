@@ -192,6 +192,8 @@ table.mini tr:last-child td{border-bottom:0}
   <section class="vista" id="v-cierre"></section>
   <section class="vista" id="v-tasas"></section>
   <section class="vista" id="v-ajustes"></section>
+  <section class="vista" id="v-fiado"></section>
+  <section class="vista" id="v-clientes"></section>
   <section class="vista" id="v-ayuda"></section>
 </main>
 
@@ -335,6 +337,8 @@ const CFG_DEF = {
 let S = {
   config: Object.assign({}, CFG_DEF),
   productos: [],
+  clientes: [],
+  deudas: [],
   tasas: [],       // {fecha,bcv,usdt,promedio3d,proyeccion,tasaVenta,descuentoPct,origen,hora}
   cierres: [],
   ventas: [],      // solo el mes en curso
@@ -346,7 +350,7 @@ let S = {
 let guardarPendiente = null;
 function guardar(claves) {
   clearTimeout(guardarPendiente);
-  const k = claves || ['config', 'productos', 'tasas', 'cierres', 'ventas', 'movs', 'meses'];
+  const k = claves || ['config', 'productos', 'clientes', 'deudas', 'tasas', 'cierres', 'ventas', 'movs', 'meses'];
   guardarPendiente = setTimeout(() => {
     const m = S.mesCargado;
     k.forEach(x => {
@@ -363,6 +367,7 @@ function guardarYa() {
   const m = S.mesCargado;
   return Promise.all([
     DB.set('config', S.config), DB.set('productos', S.productos), DB.set('tasas', S.tasas),
+    DB.set('clientes', S.clientes), DB.set('deudas', S.deudas),
     DB.set('cierres', S.cierres), DB.set('meses', S.meses),
     DB.set('ventas_' + m, S.ventas), DB.set('movs_' + m, S.movs)
   ]);
@@ -370,14 +375,17 @@ function guardarYa() {
 
 async function cargarEstado() {
   await DB.abrir();
-  const [cfg, prods, tasas, cierres, meses] = await Promise.all([
-    DB.get('config'), DB.get('productos'), DB.get('tasas'), DB.get('cierres'), DB.get('meses')
+  const [cfg, prods, tasas, cierres, meses, clis, deus] = await Promise.all([
+    DB.get('config'), DB.get('productos'), DB.get('tasas'), DB.get('cierres'), DB.get('meses'),
+    DB.get('clientes'), DB.get('deudas')
   ]);
   S.config = Object.assign({}, CFG_DEF, cfg || {});
   S.productos = prods || [];
   S.tasas = tasas || [];
   S.cierres = cierres || [];
   S.meses = meses || [];
+  S.clientes = clis || [];
+  S.deudas = deus || [];
   const m = mesDe(hoyISO());
   S.mesCargado = m;
   if (S.meses.indexOf(m) < 0) { S.meses.push(m); S.meses.sort(); }
@@ -580,12 +588,14 @@ function totalesCarrito(t) {
 function registrarVenta(pago, t) {
   // pago: {metodo, recibidoUsd, recibidoBs, vueltoBs, igtf}
   const tt = totalesCarrito(t);
+  const esFiado = pago.metodo === 'fiado';
   const grupoDivisa = ['efectivo_usd', 'binance'].indexOf(pago.metodo) >= 0;
-  const cobradoUsd = pago.metodo === 'mixto' ? nz(pago.parteUsd) : (grupoDivisa ? tt.efectivo : 0);
-  const cobradoBs = pago.metodo === 'mixto' ? nz(pago.parteBs) : (grupoDivisa ? 0 : tt.bs);
+  const cobradoUsd = esFiado ? 0 : (pago.metodo === 'mixto' ? nz(pago.parteUsd) : (grupoDivisa ? tt.efectivo : 0));
+  const cobradoBs = esFiado ? 0 : (pago.metodo === 'mixto' ? nz(pago.parteBs) : (grupoDivisa ? 0 : tt.bs));
   const metodoUsd = pago.metodo === 'mixto' ? (pago.metodoUsd || 'efectivo_usd') : (grupoDivisa ? pago.metodo : null);
   const metodoBs = pago.metodo === 'mixto' ? (pago.metodoBs || 'pago_movil') : (grupoDivisa ? null : pago.metodo);
-  const ingresoReal = cobradoUsd + (t.usdt > 0 ? cobradoBs / t.usdt : 0);
+  const fiadoUsd = esFiado ? tt.lista : 0;
+  const ingresoReal = esFiado ? fiadoUsd : (cobradoUsd + (t.usdt > 0 ? cobradoBs / t.usdt : 0));
   const v = {
     id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
     items: carrito.map(l => {
@@ -603,6 +613,7 @@ function registrarVenta(pago, t) {
     totalLista: tt.lista, totalBs: tt.bs, totalEfectivo: tt.efectivo,
     costoTotal: tt.costo, unidades: tt.unidades,
     metodo: pago.metodo, metodoUsd, metodoBs, cobradoUsd, cobradoBs, igtf: nz(pago.igtf),
+    fiadoUsd, clienteId: pago.clienteId || null,
     bcv: t.bcv, usdt: t.usdt, tasaVenta: t.tasaVenta, descuentoPct: t.descuentoPct,
     ingresoReal, gananciaNominal: tt.lista - tt.costo, gananciaReal: ingresoReal - tt.costo,
     anulada: false
@@ -644,10 +655,12 @@ const METODOS = [
   { id: 'efectivo_bs', nombre: 'Efectivo en bolívares', moneda: 'bs' },
   { id: 'pago_movil', nombre: 'Pago móvil o transferencia', moneda: 'bs' },
   { id: 'efectivo_usd', nombre: 'Efectivo en divisas', moneda: 'usd' },
-  { id: 'binance', nombre: 'Binance USDT', moneda: 'usd' }
+  { id: 'binance', nombre: 'Binance USDT', moneda: 'usd' },
+  { id: 'fiado', nombre: 'Fiado (crédito)', moneda: 'fiado' }
 ];
 function nombreMetodo(id) { const m = METODOS.find(x => x.id === id); return m ? m.nombre : (id || '—'); }
 function cobrosVacios() { const o = {}; METODOS.forEach(m => o[m.id] = 0); return o; }
+function metodosCobrables() { return METODOS.filter(m => m.moneda !== 'fiado'); }
 
 /* ---------- cierre del día ---------- */
 function resumenDia(fecha, ventas) {
@@ -655,6 +668,7 @@ function resumenDia(fecha, ventas) {
   const r = {
     fecha, nVentas: vs.length, unidades: 0, ventaLista: 0, ventaBs: 0, ventaUsd: 0,
     ingresoReal: 0, costo: 0, gananciaNominal: 0, gananciaReal: 0, descuentos: 0,
+    fiadoUsd: 0, abonosUsd: 0, entroCaja: 0,
     porMetodo: {}, porUsuario: {}, cobros: cobrosVacios(), top: []
   };
   const acumProd = {};
@@ -664,6 +678,8 @@ function resumenDia(fecha, ventas) {
     r.ventaBs += v.cobradoBs;
     r.ventaUsd += v.cobradoUsd;
     r.ingresoReal += v.ingresoReal;
+    r.fiadoUsd += nz(v.fiadoUsd);
+    if (nz(v.fiadoUsd) > 0) r.cobros.fiado = (r.cobros.fiado || 0) + nz(v.fiadoUsd);
     r.costo += v.costoTotal;
     r.gananciaNominal += v.gananciaNominal;
     r.gananciaReal += v.gananciaReal;
@@ -681,6 +697,14 @@ function resumenDia(fecha, ventas) {
       acumProd[k].venta += it.subtotalLista;
     });
   });
+  // los abonos de fiados viejos entran a la caja pero no son venta nueva
+  abonosDelDia(fecha).forEach(({ a }) => {
+    r.abonosUsd += nz(a.montoUsd);
+    const esDivisa = ['efectivo_usd', 'binance'].indexOf(a.metodo) >= 0;
+    if (r.cobros[a.metodo] !== undefined) r.cobros[a.metodo] += esDivisa ? nz(a.montoUsd) : nz(a.montoBs);
+    if (esDivisa) r.ventaUsd += nz(a.montoUsd); else r.ventaBs += nz(a.montoBs);
+  });
+  r.entroCaja = r.ingresoReal - r.fiadoUsd + r.abonosUsd;
   r.descuentos = r.ventaLista - r.ingresoReal;
   r.top = Object.values(acumProd).sort((a, b) => b.ganancia - a.ganancia).slice(0, 5);
   r.margen = r.ingresoReal > 0 ? (r.gananciaReal / r.ingresoReal) * 100 : 0;
@@ -695,6 +719,7 @@ function cerrarDia(fecha) {
     ventaLista: r.ventaLista, ingresoReal: r.ingresoReal, costo: r.costo,
     gananciaNominal: r.gananciaNominal, gananciaReal: r.gananciaReal,
     descuentos: r.descuentos, margen: r.margen,
+    fiadoUsd: r.fiadoUsd, abonosUsd: r.abonosUsd, entroCaja: r.entroCaja,
     efectivoUsd: r.ventaUsd, bs: r.ventaBs,
     bcv: t ? t.bcv : 0, usdt: t ? t.usdt : 0, tasaVenta: t ? t.tasaVenta : 0,
     proyeccion: t ? t.proyeccion : 0, descuentoPct: t ? t.descuentoPct : 0,
@@ -731,6 +756,371 @@ function valorInventario() {
     venta += nz(p.stock) * nz(p.precio);
   });
   return { costo, venta };
+}
+</script>
+<script>/* ==========================================================================
+   CAVA — fiado, clientes, mensajes y reporte PDF
+   ========================================================================== */
+'use strict';
+
+/* ---------- teléfonos ---------- */
+function telLimpio(t) {
+  let s = String(t || '').replace(/[^0-9]/g, '');
+  if (s.indexOf('58') === 0 && s.length >= 12) return s;
+  if (s.indexOf('0') === 0) s = s.slice(1);
+  if (s.length === 10) return '58' + s;
+  return s;
+}
+function telBonito(t) {
+  const s = telLimpio(t);
+  if (s.length === 12) return '+' + s.slice(0, 2) + ' ' + s.slice(2, 5) + '-' + s.slice(5, 8) + s.slice(8);
+  return t || '';
+}
+function abrirWhatsApp(tel, texto) {
+  const n = telLimpio(tel);
+  const url = 'https://wa.me/' + n + (texto ? '?text=' + encodeURIComponent(texto) : '');
+  window.open(url, '_blank');
+}
+
+/* ---------- clientes ---------- */
+function cliente(id) { return S.clientes.find(c => c.id === id); }
+function nombreCliente(id) { const c = cliente(id); return c ? c.nombre : 'Cliente'; }
+
+function crearCliente(nombre, telefono, nota) {
+  const c = {
+    id: uid(), nombre: (nombre || '').trim() || 'Sin nombre',
+    telefono: telLimpio(telefono), nota: (nota || '').trim(),
+    promos: true, creado: ahora(), creadoFecha: hoyISO()
+  };
+  S.clientes.push(c);
+  guardar(['clientes']);
+  return c;
+}
+function clientesBuscar(q) {
+  q = (q || '').toLowerCase().trim();
+  if (!q) return S.clientes.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
+  return S.clientes.filter(c => (c.nombre + ' ' + c.telefono).toLowerCase().includes(q));
+}
+function compradoPorCliente(id) {
+  let total = 0;
+  S.ventas.forEach(v => { if (!v.anulada && v.clienteId === id) total += nz(v.totalLista); });
+  return total;
+}
+
+/* ---------- deudas ---------- */
+function crearDeuda(o) {
+  const dias = Math.max(0, parseInt(o.dias, 10) || 0);
+  const d = {
+    id: uid(), clienteId: o.clienteId, origen: o.origen || 'venta', ventaId: o.ventaId || null,
+    fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
+    dias, vence: restarDias(hoyISO(), -dias),
+    montoUsd: nz(o.montoUsd), tasaVenta: nz(o.tasaVenta), usdt: nz(o.usdt),
+    abonos: [], pagada: false, fechaPago: null, nota: o.nota || ''
+  };
+  S.deudas.push(d);
+  guardar(['deudas']);
+  return d;
+}
+function deuda(id) { return S.deudas.find(d => d.id === id); }
+function saldoDeuda(d) {
+  const ab = (d.abonos || []).reduce((s, a) => s + nz(a.montoUsd), 0);
+  return Math.max(0, nz(d.montoUsd) - ab);
+}
+function abonar(deudaId, montoUsd, metodo) {
+  const d = deuda(deudaId);
+  if (!d) return null;
+  const t = tasaVigente();
+  const a = {
+    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
+    montoUsd: nz(montoUsd), metodo: metodo || 'efectivo_usd',
+    montoBs: metodo && ['efectivo_usd', 'binance'].indexOf(metodo) < 0 && t ? nz(montoUsd) * t.tasaVenta : 0,
+    tasaVenta: t ? t.tasaVenta : 0, usdt: t ? t.usdt : 0
+  };
+  d.abonos.push(a);
+  if (saldoDeuda(d) <= 0.009) { d.pagada = true; d.fechaPago = hoyISO(); }
+  guardar(['deudas']);
+  return a;
+}
+function deudasAbiertas() {
+  return S.deudas.filter(d => !d.pagada && saldoDeuda(d) > 0.009)
+    .sort((a, b) => a.vence < b.vence ? -1 : 1);
+}
+function totalFiado() { return deudasAbiertas().reduce((s, d) => s + saldoDeuda(d), 0); }
+function cobrosDeHoy() {
+  const h = hoyISO();
+  return deudasAbiertas().filter(d => d.vence <= h);
+}
+function abonosDelDia(fecha) {
+  const out = [];
+  S.deudas.forEach(d => (d.abonos || []).forEach(a => { if (a.fecha === fecha) out.push({ a, d }); }));
+  return out;
+}
+
+/* ---------- los tres montos que se le dicen al cliente ---------- */
+function montosDeuda(d, t) {
+  const saldo = saldoDeuda(d);
+  if (!t) return { saldo, bs: 0, bcv: saldo, efectivo: saldo };
+  return {
+    saldo,
+    bs: redondear(saldo * t.tasaVenta, S.config.redondeoBs),
+    bcv: saldo,
+    efectivo: redondear(saldo * (1 - t.descuentoPct / 100), 0.01)
+  };
+}
+
+/* ==========================================================================
+   Generador de mensajes de cobro
+   La gracia es que nunca salga igual dos días seguidos y no suene a robot.
+   ========================================================================== */
+function semilla(txt) {
+  let h = 2166136261;
+  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return Math.abs(h);
+}
+function elegir(lista, sem, desfase) { return lista[(sem + (desfase || 0) * 7919) % lista.length]; }
+
+const SALUDOS_AM = ['¡Buenos días, {n}!', 'Buenos días {n} 👋', '¡Epa {n}, buen día!', 'Buen día, {n} ☀️', '¡Hola {n}, buenos días!'];
+const SALUDOS_PM = ['¡Buenas tardes, {n}!', 'Buenas {n} 👋', '¡Hola {n}, buenas tardes!', '¿Cómo va la tarde, {n}?', 'Buenas tardes {n} 🙂'];
+const SALUDOS_NOCHE = ['¡Buenas noches, {n}!', 'Buenas noches {n} 👋', '¡Hola {n}, buenas noches!', '¿Todo bien, {n}?'];
+
+const APERTURAS = {
+  hoy: [
+    'Un recordatorio cortico de {neg}: hoy vence tu cuentica.',
+    'Te escribo de {neg} 🍻 Hoy es el día que habíamos quedado.',
+    'Pasando por aquí para recordarte lo de {neg}, que se cumple hoy.',
+    'De {neg} 🍺 Hoy toca cerrar la cuenta que teníamos.',
+    'Solo para avisarte que hoy vence lo de {neg}.'
+  ],
+  fresca: [
+    'Te escribo de {neg} 🍻 Se te pasó la fecha por {d}, nada grave.',
+    'De {neg} 🍺 Tu cuenta quedó pendiente desde hace {d}.',
+    'Recordatorio suave de {neg}: llevamos {d} de la fecha.',
+    'Aquí {neg} 👋 Se nos quedó abierta la cuenta hace {d}.',
+    'Pasando por {neg} a recordarte la cuentica de hace {d}.'
+  ],
+  media: [
+    'Te escribo de {neg}. Ya van {d} de la fecha y queríamos ponernos al día.',
+    'De {neg} 🍺 Tu cuenta lleva {d} esperando. ¿La cuadramos?',
+    'Aquí {neg}. Llevamos {d} con la cuenta abierta, ¿cómo hacemos?',
+    'Un toque de {neg}: ya son {d} y nos gustaría cerrar esto.',
+    'De parte de {neg} 👋 Van {d} de la fecha acordada.'
+  ],
+  vieja: [
+    'Te escribo de {neg}. Ya son {d} y necesitamos cerrar esta cuenta.',
+    'De {neg}. Llevamos {d} y de verdad nos hace falta cuadrar esto.',
+    'Aquí {neg} 👋 Van {d} con la cuenta abierta. ¿Podemos resolverlo esta semana?',
+    'De {neg}: {d} es bastante tiempo. Buscamos una solución que te sirva.'
+  ]
+};
+
+const CIERRES = {
+  suave: [
+    'Cuando puedas te lo agradezco 🙏 Aquí te esperamos con la nevera bien fría 🍺',
+    '¡Gracias de antemano! 🙌 Por acá siempre a la orden.',
+    'Cualquier cosa me avisas 👍 Seguimos a la orden.',
+    'Sin apuro, solo para que lo tengas presente 🙂 ¡Nos vemos pronto!',
+    'Gracias por la confianza 🙏 Aquí estamos para lo que necesites 🍻'
+  ],
+  media: [
+    'Avísame cómo prefieres pagar y lo cuadramos 👍 Seguimos a la orden 🍺',
+    'Si necesitas abonar por partes, se puede. Solo dime 🙂',
+    'Cualquiera de esas formas nos sirve 👌 ¡Y aquí seguimos para lo que haga falta!',
+    'Me escribes y lo resolvemos fácil 🙏 Gracias por la confianza.',
+    'Dime cómo te queda mejor y listo 👍 Siempre a la orden por acá 🍻'
+  ],
+  firme: [
+    'Necesito que me digas hoy cómo lo vamos a resolver 🙏 Gracias.',
+    'Escríbeme para cuadrar una fecha, aunque sea abonando por partes 👍',
+    'Te agradezco que me respondas para acomodarlo 🙏 Queremos seguir atendiéndote.',
+    'Dime algo hoy y lo arreglamos como sea más cómodo para ti 👌'
+  ]
+};
+
+function mensajeCobro(d, t, fecha, momento) {
+  const cli = cliente(d.clienteId) || { nombre: 'Cliente' };
+  fecha = fecha || hoyISO();
+  const atraso = diasEntre(d.vence, fecha);
+  const m = montosDeuda(d, t);
+  const sem = semilla(d.id + fecha + cli.nombre);
+
+  const hora = momento !== undefined ? momento : new Date().getHours();
+  const saludos = hora < 12 ? SALUDOS_AM : (hora < 19 ? SALUDOS_PM : SALUDOS_NOCHE);
+  const primerNombre = cli.nombre.split(' ')[0];
+
+  let grupo, cierre;
+  if (atraso <= 0) { grupo = 'hoy'; cierre = CIERRES.suave; }
+  else if (atraso <= 3) { grupo = 'fresca'; cierre = CIERRES.suave; }
+  else if (atraso <= 10) { grupo = 'media'; cierre = CIERRES.media; }
+  else { grupo = 'vieja'; cierre = CIERRES.firme; }
+
+  const txtDias = atraso === 1 ? 'un día' : (atraso < 7 ? atraso + ' días'
+    : (atraso < 14 ? 'una semana' : (atraso < 31 ? Math.round(atraso / 7) + ' semanas' : 'más de un mes')));
+
+  const saludo = elegir(saludos, sem, 1).replace('{n}', primerNombre);
+  const apertura = elegir(APERTURAS[grupo], sem, 2)
+    .replace('{neg}', S.config.negocio).replace('{d}', txtDias);
+  const final = elegir(cierre, sem, 3);
+
+  const montos = 'Quedó en *' + fmtBs(m.bs) + ' Bs* 💵, o *$' + fmtUsd(m.bcv) + '* al BCV, ' +
+    'o *$' + fmtUsd(m.efectivo) + '* pagando en efectivo o Binance 🤝';
+
+  return saludo + ' ' + apertura + '\n\n' + montos + '\n\n' + final;
+}
+
+function mensajePromo(texto) {
+  const extras = ['🍻', '🥃', '🍺', '🎉', '🔥'];
+  return texto;
+}
+
+/* ==========================================================================
+   PDF de una página, sin librerías
+   ========================================================================== */
+function pdfTexto(s) {
+  return String(s == null ? '' : s)
+    .replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+}
+function aLatin1(s) {
+  const out = [];
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    out.push(c < 256 ? c : 63); // lo que no entra en Latin-1 se vuelve "?"
+  }
+  return out;
+}
+
+function construirPDF(lineas, titulo) {
+  // lineas: [{txt, x, y, tam, negrita, gris}]
+  let contenido = '';
+  lineas.forEach(l => {
+    const fuente = l.negrita ? '/F2' : '/F1';
+    const color = l.gris ? '0.42 0.49 0.47 rg' : (l.ambar ? '0.72 0.46 0.08 rg' : '0.09 0.13 0.12 rg');
+    contenido += 'BT ' + color + ' ' + fuente + ' ' + (l.tam || 10) + ' Tf ' +
+      (l.x || 50) + ' ' + l.y + ' Td (' + pdfTexto(l.txt) + ') Tj ET\n';
+    if (l.linea) {
+      contenido += '0.88 0.88 0.85 RG 0.7 w ' + (l.x || 50) + ' ' + (l.y - 6) + ' m ' +
+        (l.linea) + ' ' + (l.y - 6) + ' l S\n';
+    }
+  });
+
+  const bytesContenido = aLatin1(contenido);
+  const objetos = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>',
+    '<< /Length ' + bytesContenido.length + ' >>\nstream\n' + contenido + 'endstream',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Info /Title (' + pdfTexto(titulo || 'CAVA') + ') >>'
+  ];
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [];
+  objetos.forEach((o, i) => {
+    offsets.push(aLatin1(pdf).length);
+    pdf += (i + 1) + ' 0 obj\n' + o + '\nendobj\n';
+  });
+  const inicioXref = aLatin1(pdf).length;
+  pdf += 'xref\n0 ' + (objetos.length + 1) + '\n0000000000 65535 f \n';
+  offsets.forEach(o => { pdf += String(o).padStart(10, '0') + ' 00000 n \n'; });
+  pdf += 'trailer\n<< /Size ' + (objetos.length + 1) + ' /Root 1 0 R /Info 7 0 R >>\n' +
+    'startxref\n' + inicioXref + '\n%%EOF';
+
+  return new Uint8Array(aLatin1(pdf));
+}
+
+/* ---------- el resumen semanal ---------- */
+function armarResumenSemanal(hasta) {
+  hasta = hasta || hoyISO();
+  const desde = restarDias(hasta, 6);
+  const dias = S.cierres.filter(c => c.fecha >= desde && c.fecha <= hasta);
+  const hoyR = resumenDia(hasta);
+  if (!dias.some(c => c.fecha === hasta) && hoyR.nVentas) {
+    dias.push({
+      fecha: hasta, nVentas: hoyR.nVentas, unidades: hoyR.unidades, ventaLista: hoyR.ventaLista,
+      ingresoReal: hoyR.ingresoReal, costo: hoyR.costo, gananciaReal: hoyR.gananciaReal,
+      gananciaNominal: hoyR.gananciaNominal
+    });
+  }
+  const sum = k => dias.reduce((s, c) => s + nz(c[k]), 0);
+  const inv = valorInventario();
+  const fiado = totalFiado();
+  const t = tasaVigente();
+
+  const top = {};
+  S.ventas.forEach(v => {
+    if (v.anulada || v.fecha < desde || v.fecha > hasta) return;
+    v.items.forEach(it => {
+      if (!top[it.nombre]) top[it.nombre] = { u: 0, g: 0 };
+      top[it.nombre].u += it.unidades; top[it.nombre].g += it.gananciaLinea;
+    });
+  });
+  const ranking = Object.keys(top).map(k => ({ nombre: k, u: top[k].u, g: top[k].g }))
+    .sort((a, b) => b.g - a.g).slice(0, 6);
+
+  return {
+    desde, hasta, dias,
+    ventas: sum('ingresoReal'), costo: sum('costo'),
+    ganancia: sum('gananciaReal'), unidades: sum('unidades'), nVentas: sum('nVentas'),
+    inventarioCosto: inv.costo, inventarioVenta: inv.venta, fiado,
+    patrimonio: inv.costo + fiado,
+    margen: sum('ingresoReal') > 0 ? (sum('gananciaReal') / sum('ingresoReal')) * 100 : 0,
+    tasa: t, ranking, deudores: deudasAbiertas().length
+  };
+}
+
+function pdfResumenSemanal(r) {
+  const L = [];
+  let y = 790;
+  const fila = (etiqueta, valor, negrita) => {
+    L.push({ txt: etiqueta, x: 50, y, tam: 10.5, gris: !negrita });
+    L.push({ txt: valor, x: 400, y, tam: 10.5, negrita: !!negrita });
+    y -= 19;
+  };
+  const titulo = (txt) => {
+    y -= 10;
+    L.push({ txt: txt.toUpperCase(), x: 50, y, tam: 9, negrita: true, ambar: true, linea: 545 });
+    y -= 21;
+  };
+
+  L.push({ txt: S.config.negocio, x: 50, y, tam: 20, negrita: true }); y -= 21;
+  L.push({ txt: 'Resumen de la semana · ' + fechaLarga(r.desde) + ' al ' + fechaLarga(r.hasta), x: 50, y, tam: 10, gris: true });
+  y -= 30;
+
+  titulo('El resultado de la semana');
+  fila('Ventas cobradas', '$ ' + fmtUsd(r.ventas));
+  fila('Costo de la mercancía vendida', '$ ' + fmtUsd(r.costo));
+  fila('Ganancia real en divisas', '$ ' + fmtUsd(r.ganancia), true);
+  fila('Margen', fmtNum(r.margen, 1) + ' %');
+  fila('Ventas hechas', String(r.nVentas));
+  fila('Unidades despachadas', fmtNum(r.unidades, 0));
+
+  titulo('Patrimonio');
+  fila('Inventario a precio de costo', '$ ' + fmtUsd(r.inventarioCosto));
+  fila('Ese mismo inventario, a precio de venta', '$ ' + fmtUsd(r.inventarioVenta));
+  fila('Dinero fiado por cobrar', '$ ' + fmtUsd(r.fiado));
+  fila('Patrimonio total (inventario + fiado)', '$ ' + fmtUsd(r.patrimonio), true);
+  fila('Personas que deben', String(r.deudores));
+
+  titulo('Día por día');
+  r.dias.slice().sort((a, b) => a.fecha < b.fecha ? -1 : 1).forEach(c => {
+    fila(fechaLarga(c.fecha), '$ ' + fmtUsd(c.ingresoReal) + '   ·   ganancia $ ' + fmtUsd(c.gananciaReal));
+  });
+
+  if (r.ranking.length) {
+    titulo('Lo que más dejó');
+    r.ranking.forEach(x => fila(x.nombre + '  (' + fmtNum(x.u, 0) + ' u)', '$ ' + fmtUsd(x.g)));
+  }
+
+  if (r.tasa) {
+    titulo('Tasas al cierre');
+    fila('BCV', fmtNum(r.tasa.bcv, 2) + ' Bs');
+    fila('Tasa a la que se vendió', fmtNum(r.tasa.tasaVenta, 2) + ' Bs');
+    fila('USDT Binance', fmtNum(r.tasa.usdt, 2) + ' Bs');
+    fila('Descuento en divisa', fmtNum(r.tasa.descuentoPct, 2) + ' %');
+  }
+
+  L.push({ txt: 'Generado por CAVA el ' + fechaLarga(hoyISO()) + '. Documento de control interno, sin validez fiscal.', x: 50, y: 40, tam: 8, gris: true });
+  return construirPDF(L, 'Resumen semanal ' + r.hasta);
 }
 </script>
 <script>/* ==========================================================================
@@ -926,7 +1316,7 @@ function construirXLSX(hojas) {
    ========================================================================== */
 'use strict';
 
-const VERSION = '1.2';
+const VERSION = '2.0';
 let VISTA = 'inicio';
 const ICONOS = {
   inicio: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
@@ -1016,7 +1406,8 @@ function render() {
   $('#principal').className = (VISTA === 'vender' && carrito.length) ? 'conbarra' : '';
   const f = {
     inicio: renderInicio, vender: renderVender, cargar: renderCargar, stock: renderStock,
-    cierre: renderCierre, tasas: renderTasas, ajustes: renderAjustes, ayuda: renderAyuda
+    cierre: renderCierre, tasas: renderTasas, ajustes: renderAjustes, ayuda: renderAyuda,
+    fiado: renderFiado, clientes: renderClientes
   }[VISTA];
   if (f) f();
   renderDinero();
@@ -1040,6 +1431,13 @@ function renderInicio() {
     '<div><b class="num">' + fmtNum(r.margen, 0) + '%</b><span>margen</span></div>' +
     '</div>';
 
+  const porCobrar = cobrosDeHoy();
+  if (porCobrar.length) {
+    h += '<div class="aviso-caja" onclick="irA(\'fiado\')" style="cursor:pointer">' +
+      '<b>Hay ' + porCobrar.length + ' cobro' + (porCobrar.length > 1 ? 's' : '') + ' para hoy</b> · $' +
+      fmtUsd(porCobrar.reduce((a, d) => a + saldoDeuda(d), 0)) + ' por recuperar. Toca aquí para mandar los mensajes.</div>';
+  }
+
   h += S.config.soloConsulta
     ? '<div class="aviso-caja">Este aparato es solo para consultar. Las ventas y la carga se hacen desde el teléfono de la caja.</div>'
     : '<button class="btn oro enorme" onclick="irA(\'vender\')">Vender</button>';
@@ -1056,14 +1454,23 @@ function renderInicio() {
     if (bajo.length > 6) h += '<p class="nota">y ' + (bajo.length - 6) + ' más en la pestaña Stock.</p>';
   }
 
-  h += '<h3>El negocio hoy</h3><div class="tarjeta"><table class="mini">' +
+  const fiado = totalFiado();
+  h += '<h3>Patrimonio</h3>' +
+    '<div class="grande">' +
+    '<div><b class="num">$' + fmtUsd(inv.costo) + '</b><span>inventario al costo</span></div>' +
+    '<div class="oro" onclick="irA(\'fiado\')"><b class="num">$' + fmtUsd(fiado) + '</b><span>dinero fiado ›</span></div>' +
+    '</div>' +
+    '<div class="tarjeta"><table class="mini">' +
     '<tr><td>Productos cargados</td><td class="num">' + S.productos.filter(p => p.activo !== false).length + '</td></tr>' +
-    '<tr><td>Inventario a precio de costo</td><td class="num">$' + fmtUsd(inv.costo) + '</td></tr>' +
     '<tr><td>Inventario a precio de venta</td><td class="num">$' + fmtUsd(inv.venta) + '</td></tr>' +
+    '<tr><td>Personas que deben</td><td class="num">' + deudasAbiertas().length + '</td></tr>' +
+    '<tr><td><b>Patrimonio total</b></td><td class="num">$' + fmtUsd(inv.costo + fiado) + '</td></tr>' +
     '<tr><td>Día cerrado</td><td>' + (cerrado ? 'sí' : 'todavía no') + '</td></tr>' +
     '</table></div>';
 
-  h += '<div class="fila"><button class="btn chico" onclick="irA(\'tasas\')">Tasas</button>' +
+  h += '<div class="fila"><button class="btn chico" onclick="irA(\'fiado\')">Fiado</button>' +
+    '<button class="btn chico" onclick="irA(\'clientes\')">Clientes</button></div>' +
+    '<div class="fila" style="margin-top:8px"><button class="btn chico" onclick="irA(\'tasas\')">Tasas</button>' +
     '<button class="btn chico" onclick="irA(\'ayuda\')">Cómo se usa</button></div>';
   $('#v-inicio').innerHTML = h;
 }
@@ -1239,6 +1646,7 @@ function abrirCobro() {
     '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'efectivo_bs\')">Efectivo en bolívares · ' + fmtBs(tt.bs) + ' Bs</button>' +
     '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'punto\')">Punto de venta · ' + fmtBs(tt.bs) + ' Bs</button>' +
     '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'mixto\')">Combinado</button>' +
+    '<button class="btn" style="margin-top:8px;border-color:var(--ambar);color:var(--ambar)" onclick="pantallaPago(\'fiado\')">Fiado · crédito al cliente</button>' +
     '</div>');
 }
 
@@ -1252,7 +1660,26 @@ function pantallaPago(metodo) {
   };
   let h = '<div class="asa"></div><h4>' + nombres[metodo] + '</h4>';
 
-  if (metodo === 'mixto') {
+  if (metodo === 'fiado') {
+    const lista = clientesBuscar('');
+    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.lista) +
+      '</b><span>queda debiendo (precio de lista)</span></div></div>' +
+      '<p class="nota">El fiado se anota al precio BCV. Si después paga en efectivo, ahí sí se le aplica el descuento.</p>' +
+      (lista.length ? '<label>¿Quién se lo lleva?</label><select id="fcli" onchange="cambioCliente()">' +
+        '<option value="">— cliente nuevo —</option>' +
+        lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + (c.telefono ? ' · ' + telBonito(c.telefono) : '') + '</option>').join('') +
+        '</select>' : '<input type="hidden" id="fcli" value="">') +
+      '<div id="fnuevo">' +
+      '<label>Nombre</label><input id="fnom" placeholder="Pedro Ramírez">' +
+      '<label>WhatsApp</label><input id="ftel" type="tel" inputmode="tel" placeholder="0412 3456789">' +
+      '</div>' +
+      '<label>¿En cuántos días paga?</label>' +
+      '<select id="fdias"><option value="1">Mañana</option><option value="3">3 días</option>' +
+      '<option value="7" selected>Una semana</option><option value="15">15 días</option>' +
+      '<option value="30">Un mes</option></select>' +
+      '<label>Nota (opcional)</label><input id="fnota" placeholder="Dijo que cobra el viernes">' +
+      '<button class="btn verde" style="margin-top:16px" onclick="confirmarPago(\'fiado\')">Anotar el fiado</button>';
+  } else if (metodo === 'mixto') {
     h += '<p class="nota">Anota cuánto entra por cada lado. Lo que falte en dólares se completa en bolívares.</p>' +
       '<label>Parte en divisa (dólares)</label>' +
       '<input id="mx" type="number" inputmode="decimal" step="0.01" value="0" oninput="calcMixto()">' +
@@ -1301,11 +1728,49 @@ function calcMixto() {
   $('#mxinfo').dataset.usd = usd;
 }
 
+function cambioCliente() {
+  const sel = $('#fcli');
+  const nuevo = $('#fnuevo');
+  if (sel && nuevo) nuevo.style.display = sel.value ? 'none' : 'block';
+}
+
 function confirmarPago(metodo) {
   const t = tasaVigente();
   if (!t) return brindis('Falta la tasa del día', true);
   const pago = { metodo };
-  if (metodo === 'mixto') {
+  if (metodo === 'fiado') {
+    let id = $('#fcli') ? $('#fcli').value : '';
+    if (!id) {
+      const nom = $('#fnom') ? $('#fnom').value.trim() : '';
+      const tel = $('#ftel') ? $('#ftel').value.trim() : '';
+      if (!nom) return brindis('Ponle el nombre al cliente', true);
+      if (telLimpio(tel).length < 11) return brindis('Falta el WhatsApp, sin eso no se le puede cobrar', true);
+      id = crearCliente(nom, tel).id;
+    }
+    pago.clienteId = id;
+    pago.dias = parseInt($('#fdias').value, 10) || 7;
+    pago.nota = $('#fnota') ? $('#fnota').value.trim() : '';
+  }
+  if (metodo === 'fiado') {
+    const lista = clientesBuscar('');
+    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.lista) +
+      '</b><span>queda debiendo (precio de lista)</span></div></div>' +
+      '<p class="nota">El fiado se anota al precio BCV. Si después paga en efectivo, ahí sí se le aplica el descuento.</p>' +
+      (lista.length ? '<label>¿Quién se lo lleva?</label><select id="fcli" onchange="cambioCliente()">' +
+        '<option value="">— cliente nuevo —</option>' +
+        lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + (c.telefono ? ' · ' + telBonito(c.telefono) : '') + '</option>').join('') +
+        '</select>' : '<input type="hidden" id="fcli" value="">') +
+      '<div id="fnuevo">' +
+      '<label>Nombre</label><input id="fnom" placeholder="Pedro Ramírez">' +
+      '<label>WhatsApp</label><input id="ftel" type="tel" inputmode="tel" placeholder="0412 3456789">' +
+      '</div>' +
+      '<label>¿En cuántos días paga?</label>' +
+      '<select id="fdias"><option value="1">Mañana</option><option value="3">3 días</option>' +
+      '<option value="7" selected>Una semana</option><option value="15">15 días</option>' +
+      '<option value="30">Un mes</option></select>' +
+      '<label>Nota (opcional)</label><input id="fnota" placeholder="Dijo que cobra el viernes">' +
+      '<button class="btn verde" style="margin-top:16px" onclick="confirmarPago(\'fiado\')">Anotar el fiado</button>';
+  } else if (metodo === 'mixto') {
     const d = $('#mxinfo');
     pago.parteUsd = parseFloat(d.dataset.usd || 0);
     pago.parteBs = parseFloat(d.dataset.bs || 0);
@@ -1314,6 +1779,16 @@ function confirmarPago(metodo) {
   }
   const v = registrarVenta(pago, t);
   ultimaVenta = v;
+  if (metodo === 'fiado') {
+    crearDeuda({
+      clienteId: pago.clienteId, origen: 'venta', ventaId: v.id, dias: pago.dias,
+      montoUsd: v.totalLista, tasaVenta: t.tasaVenta, usdt: t.usdt, nota: pago.nota
+    });
+    cerrarHoja(); pitar(true);
+    brindis('Fiado anotado a ' + nombreCliente(pago.clienteId) + ' · $' + fmtUsd(v.totalLista));
+    render();
+    return;
+  }
   cerrarHoja(); pitar(true);
   brindis('Vendido · $' + fmtUsd(v.ingresoReal) + ' · ganancia $' + fmtUsd(v.gananciaReal));
   render();
@@ -1688,6 +2163,9 @@ function renderCierre() {
     '<div class="oro"><b class="num">$' + fmtUsd(r.gananciaReal) + '</b><span>ganancia real</span></div></div>';
 
   h += '<div class="tarjeta"><table class="mini">' +
+    '<tr><td><b>Entró a la caja</b></td><td class="num">$' + fmtUsd(r.entroCaja) + '</td></tr>' +
+    (r.fiadoUsd > 0 ? '<tr><td>De lo vendido, fiado</td><td class="num">$' + fmtUsd(r.fiadoUsd) + '</td></tr>' : '') +
+    (r.abonosUsd > 0 ? '<tr><td>Cobrado de fiados viejos</td><td class="num">$' + fmtUsd(r.abonosUsd) + '</td></tr>' : '') +
     '<tr><td>Ventas</td><td class="num">' + r.nVentas + '</td></tr>' +
     '<tr><td>Unidades</td><td class="num">' + fmtNum(r.unidades, 0) + '</td></tr>' +
     '<tr><td>Venta a precio de lista</td><td class="num">$' + fmtUsd(r.ventaLista) + '</td></tr>' +
@@ -1699,7 +2177,7 @@ function renderCierre() {
     '</table></div>';
 
   h += '<h3>Cómo te pagaron</h3><div class="tarjeta"><table class="mini">' +
-    METODOS.map(m => '<tr><td>' + m.nombre + '</td><td class="num">' +
+    metodosCobrables().map(m => '<tr><td>' + m.nombre + '</td><td class="num">' +
       (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id])) + '</td></tr>').join('') +
     '<tr><td><b>Total en bolívares</b></td><td class="num">' + fmtBs(r.ventaBs) + ' Bs</td></tr>' +
     '<tr><td><b>Total en divisa</b></td><td class="num">$' + fmtUsd(r.ventaUsd) + '</td></tr>' +
@@ -1726,6 +2204,11 @@ function renderCierre() {
   }
   h += '<button class="btn" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel de ganancias</button>';
   h += '<button class="btn" style="margin-top:8px" onclick="mandarResumen()">Mandar resumen por WhatsApp</button>';
+  h += '<button class="btn" style="margin-top:8px" onclick="bajarResumenSemanal()">Resumen de la semana en PDF</button>';
+  if (new Date().getDay() === 0) {
+    h += '<div class="aviso-caja" style="margin-top:10px">Hoy es domingo: baja el PDF de la semana y mándalo a ' +
+      esc(S.config.correo || 'tu correo') + ' para tenerlo archivado.</div>';
+  }
   h += '<button class="btn chico" style="margin-top:8px" onclick="verVentasHoy()">Ver las ventas de hoy</button>';
 
   if (S.cierres.length) {
@@ -1772,11 +2255,14 @@ function mandarResumen() {
     '────────────────\n' +
     'Ventas: ' + r.nVentas + '\n' +
     'Unidades: ' + fmtNum(r.unidades, 0) + '\n' +
-    'Entró: $' + fmtUsd(r.ingresoReal) + '\n' +
+    'Entró a la caja: $' + fmtUsd(r.entroCaja) + '\n' +
+    (r.fiadoUsd > 0 ? 'Fiado hoy: $' + fmtUsd(r.fiadoUsd) + '\n' : '') +
+    (r.abonosUsd > 0 ? 'Cobrado de fiados: $' + fmtUsd(r.abonosUsd) + '\n' : '') +
+    'Por cobrar en total: $' + fmtUsd(totalFiado()) + '\n' +
     'Ganancia: $' + fmtUsd(r.gananciaReal) + '\n' +
     'Margen: ' + fmtNum(r.margen, 1) + '%\n' +
     '────────────────\n' +
-    METODOS.map(m => m.nombre + ': ' +
+    metodosCobrables().map(m => m.nombre + ': ' +
       (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id]))).join('\n') + '\n' +
     (t ? 'Tasa de venta: ' + fmtNum(t.tasaVenta, 2) + ' · USDT ' + fmtNum(t.usdt, 2) + '\n' : '') +
     (r.top.length ? '\nLo que más dejó:\n' + r.top.map(x => '· ' + x.nombre + ' — $' + fmtUsd(x.ganancia)).join('\n') : '');
@@ -1801,7 +2287,7 @@ async function exportarExcel() {
   const resumen = [['Fecha', 'BCV', 'Proyección', 'Tasa de venta', 'USDT', 'Descuento %', 'Ventas', 'Unidades',
     'Venta lista $', 'Descuentos $', 'Entró $', 'Costo $', 'Ganancia nominal $', 'Ganancia real $', 'Margen %',
     'Punto de venta Bs', 'Efectivo Bs', 'Pago móvil Bs', 'Efectivo divisas $', 'Binance $',
-    'Total Bs', 'Total divisas $']];
+    'Total Bs', 'Total divisas $', 'Fiado del día $', 'Cobrado de fiados $', 'Entró a la caja $']];
   fechas.forEach(f => {
     const r = resumenDia(f, todasVentas);
     const t = S.tasas.find(x => x.fecha === f) || {};
@@ -1810,8 +2296,30 @@ async function exportarExcel() {
       r.gananciaNominal, r.gananciaReal, r.margen,
       r.cobros.punto, r.cobros.efectivo_bs, r.cobros.pago_movil,
       r.cobros.efectivo_usd, r.cobros.binance,
-      r.ventaBs, r.ventaUsd]);
+      r.ventaBs, r.ventaUsd, r.fiadoUsd, r.abonosUsd, r.entroCaja]);
   });
+
+  // hoja de fiado
+  const fiados = [['Cliente', 'WhatsApp', 'Fiado el', 'Vence', 'Días', 'Monto $', 'Abonado $', 'Saldo $',
+    'Saldo en Bs hoy', 'Estado', 'Días de atraso', 'Origen', 'Nota']];
+  const tHoy = tasaVigente();
+  S.deudas.slice().sort((a, b) => a.vence < b.vence ? -1 : 1).forEach(d => {
+    const c = cliente(d.clienteId) || { nombre: '?', telefono: '' };
+    const saldo = saldoDeuda(d);
+    const abonado = nz(d.montoUsd) - saldo;
+    const atraso = d.pagada ? 0 : diasEntre(d.vence, hoyISO());
+    fiados.push([c.nombre, c.telefono ? '+' + c.telefono : '', d.fecha, d.vence, d.dias,
+      nz(d.montoUsd), abonado, saldo,
+      tHoy ? saldo * tHoy.tasaVenta : 0,
+      d.perdida ? 'Perdida' : (d.pagada ? 'Pagada' : (atraso > 0 ? 'Atrasada' : 'Al día')),
+      d.pagada ? 0 : Math.max(0, atraso), d.origen === 'manual' ? 'Cargada a mano' : 'Venta', d.nota || '']);
+  });
+
+  const abonosH = [['Fecha', 'Hora', 'Quién cobró', 'Cliente', 'Forma de pago', 'Monto $', 'Monto Bs']];
+  S.deudas.forEach(d => (d.abonos || []).forEach(a => {
+    abonosH.push([a.fecha, hora(a.ts), a.usuario, nombreCliente(d.clienteId), nombreMetodo(a.metodo),
+      nz(a.montoUsd), nz(a.montoBs)]);
+  }));
 
   // hoja nueva: una fila por venta con cómo entró la plata
   const cobros = [['Fecha', 'Hora', 'Quién', 'Venta', 'Forma de pago',
@@ -1855,7 +2363,9 @@ async function exportarExcel() {
     t.usdt > 0 ? (1 - t.bcv / t.usdt) * 100 : 0, t.origen]));
 
   const hojas = [
-    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 16, 13, 15, 17, 12, 13, 16], filas: resumen },
+    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 16, 13, 15, 17, 12, 13, 16, 14, 17, 16], filas: resumen },
+    { nombre: 'Fiado', columnas: [22, 15, 11, 11, 7, 10, 11, 10, 15, 11, 13, 14, 24], filas: fiados },
+    { nombre: 'Abonos_Fiado', columnas: [11, 7, 12, 22, 24, 11, 14], filas: abonosH },
     { nombre: 'Cobros_Por_Venta', columnas: [11, 7, 10, 14, 14, 24, 13, 20, 11, 15, 10, 14, 9], filas: cobros },
     { nombre: 'Ventas_Detalle', columnas: [11, 7, 10, 12, 26, 13, 9, 9, 11, 13, 12, 15, 11, 11, 14, 9], filas: detalle },
     { nombre: 'Inventario', columnas: [16, 26, 13, 12, 8, 9, 9, 12, 12, 9, 12], filas: inventario },
@@ -1957,6 +2467,7 @@ function renderAjustes() {
   h += '<h3>El negocio</h3><div class="tarjeta">' +
     '<label>Nombre</label><input id="cneg" value="' + esc(c.negocio) + '">' +
     '<label>Nombres de quienes atienden (separados por coma)</label><input id="cusr" value="' + esc(c.usuarios.join(', ')) + '">' +
+    '<label>Correo para los resúmenes</label><input id="cmail" type="email" value="' + esc(c.correo || '') + '">' +
     '</div>';
 
   h += '<h3>Cómo se calcula el precio</h3><div class="tarjeta">' +
@@ -2025,6 +2536,7 @@ function guardarAjustes() {
   c.negocio = $('#cneg').value.trim() || c.negocio;
   const us = $('#cusr').value.split(',').map(s => s.trim()).filter(Boolean);
   if (us.length) { c.usuarios = us; if (us.indexOf(c.usuario) < 0) c.usuario = us[0]; }
+  if ($('#cmail')) c.correo = $('#cmail').value.trim();
   c.modoRecargo = $('#cmodo').value;
   c.diasCobertura = Math.max(0, parseFloat($('#ccob').value) || 0);
   c.topeProyeccionPct = Math.max(0, parseFloat($('#ctop').value) || 0);
@@ -2042,7 +2554,7 @@ function guardarAjustes() {
 }
 
 async function bajarRespaldo() {
-  const datos = { version: 1, fecha: ahora(), config: S.config, productos: S.productos, tasas: S.tasas, cierres: S.cierres, meses: S.meses, ventas: {}, movs: {} };
+  const datos = { version: 2, fecha: ahora(), config: S.config, productos: S.productos, tasas: S.tasas, cierres: S.cierres, meses: S.meses, clientes: S.clientes, deudas: S.deudas, ventas: {}, movs: {} };
   for (const m of S.meses) {
     const d = await cargarMes(m);
     datos.ventas[m] = d.ventas; datos.movs[m] = d.movs;
@@ -2067,6 +2579,7 @@ function hacerRestaurar() {
       S.config = Object.assign({}, CFG_DEF, d.config || {});
       S.productos = d.productos || []; S.tasas = d.tasas || [];
       S.cierres = d.cierres || []; S.meses = d.meses || [];
+      S.clientes = d.clientes || []; S.deudas = d.deudas || [];
       for (const m of Object.keys(d.ventas || {})) await DB.set('ventas_' + m, d.ventas[m]);
       for (const m of Object.keys(d.movs || {})) await DB.set('movs_' + m, d.movs[m]);
       const mm = mesDe(hoyISO());
@@ -2190,6 +2703,389 @@ window.CAVA = {
   registrarVenta, resumenDia, cerrarDia, anularVenta, producto, buscarCodigo,
   exportarExcel, bajarRespaldo, render
 };
+
+/* ====================== fiado ====================== */
+function renderFiado() {
+  const t = tasaVigente();
+  const abiertas = deudasAbiertas();
+  const hoyCobrar = cobrosDeHoy();
+  const total = totalFiado();
+
+  let h = '<h2>Fiado</h2>' +
+    '<div class="grande">' +
+    '<div class="oro"><b class="num">$' + fmtUsd(total) + '</b><span>por cobrar</span></div>' +
+    '<div><b class="num">' + abiertas.length + '</b><span>personas deben</span></div>' +
+    '</div>';
+
+  if (t) {
+    h += '<p class="nota">Son ' + fmtBs(total * t.tasaVenta) + ' Bs a la tasa de hoy.</p>';
+  }
+
+  if (hoyCobrar.length) {
+    h += '<h3>Cobros de hoy</h3>';
+    h += '<div class="aviso-caja">Toca <b>Cobrar</b> y se abre WhatsApp con el mensaje ya escrito. El texto cambia todos los días, no se repite.</div>';
+    h += '<div class="lista">' + hoyCobrar.map(d => filaDeuda(d, t, true)).join('') + '</div>';
+    if (hoyCobrar.length > 1) {
+      h += '<button class="btn oro" style="margin-top:10px" onclick="cobrarEnFila(0)">Cobrarles a los ' + hoyCobrar.length + ', uno por uno</button>';
+    }
+  }
+
+  const pendientes = abiertas.filter(d => hoyCobrar.indexOf(d) < 0);
+  if (pendientes.length) {
+    h += '<h3>Todavía no vencen</h3><div class="lista">' + pendientes.map(d => filaDeuda(d, t, false)).join('') + '</div>';
+  }
+
+  if (!abiertas.length) {
+    h += '<div class="vacio"><b>Nadie debe nada</b>Cuando vendas fiado o agregues una deuda vieja, aparece aquí.</div>';
+  }
+
+  h += '<button class="btn" style="margin-top:14px" onclick="nuevaDeudaVieja()">Agregar una deuda que ya existía</button>';
+  h += '<button class="btn chico" style="margin-top:8px" onclick="irA(\'clientes\')">Ver clientes</button>';
+
+  const pagadas = S.deudas.filter(d => d.pagada).slice().reverse().slice(0, 10);
+  if (pagadas.length) {
+    h += '<h3>Ya pagaron</h3><div class="lista">' + pagadas.map(d =>
+      '<div class="item"><div class="cuerpo"><div class="tit">' + esc(nombreCliente(d.clienteId)) + '</div>' +
+      '<div class="sub">pagó el ' + fechaLarga(d.fechaPago || d.fecha) + '</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(d.montoUsd) + '</b></div></div>').join('') + '</div>';
+  }
+  $('#v-fiado').innerHTML = h;
+}
+
+function filaDeuda(d, t, urgente) {
+  const c = cliente(d.clienteId) || { nombre: 'Cliente', telefono: '' };
+  const m = montosDeuda(d, t);
+  const atraso = diasEntre(d.vence, hoyISO());
+  const etiqueta = atraso > 0 ? ('atrasado ' + atraso + (atraso === 1 ? ' día' : ' días'))
+    : (atraso === 0 ? 'vence hoy' : 'vence en ' + (-atraso) + (atraso === -1 ? ' día' : ' días'));
+  return '<div class="item">' +
+    '<div class="punto ' + (atraso > 3 ? 'p-rojo' : (atraso >= 0 ? 'p-ama' : 'p-verde')) + '"></div>' +
+    '<div class="cuerpo" onclick="verDeuda(\'' + d.id + '\')">' +
+    '<div class="tit">' + esc(c.nombre) + '</div>' +
+    '<div class="sub">' + etiqueta + ' · ' + fmtBs(m.bs) + ' Bs</div></div>' +
+    '<div class="der"><b class="num">$' + fmtUsd(m.saldo) + '</b>' +
+    (c.telefono ? '<span onclick="cobrar(\'' + d.id + '\')" style="color:var(--ambar);font-weight:600">Cobrar</span>' : '<span>sin WhatsApp</span>') +
+    '</div></div>';
+}
+
+function cobrar(id) {
+  const d = deuda(id);
+  const c = cliente(d.clienteId);
+  if (!c || !c.telefono) return brindis('Ese cliente no tiene WhatsApp guardado', true);
+  const texto = mensajeCobro(d, tasaVigente());
+  abrirWhatsApp(c.telefono, texto);
+  d.ultimoCobro = hoyISO();
+  guardar(['deudas']);
+}
+
+let filaCobro = [];
+function cobrarEnFila(i) {
+  if (i === 0) filaCobro = cobrosDeHoy().filter(d => { const c = cliente(d.clienteId); return c && c.telefono; });
+  if (i >= filaCobro.length) { cerrarHoja(); brindis('Listo, ya les escribiste a todos'); return render(); }
+  const d = filaCobro[i];
+  const c = cliente(d.clienteId);
+  const texto = mensajeCobro(d, tasaVigente());
+  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + ' · ' + (i + 1) + ' de ' + filaCobro.length + '</h4>' +
+    '<div class="tarjeta" style="white-space:pre-wrap;font-size:14px;line-height:1.5">' + esc(texto) + '</div>' +
+    '<button class="btn oro" onclick="cobrar(\'' + d.id + '\');setTimeout(function(){cobrarEnFila(' + (i + 1) + ')},900)">Abrir WhatsApp y enviar</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="cobrarEnFila(' + (i + 1) + ')">Saltar a este</button>');
+}
+
+function verDeuda(id) {
+  const d = deuda(id);
+  const c = cliente(d.clienteId) || { nombre: 'Cliente', telefono: '' };
+  const t = tasaVigente();
+  const m = montosDeuda(d, t);
+  let h = '<div class="asa"></div><h4>' + esc(c.nombre) + '</h4>' +
+    '<p class="nota">' + (c.telefono ? telBonito(c.telefono) : 'sin WhatsApp') + ' · fiado el ' + fechaLarga(d.fecha) +
+    ' · vence ' + fechaLarga(d.vence) + '</p>' +
+    (d.nota ? '<p class="nota">Nota: ' + esc(d.nota) + '</p>' : '') +
+    '<div class="tarjeta"><table class="mini">' +
+    '<tr><td>Debe</td><td class="num">$' + fmtUsd(m.saldo) + '</td></tr>' +
+    '<tr><td>En bolívares hoy</td><td class="num">' + fmtBs(m.bs) + ' Bs</td></tr>' +
+    '<tr><td>En efectivo o Binance</td><td class="num">$' + fmtUsd(m.efectivo) + '</td></tr>' +
+    '</table></div>';
+  if ((d.abonos || []).length) {
+    h += '<h3>Abonos</h3><div class="lista">' + d.abonos.map(a =>
+      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(a.fecha) + '</div>' +
+      '<div class="sub">' + nombreMetodo(a.metodo) + '</div></div>' +
+      '<div class="der"><b class="num">$' + fmtUsd(a.montoUsd) + '</b></div></div>').join('') + '</div>';
+  }
+  h += '<div class="fila" style="margin-top:14px">' +
+    (c.telefono ? '<button class="btn chico" onclick="cobrar(\'' + d.id + '\')">Mandar cobro</button>' : '') +
+    '<button class="btn verde" onclick="pantallaAbono(\'' + d.id + '\')">Registrar pago</button></div>' +
+    '<button class="btn rojo chico" style="margin-top:8px" onclick="perdonarDeuda(\'' + d.id + '\')">Dar por perdida</button>';
+  abrirHoja(h);
+}
+
+function pantallaAbono(id) {
+  const d = deuda(id);
+  const t = tasaVigente();
+  const m = montosDeuda(d, t);
+  abrirHoja('<div class="asa"></div><h4>¿Cuánto pagó?</h4>' +
+    '<p class="nota">' + esc(nombreCliente(d.clienteId)) + ' debe $' + fmtUsd(m.saldo) + '</p>' +
+    '<label>¿Cómo pagó?</label><select id="ab_met" onchange="previaAbono(\'' + id + '\')">' +
+    metodosCobrables().map(x => '<option value="' + x.id + '">' + x.nombre + '</option>').join('') + '</select>' +
+    '<label>Monto en dólares</label>' +
+    '<input id="ab_monto" type="number" inputmode="decimal" step="0.01" value="' + m.saldo.toFixed(2) + '" oninput="previaAbono(\'' + id + '\')">' +
+    '<div id="ab_prev" class="aviso-caja" style="margin-top:12px"></div>' +
+    '<button class="btn verde" onclick="confirmarAbono(\'' + id + '\')">Registrar el pago</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="verDeuda(\'' + id + '\')">Volver</button>');
+  setTimeout(() => previaAbono(id), 30);
+}
+
+function previaAbono(id) {
+  const d = deuda(id), t = tasaVigente();
+  const met = $('#ab_met').value;
+  const monto = parseFloat($('#ab_monto').value) || 0;
+  const esDivisa = ['efectivo_usd', 'binance'].indexOf(met) >= 0;
+  const resto = Math.max(0, saldoDeuda(d) - monto);
+  let txt;
+  if (esDivisa) {
+    const conDesc = redondear(monto * (1 - t.descuentoPct / 100), 0.01);
+    txt = 'Pagando en divisa se le aplica el descuento: entrega <b class="num">$' + fmtUsd(conDesc) +
+      '</b> y se le descuentan <b class="num">$' + fmtUsd(monto) + '</b> de la deuda.';
+  } else {
+    txt = 'Debe entregarte <b class="num">' + fmtBs(redondear(monto * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b>.';
+  }
+  txt += resto > 0.009 ? '<br>Le quedarían debiendo <b class="num">$' + fmtUsd(resto) + '</b>.' : '<br>Con eso queda saldado. ✓';
+  $('#ab_prev').innerHTML = txt;
+}
+
+function confirmarAbono(id) {
+  const monto = parseFloat($('#ab_monto').value) || 0;
+  if (monto <= 0) return brindis('Falta el monto', true);
+  const met = $('#ab_met').value;
+  abonar(id, monto, met);
+  const d = deuda(id);
+  cerrarHoja(); pitar(true);
+  brindis(d.pagada ? nombreCliente(d.clienteId) + ' quedó al día ✓' : 'Abono registrado · faltan $' + fmtUsd(saldoDeuda(d)));
+  render();
+}
+
+function perdonarDeuda(id) {
+  const d = deuda(id);
+  abrirHoja('<div class="asa"></div><h4>¿Dar por perdida?</h4>' +
+    '<p class="nota">Sale de "por cobrar" y deja de aparecer en los cobros. Queda anotada como pérdida.</p>' +
+    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarPerdon(\'' + id + '\')">Sí, darla por perdida</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="verDeuda(\'' + id + '\')">Mejor no</button>');
+}
+function confirmarPerdon(id) {
+  const d = deuda(id);
+  d.pagada = true; d.fechaPago = hoyISO(); d.perdida = true;
+  guardar(['deudas']);
+  cerrarHoja(); brindis('Marcada como perdida'); render();
+}
+
+function nuevaDeudaVieja() {
+  const lista = clientesBuscar('');
+  abrirHoja('<div class="asa"></div><h4>Deuda que ya existía</h4>' +
+    '<p class="nota">Para cargar lo que la gente ya debía antes de empezar con el sistema. No toca el inventario ni cuenta como venta de hoy.</p>' +
+    (lista.length ? '<label>¿Quién debe?</label><select id="vcli" onchange="cambioClienteViejo()">' +
+      '<option value="">— persona nueva —</option>' +
+      lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('') + '</select>'
+      : '<input type="hidden" id="vcli" value="">') +
+    '<div id="vnuevo"><label>Nombre</label><input id="vnom" placeholder="Pedro Ramírez">' +
+    '<label>WhatsApp</label><input id="vtel" type="tel" inputmode="tel" placeholder="0412 3456789"></div>' +
+    '<label>¿Cuánto debe, en dólares?</label><input id="vmonto" type="number" inputmode="decimal" step="0.01" placeholder="25.00">' +
+    '<label>¿En cuántos días le cobras?</label>' +
+    '<select id="vdias"><option value="0">Ya está vencida</option><option value="1">Mañana</option>' +
+    '<option value="3">3 días</option><option value="7" selected>Una semana</option>' +
+    '<option value="15">15 días</option><option value="30">Un mes</option></select>' +
+    '<label>Nota (opcional)</label><input id="vnota" placeholder="De las cervezas del sábado">' +
+    '<button class="btn verde" style="margin-top:16px" onclick="confirmarDeudaVieja()">Anotar la deuda</button>');
+}
+function cambioClienteViejo() {
+  const sel = $('#vcli'), nuevo = $('#vnuevo');
+  if (sel && nuevo) nuevo.style.display = sel.value ? 'none' : 'block';
+}
+function confirmarDeudaVieja() {
+  let id = $('#vcli') ? $('#vcli').value : '';
+  if (!id) {
+    const nom = $('#vnom').value.trim();
+    const tel = $('#vtel').value.trim();
+    if (!nom) return brindis('Falta el nombre', true);
+    if (telLimpio(tel).length < 11) return brindis('Falta el WhatsApp', true);
+    id = crearCliente(nom, tel).id;
+  }
+  const monto = parseFloat($('#vmonto').value) || 0;
+  if (monto <= 0) return brindis('Falta el monto', true);
+  const t = tasaVigente();
+  crearDeuda({
+    clienteId: id, origen: 'manual', dias: parseInt($('#vdias').value, 10) || 0,
+    montoUsd: monto, tasaVenta: t ? t.tasaVenta : 0, usdt: t ? t.usdt : 0,
+    nota: $('#vnota').value.trim()
+  });
+  cerrarHoja(); pitar(true);
+  brindis('Deuda anotada a ' + nombreCliente(id));
+  render();
+}
+
+/* ====================== clientes ====================== */
+let filtroClientes = '';
+
+function renderClientes() {
+  const lista = clientesBuscar(filtroClientes);
+  let h = '<h2>Clientes</h2>' +
+    '<div class="grande"><div><b class="num">' + S.clientes.length + '</b><span>en la cartera</span></div>' +
+    '<div><b class="num">' + S.clientes.filter(c => c.promos !== false && c.telefono).length + '</b><span>reciben promociones</span></div></div>' +
+    '<div class="buscador"><input id="fcl" placeholder="Buscar por nombre o teléfono" value="' + esc(filtroClientes) + '" autocomplete="off"></div>' +
+    '<div class="fila"><button class="btn chico" onclick="nuevoCliente()">Agregar cliente</button>' +
+    '<button class="btn oro chico" onclick="pantallaPromo()">Enviar promoción</button></div>';
+
+  if (!lista.length) {
+    h += '<div class="vacio"><b>Todavía no hay clientes</b>Se agregan solos cuando fías, o los cargas tú aquí.</div>';
+  } else {
+    h += '<div class="lista" style="margin-top:12px">' + lista.map(c => {
+      const debe = deudasAbiertas().filter(d => d.clienteId === c.id).reduce((s, d) => s + saldoDeuda(d), 0);
+      return '<div class="item" onclick="editarCliente(\'' + c.id + '\')">' +
+        '<div class="cuerpo"><div class="tit">' + esc(c.nombre) + '</div>' +
+        '<div class="sub">' + (c.telefono ? telBonito(c.telefono) : 'sin WhatsApp') +
+        (c.promos === false ? ' · no recibe promos' : '') + '</div></div>' +
+        '<div class="der">' + (debe > 0 ? '<b class="num" style="color:var(--ambar)">$' + fmtUsd(debe) + '</b><span>debe</span>' : '<span>al día</span>') +
+        '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  h += '<button class="btn chico" style="margin-top:14px" onclick="exportarNumeros()">Copiar todos los números</button>' +
+    '<p class="nota">Para armar una lista de difusión en WhatsApp y mandar las promociones de un solo golpe, sin tocarlos uno por uno.</p>';
+  $('#v-clientes').innerHTML = h;
+  const f = $('#fcl');
+  if (f) f.addEventListener('input', () => {
+    filtroClientes = f.value; const pos = f.selectionStart; render();
+    const n = $('#fcl'); if (n) { n.focus(); n.setSelectionRange(pos, pos); }
+  });
+}
+
+function nuevoCliente() {
+  abrirHoja('<div class="asa"></div><h4>Cliente nuevo</h4>' +
+    '<label>Nombre</label><input id="cln" placeholder="Pedro Ramírez">' +
+    '<label>WhatsApp</label><input id="clt" type="tel" inputmode="tel" placeholder="0412 3456789">' +
+    '<label>Nota (opcional)</label><input id="clx" placeholder="Vecino, compra los viernes">' +
+    '<button class="btn verde" style="margin-top:16px" onclick="confirmarCliente()">Guardar</button>');
+  setTimeout(() => $('#cln') && $('#cln').focus(), 100);
+}
+function confirmarCliente() {
+  const n = $('#cln').value.trim();
+  if (!n) return brindis('Falta el nombre', true);
+  crearCliente(n, $('#clt').value, $('#clx').value);
+  cerrarHoja(); brindis('Cliente agregado'); render();
+}
+
+function editarCliente(id) {
+  const c = cliente(id);
+  const deudas = deudasAbiertas().filter(d => d.clienteId === id);
+  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + '</h4>' +
+    '<label>Nombre</label><input id="edn" value="' + esc(c.nombre) + '">' +
+    '<label>WhatsApp</label><input id="edt" type="tel" value="' + esc(c.telefono) + '">' +
+    '<label>Nota</label><input id="edx" value="' + esc(c.nota || '') + '">' +
+    '<div class="campo-inline"><label>Le mando promociones</label><input type="checkbox" id="edp" ' + (c.promos !== false ? 'checked' : '') + '></div>' +
+    (deudas.length ? '<div class="aviso-caja">Debe $' + fmtUsd(deudas.reduce((s, d) => s + saldoDeuda(d), 0)) +
+      ' en ' + deudas.length + ' cuenta' + (deudas.length > 1 ? 's' : '') + '. <a onclick="cerrarHoja();irA(\'fiado\')">Ver en Fiado</a></div>' : '') +
+    '<div class="fila" style="margin-top:14px">' +
+    (c.telefono ? '<button class="btn chico" onclick="abrirWhatsApp(\'' + c.telefono + '\',\'\')">Escribirle</button>' : '') +
+    '<button class="btn verde" onclick="guardarCliente(\'' + id + '\')">Guardar</button></div>');
+}
+function guardarCliente(id) {
+  const c = cliente(id);
+  c.nombre = $('#edn').value.trim() || c.nombre;
+  c.telefono = telLimpio($('#edt').value);
+  c.nota = $('#edx').value.trim();
+  c.promos = $('#edp').checked;
+  guardar(['clientes']);
+  cerrarHoja(); brindis('Guardado'); render();
+}
+
+function pantallaPromo() {
+  const cuantos = S.clientes.filter(c => c.promos !== false && c.telefono).length;
+  abrirHoja('<div class="asa"></div><h4>Promoción</h4>' +
+    '<p class="nota">Le llega a ' + cuantos + ' cliente' + (cuantos !== 1 ? 's' : '') + '. Escríbela corta y con gancho.</p>' +
+    '<label>El mensaje</label>' +
+    '<textarea id="pmtx" rows="5" placeholder="🔥 Hoy jueves de cervezas: caja de Polar a $XX hasta las 8pm. ¡Pasa antes que se acabe! 🍺"></textarea>' +
+    '<div class="fila" style="margin-top:8px">' +
+    '<button class="btn chico" onclick="plantillaPromo(1)">Idea 1</button>' +
+    '<button class="btn chico" onclick="plantillaPromo(2)">Idea 2</button>' +
+    '<button class="btn chico" onclick="plantillaPromo(3)">Idea 3</button></div>' +
+    '<button class="btn oro" style="margin-top:14px" onclick="enviarPromo(0)">Empezar a enviar, uno por uno</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="copiarPromo()">Copiar el texto para una difusión</button>');
+}
+function plantillaPromo(n) {
+  const p = {
+    1: '🔥 ¡Oferta de hoy en ' + S.config.negocio + '!\n\nCaja de cerveza a precio especial hasta las 8pm 🍺\n\nPasa antes que se acabe 🏃',
+    2: '🥃 ¡Llegó mercancía nueva a ' + S.config.negocio + '!\n\nRon, whisky y lo que buscabas, a buen precio 💰\n\nTe esperamos 🙌',
+    3: '🎉 ¡Fin de semana en ' + S.config.negocio + '!\n\nCombos armados y hielo bien frío ❄️🍻\n\nPide por aquí y te lo tenemos listo 👌'
+  }[n];
+  $('#pmtx').value = p;
+}
+let filaPromo = [];
+function enviarPromo(i) {
+  const txt = $('#pmtx') ? $('#pmtx').value.trim() : (filaPromo.texto || '');
+  if (i === 0) {
+    if (!txt) return brindis('Escribe el mensaje primero', true);
+    filaPromo = S.clientes.filter(c => c.promos !== false && c.telefono);
+    filaPromo.texto = txt;
+  }
+  if (i >= filaPromo.length) { cerrarHoja(); brindis('Promoción enviada a ' + filaPromo.length + ' clientes'); return render(); }
+  const c = filaPromo[i];
+  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + ' · ' + (i + 1) + ' de ' + filaPromo.length + '</h4>' +
+    '<div class="tarjeta" style="white-space:pre-wrap;font-size:14px">' + esc(filaPromo.texto) + '</div>' +
+    '<button class="btn oro" onclick="abrirWhatsApp(\'' + c.telefono + '\',filaPromo.texto);setTimeout(function(){enviarPromo(' + (i + 1) + ')},900)">Enviar y seguir</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="enviarPromo(' + (i + 1) + ')">Saltar</button>');
+}
+function copiarPromo() {
+  const txt = $('#pmtx').value.trim();
+  if (!txt) return brindis('Escribe el mensaje primero', true);
+  copiar(txt, 'Mensaje copiado, pégalo en tu lista de difusión');
+}
+function exportarNumeros() {
+  const nums = S.clientes.filter(c => c.telefono && c.promos !== false).map(c => '+' + c.telefono).join('\n');
+  if (!nums) return brindis('No hay números guardados', true);
+  copiar(nums, 'Números copiados');
+}
+function copiar(txt, msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => brindis(msg)).catch(() => mostrarParaCopiar(txt));
+  } else mostrarParaCopiar(txt);
+}
+function mostrarParaCopiar(txt) {
+  abrirHoja('<div class="asa"></div><h4>Cópialo de aquí</h4>' +
+    '<textarea rows="10" onclick="this.select()">' + esc(txt) + '</textarea>');
+}
+
+/* ---- resumen semanal en PDF ---- */
+async function bajarResumenSemanal() {
+  const r = armarResumenSemanal(hoyISO());
+  const bytes = pdfResumenSemanal(r);
+  const nombre = 'CAVA_semana_' + r.hasta + '.pdf';
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const archivo = (window.File) ? new File([blob], nombre, { type: 'application/pdf' }) : null;
+
+  if (archivo && navigator.canShare && navigator.canShare({ files: [archivo] })) {
+    try {
+      await navigator.share({
+        files: [archivo],
+        title: 'Resumen semanal',
+        text: S.config.negocio + ' — semana del ' + r.desde + ' al ' + r.hasta +
+          '\nGanancia: $' + fmtUsd(r.ganancia) + ' · Patrimonio: $' + fmtUsd(r.patrimonio)
+      });
+      return;
+    } catch (e) { /* si cancela, cae al descargado normal */ }
+  }
+  descargar(nombre, blob);
+  const correo = S.config.correo || '';
+  brindis('PDF listo en tus descargas');
+  if (correo) {
+    setTimeout(() => {
+      abrirHoja('<div class="asa"></div><h4>Mandarlo por correo</h4>' +
+        '<p class="nota">El PDF ya está en tus descargas. Toca abajo para abrir el correo con el asunto listo, y adjúntalo desde ahí.</p>' +
+        '<button class="btn oro" style="margin-top:14px" onclick="window.location.href=\'mailto:' + correo +
+        '?subject=' + encodeURIComponent('Resumen semanal ' + S.config.negocio + ' · ' + r.hasta) +
+        '&body=' + encodeURIComponent('Ganancia de la semana: $' + fmtUsd(r.ganancia) +
+          '\nPatrimonio: $' + fmtUsd(r.patrimonio) + '\nPor cobrar: $' + fmtUsd(r.fiado) +
+          '\n\n(adjunta el PDF que está en tus descargas)') + '\'">Abrir el correo</button>');
+    }, 600);
+  }
+}
 </script>
 </body>
 </html>
