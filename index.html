@@ -295,7 +295,14 @@ const DB = (function () {
   }
   function borrarTodo() {
     if (modo === 'ls' || !db) {
-      Object.keys(localStorage).filter(k => k.indexOf('cava:') === 0).forEach(k => localStorage.removeItem(k));
+      try {
+        const claves = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.indexOf('cava:') === 0) claves.push(k);
+        }
+        claves.forEach(k => localStorage.removeItem(k));
+      } catch (e) { }
       return Promise.resolve();
     }
     return new Promise(res => {
@@ -349,6 +356,8 @@ function guardar(claves) {
     });
   }, 150);
 }
+function cancelarGuardado() { clearTimeout(guardarPendiente); guardarPendiente = null; }
+
 function guardarYa() {
   clearTimeout(guardarPendiente);
   const m = S.mesCargado;
@@ -2062,7 +2071,7 @@ function hacerRestaurar() {
       S.mesCargado = mm;
       S.ventas = (d.ventas || {})[mm] || []; S.movs = (d.movs || {})[mm] || [];
       if (S.meses.indexOf(mm) < 0) S.meses.push(mm);
-      reindexar(); await guardarYa();
+      reindexar(); await DB.set('iniciado', true); await guardarYa();
       cerrarHoja(); brindis('Restaurado'); render();
     } catch (e) { brindis('El archivo no sirve', true); }
   };
@@ -2076,7 +2085,10 @@ function pedirBorrarTodo() {
     '<button class="btn rojo" style="margin-top:8px" onclick="hacerBorrarTodo()">Sí, borrar todo</button>');
 }
 async function hacerBorrarTodo() {
+  cancelarGuardado();               // que ningún guardado en cola resucite lo borrado
+  carrito = [];
   await DB.borrarTodo();
+  await DB.set('iniciado', true);   // que no vuelva a sembrar los ejemplos
   location.reload();
 }
 
@@ -2112,7 +2124,11 @@ function esc(s) {
 
 async function arrancar() {
   await cargarEstado();
-  if (!S.productos.length && !S.tasas.length) await sembrarEjemplo();
+  const yaArrancado = await DB.get('iniciado');
+  if (!yaArrancado) {
+    if (!S.productos.length && !S.tasas.length) await sembrarEjemplo();
+    await DB.set('iniciado', true);
+  }
   irA(S.tasas.length ? 'inicio' : 'tasas');
   if (S.config.autoTasas && !tasaDe(hoyISO())) {
     const r = await bajarTasas();
