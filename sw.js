@@ -1,5 +1,5 @@
 /* CAVA — guarda la app en el teléfono para que abra sin internet */
-const CACHE = 'cava-v4';
+const CACHE = 'cava-v6';
 const ARCHIVOS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable.png'];
 
 self.addEventListener('install', e => {

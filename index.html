@@ -1,3091 +1,478 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="modo-informativo">
+<!--
+================================================================================
+  MAXIBRAIN · Portal de operaciones e inversión — MAXIMARKER C.A.
+  Prototipo v2 · Reemplaza index.html
+================================================================================
+
+  EDITA SOLO ESTO ANTES DE PUBLICAR  (busca la cadena  ///EDITAR  )
+
+  1. Datos legales ............ línea ~470 y footer
+  2. Número de WhatsApp ....... busca  584120000000  y reemplaza (sin +, sin espacios)
+  3. Cifras de operación ...... busca  ///EDITAR CIFRA
+  4. Imágenes ................. carpeta IMAGENES/ , nombres en minúscula sin espacios:
+                                planta.jpg · agropecuaria.jpg · pollos.jpg · mineria.jpg
+
+  INTERRUPTOR DE MODO — línea 2, atributo class del <html>:
+     class="modo-informativo"   → sin cifras de rendimiento, sin captación   (AHORA)
+     class="modo-emision"       → muestra los bloques de la emisión autorizada
+  Cambiar esa palabra activa o desactiva todo lo relacionado con la oferta.
+  NO pases a modo-emision hasta tener la autorización de SUNAVAL en mano.
+
+================================================================================
+-->
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#0E1C19">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>CAVA</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230E1C19'/%3E%3Cpath d='M26 10h12v11c0 3 5 7 5 13v18a2 2 0 0 1-2 2H23a2 2 0 0 1-2-2V34c0-6 5-10 5-13z' fill='%23E5A33C'/%3E%3C/svg%3E">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MAXIMARKER C.A. — Cadena agroalimentaria en Venezuela</title>
+<meta name="description" content="MAXIMARKER C.A. opera una cadena agroalimentaria integrada en Venezuela: planta de alimento concentrado, tienda agropecuaria y producción avícola. Información sobre nuestras operaciones.">
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="MAXIMARKER C.A. — Cadena agroalimentaria">
+<meta property="og:description" content="Fabricamos el alimento, lo vendemos al productor y criamos con él. Tres eslabones de una misma cadena, operando en Venezuela.">
+<meta property="og:locale" content="es_VE">
+<!-- ///EDITAR: sube una imagen 1200x630 y pon aquí su URL absoluta.
+     Sin esto, el enlace compartido por WhatsApp sale sin vista previa. -->
+<meta property="og:image" content="IMAGENES/og-maximarker.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23221C13'/><path d='M7 22V10h4l5 8 5-8h4v12h-3v-7l-4 6h-4l-4-6v7z' fill='%23C08A12'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+
 <style>
+/* ── Sistema ──────────────────────────────────────────────────────────── */
 :root{
-  --fondo:#0E1C19; --panel:#152925; --panel2:#1D3830; --linea:#2B4A41;
-  --texto:#EDE4D2; --tenue:#8FA79E; --ambar:#E5A33C; --ambar-op:#3A2E13;
-  --verde:#56A97A; --rojo:#CF5546; --azul:#5E93B8;
-  --r:14px;
+  --papel:#D7CBB2;        /* papel de saco de alimento */
+  --papel-alto:#E6DDC9;
+  --papel-bajo:#C6B999;
+  --tinta:#221C13;        /* negro de impresión, cálido */
+  --tinta-2:#5A4F3E;
+  --azul:#1C4B68;         /* azul impreso sobre saco */
+  --azul-2:#2E6C8E;
+  --azul-3:#4F91B0;
+  --maiz:#C08A12;
+  --linea:rgba(34,28,19,.18);
+  --sombra:0 1px 0 rgba(34,28,19,.10);
+  --max:1080px;
+  --paso:clamp(2.75rem,7vw,5rem);
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;height:100%}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
 body{
-  background:var(--fondo); color:var(--texto);
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  font-size:16px; line-height:1.45; overscroll-behavior:none;
+  margin:0;background:var(--papel);color:var(--tinta);
+  font:400 1.0625rem/1.65 "Source Serif 4",Georgia,serif;
+  text-rendering:optimizeLegibility;
 }
-.num{font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-button,input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
-button{cursor:pointer;border:0;background:none}
-a{color:var(--ambar)}
-:focus-visible{outline:2px solid var(--ambar);outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+img{max-width:100%;display:block}
+a{color:var(--azul);text-underline-offset:.18em}
+:focus-visible{outline:3px solid var(--maiz);outline-offset:3px;border-radius:2px}
 
-/* ---- cabecera: la franja de tasas ---- */
-header{
-  position:fixed;top:0;left:0;right:0;z-index:40;background:var(--panel);
-  border-bottom:1px solid var(--linea);padding:env(safe-area-inset-top) 0 0;
+h1,h2,h3,.ui{font-family:Archivo,system-ui,sans-serif}
+h1,h2,h3{margin:0;line-height:1.1;letter-spacing:-.015em;font-weight:800}
+h1{font-size:clamp(2rem,6.2vw,3.4rem)}
+h2{font-size:clamp(1.5rem,4vw,2.15rem)}
+h3{font-size:1.125rem;font-weight:600;letter-spacing:0}
+p{margin:0 0 1em;max-width:64ch}
+
+.envoltura{width:100%;max-width:var(--max);margin-inline:auto;padding-inline:clamp(1.1rem,5vw,2rem)}
+.seccion{padding-block:var(--paso);border-top:1px solid var(--linea)}
+.saltar{position:absolute;left:-9999px}
+.saltar:focus{left:1rem;top:1rem;z-index:99;background:var(--tinta);color:var(--papel);padding:.6rem 1rem;border-radius:3px}
+
+/* ── Cabecera ─────────────────────────────────────────────────────────── */
+.cabecera{
+  position:sticky;top:0;z-index:40;background:var(--papel);
+  border-bottom:1px solid var(--linea);
 }
-.franja{display:flex;align-items:stretch;height:52px}
-.franja .tasas{flex:1;display:flex;align-items:center;gap:14px;padding:0 14px;min-width:0;overflow:hidden}
-.franja .tasas:active{background:var(--panel2)}
-.tdato{display:flex;flex-direction:column;justify-content:center;min-width:0}
-.tdato b{font-size:15px;font-weight:650;white-space:nowrap}
-.tdato span{font-size:10.5px;color:var(--tenue);white-space:nowrap}
-.tdato.destaca b{color:var(--ambar)}
-.franja .eng{width:52px;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--linea);color:var(--tenue);font-size:20px}
-.aviso{background:var(--rojo);color:#fff;font-size:12.5px;padding:6px 14px;display:none}
-.aviso.on{display:block}
-
-/* ---- contenido ---- */
-main{padding:calc(52px + env(safe-area-inset-top)) 0 calc(66px + env(safe-area-inset-bottom));min-height:100%}
-main.conbarra{padding-bottom:calc(160px + env(safe-area-inset-bottom))}
-.vista{display:none;padding:14px}
-.vista.on{display:block}
-h2{font-size:20px;font-weight:660;margin:2px 0 14px}
-h3{font-size:13px;font-weight:600;color:var(--tenue);margin:22px 0 8px;letter-spacing:.01em}
-h3:first-child{margin-top:2px}
-p.nota{color:var(--tenue);font-size:13.5px;margin:6px 0}
-
-/* ---- barra inferior ---- */
-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:40;display:flex;
-  background:var(--panel);border-top:1px solid var(--linea);
-  padding-bottom:env(safe-area-inset-bottom);
+.cabecera .fila{display:flex;align-items:center;gap:1rem;min-height:60px}
+.marca{font-family:Archivo;font-weight:800;font-size:1.05rem;letter-spacing:-.02em;text-decoration:none;color:var(--tinta);margin-right:auto}
+.marca span{display:block;font-weight:400;font-size:.7rem;color:var(--tinta-2);letter-spacing:.02em}
+.menu{display:flex;gap:1.35rem;list-style:none;margin:0;padding:0}
+.menu a{font-family:Archivo;font-size:.875rem;font-weight:600;color:var(--tinta-2);text-decoration:none;padding-block:.35rem;border-bottom:2px solid transparent}
+.menu a:hover{color:var(--tinta);border-bottom-color:var(--maiz)}
+@media (max-width:719px){
+  .menu{position:absolute;left:0;right:0;top:100%;background:var(--papel-alto);
+        flex-direction:column;gap:0;padding:.5rem 0;border-bottom:1px solid var(--linea);display:none}
+  .menu.abierto{display:flex}
+  .menu a{padding:.7rem clamp(1.1rem,5vw,2rem);border-bottom:none}
+  .conmutador{display:block}
 }
-nav button{flex:1;padding:9px 2px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--tenue);font-size:10.5px}
-nav button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-nav button.on{color:var(--ambar)}
+.conmutador{display:none;background:none;border:1px solid var(--linea);border-radius:3px;
+  padding:.45rem .7rem;font-family:Archivo;font-weight:600;font-size:.8rem;color:var(--tinta)}
 
-/* ---- piezas ---- */
-.tarjeta{background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);padding:14px;margin-bottom:12px}
-.grande{display:flex;gap:10px;margin-bottom:12px}
-.grande>div{flex:1;background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);padding:12px 12px 13px}
-.grande b{display:block;font-size:23px;font-weight:660;line-height:1.15}
-.grande span{font-size:11px;color:var(--tenue)}
-.grande .oro b{color:var(--ambar)}
+/* ── Portada ──────────────────────────────────────────────────────────── */
+.portada{padding-block:clamp(2.5rem,7vw,4.5rem) 0}
+.tesis{font-size:clamp(1.05rem,2.4vw,1.3rem);color:var(--tinta-2);max-width:52ch;margin-top:1.1rem}
 
-.btn{display:block;width:100%;padding:15px;border-radius:var(--r);background:var(--panel2);color:var(--texto);font-size:16px;font-weight:600;text-align:center;border:1px solid var(--linea)}
-.btn:active{transform:scale(.99)}
-.btn.oro{background:var(--ambar);color:#1A1207;border-color:var(--ambar)}
-.btn.verde{background:var(--verde);color:#07130C;border-color:var(--verde)}
-.btn.rojo{background:transparent;color:var(--rojo);border-color:var(--rojo)}
-.btn.enorme{padding:22px;font-size:19px;font-weight:700}
-.btn.chico{padding:10px;font-size:14px}
-.fila{display:flex;gap:8px}
-.fila>*{flex:1}
-
-label{display:block;font-size:12.5px;color:var(--tenue);margin:12px 0 5px}
-input,select,textarea{
-  width:100%;padding:12px;border-radius:10px;background:var(--fondo);
-  border:1px solid var(--linea);color:var(--texto)
+/* El diagrama de cadena: el elemento con el que se gasta la audacia.
+   Vertical en teléfono, horizontal desde 720px. Sin SVG de tamaño fijo:
+   un viewBox de 760px hace que el texto quede en 7px en un móvil. */
+.cadena{margin-top:clamp(2rem,5vw,3rem)}
+.eslabones{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.eslabones li{
+  position:relative;background:var(--papel-alto);border:2px solid var(--azul);
+  border-radius:4px;padding:.85rem 1rem;
+  opacity:0;animation:aparecer .5s cubic-bezier(.2,.7,.3,1) forwards;
 }
-input[type=checkbox]{width:auto}
-.campo-inline{display:flex;align-items:center;gap:10px;margin:12px 0}
-.campo-inline label{margin:0;flex:1;color:var(--texto);font-size:14.5px}
-.campo-inline input,.campo-inline select{width:auto;min-width:90px;text-align:right}
-
-/* ---- listas ---- */
-.item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-bottom:1px solid var(--linea)}
-.item:last-child{border-bottom:0}
-.item .cuerpo{flex:1;min-width:0}
-.item .tit{font-size:15px;font-weight:560;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.item .sub{font-size:12px;color:var(--tenue);margin-top:1px}
-.item .der{text-align:right;white-space:nowrap}
-.item .der b{display:block;font-size:15px;font-weight:620}
-.item .der span{font-size:11px;color:var(--tenue)}
-.lista{background:var(--panel);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
-.punto{width:9px;height:9px;border-radius:50%;flex:none}
-.p-rojo{background:var(--rojo)} .p-ama{background:var(--ambar)} .p-verde{background:var(--verde)}
-.vacio{text-align:center;color:var(--tenue);padding:34px 18px;font-size:14px}
-.vacio b{display:block;color:var(--texto);font-size:16px;margin-bottom:5px;font-weight:600}
-
-/* ---- vender ---- */
-.buscador{display:flex;gap:8px;margin-bottom:12px}
-.buscador input{flex:1;font-size:17px;padding:14px}
-.buscador button{width:56px;flex:none;border-radius:10px;background:var(--panel2);border:1px solid var(--linea);font-size:22px}
-.favs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
-.favs button{background:var(--panel);border:1px solid var(--linea);border-radius:11px;padding:10px 7px;min-height:60px;display:flex;flex-direction:column;justify-content:center;gap:2px}
-.favs button:active{background:var(--panel2);border-color:var(--ambar)}
-.favs .n{font-size:12px;font-weight:560;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.favs .pz{font-size:10.5px;color:var(--ambar)}
-.cant{display:flex;align-items:center;gap:0;background:var(--fondo);border:1px solid var(--linea);border-radius:9px;overflow:hidden}
-.cant button{width:32px;height:32px;font-size:18px;color:var(--tenue)}
-.cant b{min-width:26px;text-align:center;font-size:15px}
-
-/* ---- la barra del dinero ---- */
-.dinero{
-  position:fixed;left:0;right:0;bottom:calc(66px + env(safe-area-inset-bottom));z-index:35;
-  background:var(--panel);border-top:2px solid var(--ambar);display:none
+.eslabones li:nth-child(1){animation-delay:.05s}
+.eslabones li:nth-child(2){animation-delay:.22s;border-color:var(--azul-2)}
+.eslabones li:nth-child(3){animation-delay:.39s;border-color:var(--azul-3)}
+@keyframes aparecer{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.eslabones li{opacity:1;animation:none}}
+.eslabones b{display:block;font-family:Archivo;font-weight:800;font-size:1rem;letter-spacing:-.01em}
+.eslabones i{display:block;font-family:Archivo;font-style:normal;font-weight:400;font-size:.78rem;color:var(--tinta-2);margin-top:.1rem}
+/* Flechas de flujo */
+.eslabones li+li::before{
+  content:"";position:absolute;background:var(--azul-2);
+  left:50%;top:-1.35rem;width:2px;height:1.35rem;transform:translateX(-50%);
 }
-.dinero.on{display:block}
-.dinero .cifras{display:flex}
-.dinero .cifras>div{flex:1;padding:10px 14px 11px}
-.dinero .cifras>div+div{border-left:1px solid var(--linea)}
-.dinero .cifras b{display:block;font-size:22px;font-weight:680;line-height:1.15}
-.dinero .cifras span{font-size:10.5px;color:var(--tenue)}
-.dinero .oro b{color:var(--ambar)}
-.dinero .pie{display:flex;gap:8px;padding:0 10px 10px}
-
-/* ---- modales ---- */
-.velo{position:fixed;inset:0;z-index:60;background:rgba(6,14,12,.82);display:none;align-items:flex-end}
-.velo.on{display:flex}
-.hoja{
-  width:100%;max-height:92vh;overflow-y:auto;background:var(--panel);
-  border-radius:18px 18px 0 0;border-top:1px solid var(--linea);
-  padding:16px 16px calc(20px + env(safe-area-inset-bottom))
+.eslabones li+li::after{
+  content:"";position:absolute;left:50%;top:-.45rem;transform:translateX(-50%);
+  border:5px solid transparent;border-top-color:var(--azul-2);
 }
-.hoja h4{margin:0 0 4px;font-size:18px;font-weight:650}
-.asa{width:38px;height:4px;border-radius:2px;background:var(--linea);margin:0 auto 14px}
+@media (min-width:720px){
+  .eslabones{grid-template-columns:repeat(3,1fr);gap:0 2.1rem}
+  .eslabones li+li::before{left:-2.1rem;top:50%;width:2.1rem;height:2px;transform:translateY(-50%)}
+  .eslabones li+li::after{left:-.45rem;top:50%;transform:translateY(-50%);
+    border-top-color:transparent;border-left-color:var(--azul-2)}
+}
+@media (max-width:719px){.eslabones{gap:1.35rem}}
+/* El retorno de la gallinaza */
+.retorno{
+  display:flex;align-items:center;gap:.55rem;margin-top:1.1rem;
+  font-family:Archivo;font-size:.8rem;color:var(--tinta-2);
+}
+.retorno::before{
+  content:"";flex:0 0 auto;width:2.4rem;height:0;
+  border-top:2px dashed var(--maiz);
+}
+.suelto-caja{
+  margin-top:1.5rem;padding:.85rem 1rem;border:2px dashed var(--maiz);border-radius:4px;
+  background:transparent;max-width:min(100%,26rem);
+}
+.suelto-caja b{display:block;font-family:Archivo;font-weight:800;font-size:1rem}
+.suelto-caja i{display:block;font-family:Archivo;font-style:normal;font-weight:400;font-size:.78rem;color:var(--tinta-2);margin-top:.1rem}
 
-/* ---- cámara ---- */
-#camara{position:fixed;inset:0;z-index:70;background:#000;display:none;flex-direction:column}
-#camara.on{display:flex}
-#camara video{flex:1;width:100%;object-fit:cover}
-.mira{position:absolute;left:8%;right:8%;top:32%;height:22%;border:2px solid var(--ambar);border-radius:12px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
-.camtop{position:absolute;top:0;left:0;right:0;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;color:#fff;font-size:14px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
-.cambot{position:absolute;bottom:0;left:0;right:0;padding:14px 14px calc(18px + env(safe-area-inset-bottom))}
+/* ── Eslabones ────────────────────────────────────────────────────────── */
+.eslabon{display:grid;gap:clamp(1.1rem,3vw,2rem);align-items:start;padding-block:clamp(1.75rem,4vw,2.5rem);border-top:1px solid var(--linea)}
+.eslabon:first-of-type{border-top:none}
+@media (min-width:800px){.eslabon{grid-template-columns:300px 1fr}}
+.retrato{position:relative;aspect-ratio:4/3;border-radius:4px;overflow:hidden;background:
+  repeating-linear-gradient(135deg,var(--papel-bajo) 0 10px,var(--papel-alto) 10px 20px);
+  border:1px solid var(--linea)}
+.retrato img{width:100%;height:100%;object-fit:cover}
+.orden{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.35rem}
+.orden b{font-family:Archivo;font-weight:800;font-size:.8rem;color:var(--papel);background:var(--azul);
+  border-radius:2px;padding:.1rem .42rem;letter-spacing:.02em}
+.eslabon.e2 .orden b{background:var(--azul-2)} .eslabon.e3 .orden b{background:var(--azul-3)}
+.eslabon.suelto .orden b{background:var(--maiz);color:var(--tinta)}
+.rol{font-family:Archivo;font-weight:600;font-size:.82rem;color:var(--tinta-2)}
 
-/* ---- varios ---- */
-.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;background:var(--panel2);border:1px solid var(--linea);color:var(--tenue)}
-.chip.oro{color:var(--ambar);border-color:var(--ambar-op);background:var(--ambar-op)}
-.chip.rojo{color:var(--rojo);border-color:#3B1D19;background:#3B1D19}
-.aviso-caja{background:var(--ambar-op);border:1px solid #4A3A18;border-radius:11px;padding:11px 13px;font-size:13.5px;margin-bottom:12px}
-.aviso-caja.mal{background:#331915;border-color:#4E2620}
-table.mini{width:100%;border-collapse:collapse;font-size:13px}
-table.mini td{padding:6px 0;border-bottom:1px solid var(--linea)}
-table.mini td:last-child{text-align:right;font-weight:600}
-table.mini tr:last-child td{border-bottom:0}
-#brindis{position:fixed;left:14px;right:14px;bottom:calc(80px + env(safe-area-inset-bottom));z-index:80;background:var(--verde);color:#07130C;padding:13px 16px;border-radius:12px;font-weight:600;font-size:14.5px;display:none;text-align:center}
-#brindis.mal{background:var(--rojo);color:#fff}
-#brindis.on{display:block}
-.grafico{display:flex;align-items:flex-end;gap:3px;height:70px;margin:10px 0 4px}
-.grafico div{flex:1;background:var(--panel2);border-radius:2px 2px 0 0;min-height:2px}
-.grafico div:last-child{background:var(--ambar)}
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:.9rem;
+  margin:1.1rem 0;padding:.9rem 0;border-block:1px solid var(--linea)}
+.cifra .n{font-family:Archivo;font-weight:800;font-size:1.35rem;font-variant-numeric:tabular-nums;line-height:1.15;display:block}
+.cifra .q{font-family:Archivo;font-weight:400;font-size:.75rem;color:var(--tinta-2);display:block;margin-top:.15rem}
+
+/* ── Botones ──────────────────────────────────────────────────────────── */
+.boton{display:inline-flex;align-items:center;gap:.5rem;font-family:Archivo;font-weight:600;font-size:.925rem;
+  padding:.72rem 1.15rem;border-radius:3px;text-decoration:none;border:1.5px solid var(--tinta);
+  background:var(--tinta);color:var(--papel);box-shadow:var(--sombra);transition:transform .12s ease}
+.boton:hover{transform:translateY(-1px)}
+.boton.claro{background:transparent;color:var(--tinta)}
+.boton.wasap{background:var(--azul);border-color:var(--azul);color:#fff}
+.acciones{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1.15rem}
+
+/* ── Aviso / estado ───────────────────────────────────────────────────── */
+.aviso{background:var(--papel-alto);border-left:3px solid var(--maiz);padding:1rem 1.15rem;border-radius:0 4px 4px 0;margin-block:1.25rem}
+.aviso p:last-child{margin-bottom:0}
+.aviso strong{font-family:Archivo;font-weight:600}
+
+/* Tabla de operación */
+.tabla{width:100%;border-collapse:collapse;margin-top:1.25rem;font-size:.95rem}
+.tabla caption{text-align:left;font-family:Archivo;font-weight:600;font-size:.85rem;color:var(--tinta-2);padding-bottom:.55rem}
+.tabla th,.tabla td{text-align:left;padding:.6rem .55rem;border-bottom:1px solid var(--linea)}
+.tabla thead th{font-family:Archivo;font-weight:600;font-size:.78rem;color:var(--tinta-2)}
+.tabla td:last-child,.tabla th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ── Interruptor de modo ──────────────────────────────────────────────── */
+.solo-emision{display:none}
+.modo-emision .solo-emision{display:revert}
+.modo-emision .solo-informativo{display:none}
+
+/* ── Pie ──────────────────────────────────────────────────────────────── */
+.pie{background:var(--tinta);color:var(--papel-bajo);padding-block:clamp(2rem,5vw,3rem);font-size:.9rem}
+.pie a{color:var(--papel-alto)}
+.pie h3{color:var(--papel);margin-bottom:.5rem}
+.pie .rejilla{display:grid;gap:1.75rem}
+@media (min-width:760px){.pie .rejilla{grid-template-columns:1.3fr 1fr 1fr}}
+.pie dl{margin:0;font-size:.85rem}
+.pie dt{color:var(--papel-bajo);opacity:.75;margin-top:.5rem}
+.pie dd{margin:0;color:var(--papel-alto)}
+.legal{margin-top:2rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,.14);font-size:.78rem;opacity:.8;max-width:70ch}
 </style>
 </head>
-<body>
 
-<header>
-  <div class="franja">
-    <div class="tasas" id="franjaTasas" onclick="irA('tasas')"></div>
-    <button class="eng" onclick="irA('ajustes')" aria-label="Ajustes">⚙</button>
+<body>
+<a class="saltar" href="#principal">Saltar al contenido</a>
+
+<header class="cabecera">
+  <div class="envoltura fila">
+    <a class="marca" href="#principal">MAXIMARKER<span>Cadena agroalimentaria · Venezuela</span></a>
+    <button class="conmutador ui" id="btnMenu" aria-expanded="false" aria-controls="menu">Menú</button>
+    <nav aria-label="Principal">
+      <ul class="menu" id="menu">
+        <li><a href="#cadena">La cadena</a></li>
+        <li><a href="#operaciones">Operaciones</a></li>
+        <li><a href="#emision">Emisión</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
   </div>
-  <div class="aviso" id="avisoTasa"></div>
 </header>
 
 <main id="principal">
-  <section class="vista" id="v-inicio"></section>
-  <section class="vista" id="v-vender"></section>
-  <section class="vista" id="v-cargar"></section>
-  <section class="vista" id="v-stock"></section>
-  <section class="vista" id="v-cierre"></section>
-  <section class="vista" id="v-tasas"></section>
-  <section class="vista" id="v-ajustes"></section>
-  <section class="vista" id="v-fiado"></section>
-  <section class="vista" id="v-clientes"></section>
-  <section class="vista" id="v-ayuda"></section>
+
+<!-- ══ PORTADA ══════════════════════════════════════════════════════════ -->
+<section class="portada envoltura" aria-labelledby="t-portada">
+  <h1 id="t-portada">Fabricamos el alimento,<br>lo vendemos al productor<br>y criamos con él.</h1>
+  <p class="tesis">Tres operaciones que se abastecen entre sí, más un activo digital fuera de la cadena. Esto es lo que hay, cómo funciona y qué produce.</p>
+
+  <div class="cadena">
+    <ol class="eslabones">
+      <li><b>Planta de alimento</b><i>el insumo</i></li>
+      <li><b>Hiper Agropecuaria</b><i>el canal</i></li>
+      <li><b>Pollos de engorde</b><i>la producción</i></li>
+    </ol>
+    <p class="retorno">La gallinaza del galpón vuelve a la tienda como abono</p>
+    <div class="suelto-caja">
+      <b>Minería digital</b><i>fuera de la cadena · equipos en el exterior</i>
+    </div>
+  </div>
+</section>
+
+<!-- ══ LA CADENA ════════════════════════════════════════════════════════ -->
+<section class="seccion envoltura" id="cadena" aria-labelledby="t-cadena">
+  <h2 id="t-cadena">Por qué estas operaciones y no otras cuatro</h2>
+  <p>Un productor avícola cualquiera le compra el alimento a la agropecuaria del pueblo. Nosotros lo fabricamos, somos la agropecuaria y además criamos. Cada eslabón le baja el costo al siguiente.</p>
+
+  <!-- ─ Eslabón 1 ─────────────────────────────────────────────────────── -->
+  <article class="eslabon e1">
+    <div class="retrato"><img src="IMAGENES/planta.jpg" alt="Interior de la planta de alimento concentrado de MAXIMARKER" loading="lazy" onerror="this.remove()"></div>
+    <div>
+      <div class="orden"><b>1</b><span class="rol">El insumo</span></div>
+      <h3>Planta de alimento concentrado</h3>
+      <p>Fabricamos alimento balanceado para aves y otras especies. La producción se coloca completa: una parte va a nuestra propia tienda, otra a productores de la zona, y una fracción menor alimenta nuestro galpón.</p>
+      <div class="cifras">
+        <!-- ///EDITAR CIFRA -->
+        <div class="cifra"><span class="n">—</span><span class="q">Toneladas / mes</span></div>
+        <div class="cifra"><span class="n">—</span><span class="q">Clientes activos</span></div>
+        <div class="cifra"><span class="n">100%</span><span class="q">Producción colocada</span></div>
+      </div>
+      <div class="acciones">
+        <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20vi%20el%20sitio%20de%20MAXIMARKER%20y%20quiero%20saber%20m%C3%A1s%20de%20la%20planta%20de%20alimento.">Preguntar por la planta</a>
+      </div>
+    </div>
+  </article>
+
+  <!-- ─ Eslabón 2 ─────────────────────────────────────────────────────── -->
+  <article class="eslabon e2">
+    <div class="retrato"><img src="IMAGENES/agropecuaria.jpg" alt="Mostrador e inventario de Hiper Agropecuaria" loading="lazy" onerror="this.remove()"></div>
+    <div>
+      <div class="orden"><b>2</b><span class="rol">El canal</span></div>
+      <h3>Hiper Agropecuaria</h3>
+      <p>La tienda que pone el alimento en manos del productor, junto con veterinaria, pollitos, semilla y herramienta. Es el punto donde la planta encuentra su mercado, y donde la gallinaza del galpón vuelve al circuito convertida en abono.</p>
+      <div class="cifras">
+        <!-- ///EDITAR CIFRA -->
+        <div class="cifra"><span class="n">—</span><span class="q">Referencias en catálogo</span></div>
+        <div class="cifra"><span class="n">—</span><span class="q">Rotación de inventario</span></div>
+        <div class="cifra"><span class="n">—</span><span class="q">Años operando</span></div>
+      </div>
+      <div class="acciones">
+        <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20vi%20el%20sitio%20de%20MAXIMARKER%20y%20quiero%20saber%20m%C3%A1s%20de%20Hiper%20Agropecuaria.">Preguntar por la tienda</a>
+      </div>
+    </div>
+  </article>
+
+  <!-- ─ Eslabón 3 ─────────────────────────────────────────────────────── -->
+  <article class="eslabon e3">
+    <div class="retrato"><img src="IMAGENES/pollos.jpg" alt="Galpón de pollos de engorde de MAXIMARKER" loading="lazy" onerror="this.remove()"></div>
+    <div>
+      <div class="orden"><b>3</b><span class="rol">La producción</span></div>
+      <h3>Pollos de engorde</h3>
+      <p>Ciclo de ocho semanas en galpón, con vacío sanitario entre lotes. Se vende principalmente en canal despiezado. El subproducto —la gallinaza— no se descarta: entra al catálogo de la tienda.</p>
+      <div class="cifras">
+        <div class="cifra"><span class="n">5</span><span class="q">Ciclos al año</span></div>
+        <div class="cifra"><span class="n">14%</span><span class="q">Mortalidad acumulada</span></div>
+        <div class="cifra"><span class="n">2,71 kg</span><span class="q">Peso vivo promedio</span></div>
+        <div class="cifra"><span class="n">$1,55</span><span class="q">Costo por kg vivo</span></div>
+      </div>
+      <div class="acciones">
+        <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20vi%20el%20sitio%20de%20MAXIMARKER%20y%20quiero%20saber%20m%C3%A1s%20del%20galp%C3%B3n%20de%20engorde.">Preguntar por el galpón</a>
+      </div>
+    </div>
+  </article>
+
+  <!-- ─ Fuera de la cadena ────────────────────────────────────────────── -->
+  <article class="eslabon suelto">
+    <div class="retrato"><img src="IMAGENES/mineria.jpg" alt="Equipos de minería digital de MAXIMARKER, alojados en el exterior" loading="lazy" onerror="this.remove()"></div>
+    <div>
+      <div class="orden"><b>+</b><span class="rol">Fuera de la cadena</span></div>
+      <h3>Minería digital</h3>
+      <p>Equipos alojados en el exterior. No es una operación venezolana ni comparte riesgos con el agro: no depende del maíz, del clima ni del ciclo biológico. Genera flujo semanal en divisa, lo que ayuda a suavizar la caja irregular de un ciclo avícola de setenta y tres días.</p>
+      <div class="aviso">
+        <p><strong>No es una cobertura.</strong> Que un activo no se mueva con el maíz no significa que proteja contra él. La minería tiene su propio riesgo: precio del bitcoin, dificultad de red y desgaste de equipo.</p>
+      </div>
+      <div class="acciones">
+        <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20vi%20el%20sitio%20de%20MAXIMARKER%20y%20quiero%20saber%20m%C3%A1s%20de%20la%20operaci%C3%B3n%20de%20miner%C3%ADa.">Preguntar por minería</a>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ══ OPERACIONES ══════════════════════════════════════════════════════ -->
+<section class="seccion envoltura" id="operaciones" aria-labelledby="t-oper">
+  <h2 id="t-oper">Los números, sin adornos</h2>
+  <p>Publicamos las cifras de operación, no proyecciones. Lo que está medido está fechado; lo que no está medido, dice que no lo está.</p>
+
+  <table class="tabla">
+    <caption>Ciclo avícola — unidad modular de 60 aves <!-- ///EDITAR CIFRA: actualiza al cerrar cada ciclo --></caption>
+    <thead>
+      <tr><th scope="col">Concepto</th><th scope="col">Unidad</th><th scope="col">Valor</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Duración del ciclo en galpón</td><td>días</td><td>56</td></tr>
+      <tr><td>Ciclo económico con vacío sanitario</td><td>días</td><td>73</td></tr>
+      <tr><td>Ciclos por año</td><td>ciclos</td><td>5</td></tr>
+      <tr><td>Mortalidad acumulada</td><td>%</td><td>14</td></tr>
+      <tr><td>Peso vivo al cierre</td><td>kg/ave</td><td>2,71</td></tr>
+      <tr><td>Costo de producción</td><td>$/kg vivo</td><td>1,55</td></tr>
+      <tr><td>Alimento sobre costo variable</td><td>%</td><td>65</td></tr>
+      <tr><td>Gallinaza generada</td><td>kg/ave</td><td>4,5</td></tr>
+    </tbody>
+  </table>
+
+  <div class="aviso">
+    <p><strong>Sensibilidad al precio del grano.</strong> El alimento representa el 65% del costo variable del galpón. Un alza del 20% en el grano reduce la utilidad operativa cerca de un tercio, y afecta a la planta y a la tienda al mismo tiempo. Tres eslabones, un solo origen de riesgo. Lo decimos porque es verdad y porque quien evalúe esto va a preguntarlo.</p>
+  </div>
+
+  <p><!-- ///EDITAR: sustituir por el enlace real cuando exista el reporte -->Los reportes mensuales de operación se entregan por solicitud.</p>
+  <div class="acciones">
+    <a class="boton claro" href="https://wa.me/584120000000?text=Hola%2C%20quisiera%20recibir%20el%20reporte%20mensual%20de%20operaciones%20de%20MAXIMARKER.">Solicitar el reporte mensual</a>
+  </div>
+</section>
+
+<!-- ══ EMISIÓN ══════════════════════════════════════════════════════════ -->
+<section class="seccion envoltura" id="emision" aria-labelledby="t-emision">
+  <h2 id="t-emision">Emisión en trámite</h2>
+
+  <div class="solo-informativo">
+    <div class="aviso">
+      <p><strong>Este sitio es informativo.</strong> MAXIMARKER C.A. tramita ante la Superintendencia Nacional de Valores (SUNAVAL) la autorización de una emisión de valores. Hasta que esa autorización se otorgue, no ofrecemos instrumentos de inversión, no publicamos rendimientos, no recibimos aportes y no pagamos comisiones por referir inversionistas.</p>
+      <p>Lo que sí puedes hacer hoy es dejar tu contacto. Cuando la emisión esté autorizada, avisamos primero a quien está en la lista.</p>
+    </div>
+
+    <h3>Registro de interés</h3>
+    <p>No es un compromiso ni una reserva. Es una lista de aviso.</p>
+    <div class="acciones">
+      <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20quiero%20quedar%20en%20la%20lista%20de%20aviso%20para%20cuando%20se%20autorice%20la%20emisi%C3%B3n%20de%20MAXIMARKER.">Avísenme cuando abra</a>
+      <button class="boton claro" id="btnCompartir" type="button">Compartir este sitio</button>
+    </div>
+  </div>
+
+  <!-- Aparece solo con class="modo-emision" en el <html> -->
+  <div class="solo-emision">
+    <div class="aviso">
+      <p><strong>Emisión autorizada.</strong> ///EDITAR: número de providencia, fecha, monto autorizado, plazo y cupón. Enlace al prospecto registrado.</p>
+    </div>
+    <h3>Condiciones del instrumento</h3>
+    <p>///EDITAR: las condiciones van aquí, y solo aquí, tomadas literalmente del prospecto autorizado. Ninguna cifra de rendimiento debe existir en otra parte del sitio.</p>
+    <div class="acciones">
+      <a class="boton" href="#">Descargar el prospecto</a>
+      <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20la%20emisi%C3%B3n%20autorizada%20de%20MAXIMARKER.">Hablar con MAXIMARKER</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTO ═════════════════════════════════════════════════════════ -->
+<section class="seccion envoltura" id="contacto" aria-labelledby="t-contacto">
+  <h2 id="t-contacto">Conversemos</h2>
+  <p>Escríbenos por WhatsApp. Respondemos nosotros, no un formulario.</p>
+  <div class="acciones">
+    <a class="boton wasap" href="https://wa.me/584120000000?text=Hola%2C%20vi%20el%20sitio%20de%20MAXIMARKER%20y%20quiero%20conversar.">Abrir WhatsApp</a>
+    <!-- ///EDITAR: correo real -->
+    <a class="boton claro" href="mailto:contacto@maximarker.com">Escribir un correo</a>
+  </div>
+</section>
+
 </main>
 
-<div class="dinero" id="barraDinero"></div>
+<!-- ══ PIE ══════════════════════════════════════════════════════════════ -->
+<footer class="pie">
+  <div class="envoltura rejilla">
+    <div>
+      <h3>MAXIMARKER, C.A.</h3>
+      <dl>
+        <!-- ///EDITAR: datos legales reales. Sin esto el sitio no es publicable. -->
+        <dt>RIF</dt><dd>J-00000000-0</dd>
+        <dt>Domicilio fiscal</dt><dd>Dirección completa, ciudad, estado, Venezuela</dd>
+        <dt>Registro Mercantil</dt><dd>Tomo —, N.º —, fecha —</dd>
+      </dl>
+    </div>
+    <div>
+      <h3>Secciones</h3>
+      <p><a href="#cadena">La cadena</a><br>
+         <a href="#operaciones">Operaciones</a><br>
+         <a href="#emision">Emisión</a><br>
+         <a href="#contacto">Contacto</a></p>
+    </div>
+    <div>
+      <h3>Contacto</h3>
+      <p><a href="https://wa.me/584120000000">WhatsApp</a><br>
+         <a href="mailto:contacto@maximarker.com">contacto@maximarker.com</a></p>
+    </div>
+  </div>
+  <div class="envoltura">
+    <p class="legal">Este sitio tiene carácter informativo sobre las operaciones de MAXIMARKER, C.A. No constituye oferta pública de valores, invitación a invertir, ni promesa de rendimiento. La emisión de valores mencionada se encuentra en trámite de autorización ante la Superintendencia Nacional de Valores; hasta que dicha autorización sea otorgada y publicado el prospecto correspondiente, no se reciben aportes de capital del público. Las cifras de operación publicadas corresponden a los períodos indicados y no constituyen proyección de resultados futuros.</p>
+  </div>
+</footer>
 
-<nav id="barraNav"></nav>
-
-<div class="velo" id="velo"><div class="hoja" id="hoja"></div></div>
-
-<div id="camara">
-  <video id="video" playsinline muted></video>
-  <div class="mira"></div>
-  <div class="camtop" id="camTexto">Apunta al código de barras</div>
-  <div class="cambot"><button class="btn" onclick="cerrarCamara()">Cerrar cámara</button></div>
-</div>
-
-<div id="brindis"></div>
-
-<script>/* ==========================================================================
-   CAVA — núcleo
-   ========================================================================== */
-'use strict';
-
-/* ---------- utilidades ---------- */
-const $ = (s, r) => (r || document).querySelector(s);
-const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
-const pad = n => String(n).padStart(2, '0');
-const hoyISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
-const mesDe = f => f.slice(0, 7);
-const ahora = () => new Date().toISOString();
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-const nz = v => (typeof v === 'number' && isFinite(v)) ? v : 0;
-
-function fmtBs(n) {
-  return nz(n).toLocaleString('es-VE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-function fmtUsd(n) {
-  return nz(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-function fmtNum(n, d) {
-  d = d === undefined ? 2 : d;
-  return nz(n).toLocaleString('es-VE', { minimumFractionDigits: d, maximumFractionDigits: d });
-}
-function fechaLarga(f) {
-  const [y, m, d] = f.split('-').map(Number);
-  const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-  return d + ' de ' + meses[m - 1] + ' de ' + y;
-}
-function hora(iso) { const d = new Date(iso); return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
-function redondear(v, paso) {
-  if (!paso || paso <= 0) return v;
-  return Math.round(v / paso) * paso;
-}
-function diasEntre(a, b) {
-  return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
-}
-function restarDias(f, n) {
-  const d = new Date(f + 'T00:00:00');
-  d.setDate(d.getDate() - n);
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-}
-
-/* ---------- almacenamiento (IndexedDB con respaldo en localStorage) ---------- */
-const DB = (function () {
-  let db = null, modo = 'idb';
-  function abrir() {
-    return new Promise(res => {
-      if (!window.indexedDB) { modo = 'ls'; return res(); }
-      let req;
-      try { req = indexedDB.open('cava', 1); } catch (e) { modo = 'ls'; return res(); }
-      req.onupgradeneeded = e => { e.target.result.createObjectStore('kv'); };
-      req.onsuccess = e => { db = e.target.result; res(); };
-      req.onerror = () => { modo = 'ls'; res(); };
-      setTimeout(() => { if (!db && modo === 'idb') { modo = 'ls'; res(); } }, 3000);
-    });
-  }
-  function get(k) {
-    if (modo === 'ls' || !db) {
-      try { const v = localStorage.getItem('cava:' + k); return Promise.resolve(v ? JSON.parse(v) : null); }
-      catch (e) { return Promise.resolve(null); }
-    }
-    return new Promise(res => {
-      try {
-        const r = db.transaction('kv', 'readonly').objectStore('kv').get(k);
-        r.onsuccess = () => res(r.result === undefined ? null : r.result);
-        r.onerror = () => res(null);
-      } catch (e) { res(null); }
-    });
-  }
-  function set(k, v) {
-    if (modo === 'ls' || !db) {
-      try { localStorage.setItem('cava:' + k, JSON.stringify(v)); } catch (e) { }
-      return Promise.resolve();
-    }
-    return new Promise(res => {
-      try {
-        const r = db.transaction('kv', 'readwrite').objectStore('kv').put(v, k);
-        r.onsuccess = () => res(); r.onerror = () => res();
-      } catch (e) { res(); }
-    });
-  }
-  function borrarTodo() {
-    if (modo === 'ls' || !db) {
-      try {
-        const claves = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const k = localStorage.key(i);
-          if (k && k.indexOf('cava:') === 0) claves.push(k);
-        }
-        claves.forEach(k => localStorage.removeItem(k));
-      } catch (e) { }
-      return Promise.resolve();
-    }
-    return new Promise(res => {
-      const r = db.transaction('kv', 'readwrite').objectStore('kv').clear();
-      r.onsuccess = () => res(); r.onerror = () => res();
-    });
-  }
-  return { abrir, get, set, borrarTodo, get modo() { return modo; } };
+<script>
+// Menú móvil
+(function(){
+  var b=document.getElementById('btnMenu'), m=document.getElementById('menu');
+  b.addEventListener('click',function(){
+    var abierto=m.classList.toggle('abierto');
+    b.setAttribute('aria-expanded',abierto?'true':'false');
+  });
+  m.addEventListener('click',function(e){
+    if(e.target.tagName==='A'){m.classList.remove('abierto');b.setAttribute('aria-expanded','false');}
+  });
 })();
 
-/* ---------- estado ---------- */
-const CFG_DEF = {
-  negocio: 'Mi licorería',
-  usuarios: ['Anthony', 'Esposa'],
-  usuario: 'Anthony',
-  modoRecargo: 'B',        // A = recargo visible en la tasa · B = recargo dentro del precio
-  diasCobertura: 1,
-  topeProyeccionPct: 2,
-  topeDescuentoPct: 20,
-  pisoDescuentoPct: 1,
-  redondeoBs: 1,
-  redondeoUsd: 0.05,
-  igtf: false,
-  igtfPct: 3,
-  autoTasas: true,
-  soloConsulta: false,
-  minimoDefault: 6
-};
-
-let S = {
-  config: Object.assign({}, CFG_DEF),
-  productos: [],
-  clientes: [],
-  deudas: [],
-  tasas: [],       // {fecha,bcv,usdt,promedio3d,proyeccion,tasaVenta,descuentoPct,origen,hora}
-  cierres: [],
-  ventas: [],      // solo el mes en curso
-  movs: [],        // solo el mes en curso
-  meses: [],
-  mesCargado: null
-};
-
-let guardarPendiente = null;
-function guardar(claves) {
-  clearTimeout(guardarPendiente);
-  const k = claves || ['config', 'productos', 'clientes', 'deudas', 'tasas', 'cierres', 'ventas', 'movs', 'meses'];
-  guardarPendiente = setTimeout(() => {
-    const m = S.mesCargado;
-    k.forEach(x => {
-      if (x === 'ventas') DB.set('ventas_' + m, S.ventas);
-      else if (x === 'movs') DB.set('movs_' + m, S.movs);
-      else DB.set(x, S[x]);
-    });
-  }, 150);
-}
-function cancelarGuardado() { clearTimeout(guardarPendiente); guardarPendiente = null; }
-
-function guardarYa() {
-  clearTimeout(guardarPendiente);
-  const m = S.mesCargado;
-  return Promise.all([
-    DB.set('config', S.config), DB.set('productos', S.productos), DB.set('tasas', S.tasas),
-    DB.set('clientes', S.clientes), DB.set('deudas', S.deudas),
-    DB.set('cierres', S.cierres), DB.set('meses', S.meses),
-    DB.set('ventas_' + m, S.ventas), DB.set('movs_' + m, S.movs)
-  ]);
-}
-
-async function cargarEstado() {
-  await DB.abrir();
-  const [cfg, prods, tasas, cierres, meses, clis, deus] = await Promise.all([
-    DB.get('config'), DB.get('productos'), DB.get('tasas'), DB.get('cierres'), DB.get('meses'),
-    DB.get('clientes'), DB.get('deudas')
-  ]);
-  S.config = Object.assign({}, CFG_DEF, cfg || {});
-  S.productos = prods || [];
-  S.tasas = tasas || [];
-  S.cierres = cierres || [];
-  S.meses = meses || [];
-  S.clientes = clis || [];
-  S.deudas = deus || [];
-  const m = mesDe(hoyISO());
-  S.mesCargado = m;
-  if (S.meses.indexOf(m) < 0) { S.meses.push(m); S.meses.sort(); }
-  S.ventas = (await DB.get('ventas_' + m)) || [];
-  S.movs = (await DB.get('movs_' + m)) || [];
-  reindexar();
-}
-
-async function cargarMes(m) {
-  if (m === S.mesCargado) return { ventas: S.ventas, movs: S.movs };
-  const v = (await DB.get('ventas_' + m)) || [];
-  const mv = (await DB.get('movs_' + m)) || [];
-  return { ventas: v, movs: mv };
-}
-
-/* ---------- índice de códigos ---------- */
-let IDX = new Map();
-function reindexar() {
-  IDX = new Map();
-  S.productos.forEach(p => {
-    (p.pres || []).forEach((pr, i) => {
-      const c = (pr.codigo || '').trim();
-      if (c) IDX.set(c.toUpperCase(), { id: p.id, pres: i });
-    });
+// Compartir. Sin código de afiliado, sin comisión: solo compartir el enlace.
+(function(){
+  var b=document.getElementById('btnCompartir');
+  if(!b) return;
+  var url=location.origin+location.pathname;
+  b.addEventListener('click',async function(){
+    var datos={title:'MAXIMARKER C.A.',text:'Cadena agroalimentaria en Venezuela',url:url};
+    try{
+      if(navigator.share){ await navigator.share(datos); return; }
+      await navigator.clipboard.writeText(url);
+      b.textContent='Enlace copiado';
+      setTimeout(function(){b.textContent='Compartir este sitio';},2200);
+    }catch(e){ /* el usuario canceló: no hay nada que informar */ }
   });
-}
-function buscarCodigo(cod) {
-  const r = IDX.get(String(cod).trim().toUpperCase());
-  if (!r) return null;
-  const p = S.productos.find(x => x.id === r.id);
-  if (!p) return null;
-  return { p, pres: r.pres };
-}
-function producto(id) { return S.productos.find(p => p.id === id); }
-
-/* ---------- motor de tasas ---------- */
-function tasaDe(fecha) { return S.tasas.find(t => t.fecha === fecha) || null; }
-
-function bcvHaceNDias(fecha, n) {
-  const objetivo = restarDias(fecha, n);
-  // busca el registro con fecha <= objetivo más cercano
-  const orden = S.tasas.filter(t => t.fecha <= objetivo).sort((a, b) => a.fecha < b.fecha ? 1 : -1);
-  return orden.length ? orden[0] : null;
-}
-
-function calcularTasa(fecha, bcv, usdt, origen) {
-  const c = S.config;
-  bcv = nz(bcv); usdt = nz(usdt);
-  const ref = bcvHaceNDias(fecha, 3);
-  let prom = 0, base = null;
-  if (ref && ref.bcv > 0) {
-    const dd = diasEntre(ref.fecha, fecha);
-    if (dd > 0) { prom = (bcv - ref.bcv) / dd; base = ref; }
-  }
-  if (prom < 0 || !isFinite(prom)) prom = 0;
-  const tope = bcv * (c.topeProyeccionPct / 100);
-  let proy = prom * c.diasCobertura;
-  let topado = false;
-  if (proy > tope) { proy = tope; topado = true; }
-  const tasaVenta = bcv + proy;
-
-  let desc = usdt > 0 ? (1 - tasaVenta / usdt) * 100 : 0;
-  if (!isFinite(desc) || desc < 0) desc = 0;
-  if (desc > c.topeDescuentoPct) desc = c.topeDescuentoPct;
-  if (desc < c.pisoDescuentoPct) desc = 0;
-
-  return {
-    fecha, bcv, usdt,
-    promedio3d: prom, proyeccion: proy, tasaVenta, descuentoPct: desc,
-    origen: origen || 'manual', hora: ahora(), topado,
-    refFecha: base ? base.fecha : null, refBcv: base ? base.bcv : null
-  };
-}
-
-function guardarTasa(t) {
-  const i = S.tasas.findIndex(x => x.fecha === t.fecha);
-  if (i >= 0) S.tasas[i] = t; else S.tasas.push(t);
-  S.tasas.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-  guardar(['tasas']);
-}
-
-async function bajarTasas() {
-  const out = { bcv: null, usdt: null, error: null };
-  try {
-    const [a, b] = await Promise.all([
-      fetch('https://ve.dolarapi.com/v1/dolares/oficial', { cache: 'no-store' }).then(r => r.json()),
-      fetch('https://ve.dolarapi.com/v1/dolares/paralelo', { cache: 'no-store' }).then(r => r.json())
-    ]);
-    out.bcv = nz(a.promedio) || nz(a.venta);
-    out.usdt = nz(b.promedio) || nz(b.venta);
-    if (!out.bcv || !out.usdt) out.error = 'La fuente respondió sin valores.';
-  } catch (e) {
-    out.error = 'Sin conexión con la fuente de tasas.';
-  }
-  return out;
-}
-
-/* tasa vigente: la de hoy, o la última conocida marcada como heredada */
-function tasaVigente() {
-  const h = hoyISO();
-  const t = tasaDe(h);
-  if (t) return t;
-  const ult = S.tasas.length ? S.tasas[S.tasas.length - 1] : null;
-  if (!ult) return null;
-  return Object.assign({}, ult, { heredada: true, fechaOriginal: ult.fecha, fecha: h });
-}
-
-/* ---------- precios ---------- */
-/* Regla única:  Bs = P * tasaVenta      ·      Efectivo $ = P * (1 - desc)      */
-function precioBase(p, ipres) {
-  const pr = (p.pres || [])[ipres] || { factor: 1 };
-  if (pr.precio != null && pr.precio !== '' && nz(pr.precio) > 0) return nz(pr.precio);
-  return nz(p.precio) * nz(pr.factor || 1);
-}
-function costoBase(p, ipres) {
-  const pr = (p.pres || [])[ipres] || { factor: 1 };
-  return nz(p.costo) * nz(pr.factor || 1);
-}
-function preciosDe(P, t, p) {
-  if (!t) return { bs: 0, efectivo: 0, lista: P, desc: 0 };
-  const aplica = !p || p.aplicaDesc !== false;
-  const desc = aplica ? t.descuentoPct : 0;
-  // sin redondear: el redondeo se aplica una sola vez, sobre el total de la venta
-  return { bs: P * t.tasaVenta, efectivo: P * (1 - desc / 100), lista: P, desc };
-}
-/* lo que se exhibe según modo A/B */
-function vistaTasa(t) {
-  if (!t) return { tasa: 0, etiqueta: 'sin tasa', desc: 0 };
-  if (S.config.modoRecargo === 'A') return { tasa: t.tasaVenta, etiqueta: 'tasa de venta', desc: t.descuentoPct };
-  const d = t.usdt > 0 ? Math.max(0, (1 - t.bcv / t.usdt) * 100) : 0;
-  return { tasa: t.bcv, etiqueta: 'tasa BCV', desc: d };
-}
-
-/* ---------- inventario ---------- */
-function movimiento(tipo, prodId, unidades, costo, ref, nota) {
-  const m = {
-    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
-    productoId: prodId, tipo, unidades, costo: nz(costo), ref: ref || '', nota: nota || ''
-  };
-  S.movs.push(m);
-  guardar(['movs']);
-  return m;
-}
-function ajustarStock(prodId, delta) {
-  const p = producto(prodId);
-  if (!p) return;
-  p.stock = nz(p.stock) + delta;
-  p.actualizado = ahora();
-  if (delta > 0) p.ultimaEntrada = hoyISO();
-  else p.ultimaVenta = hoyISO();
-  guardar(['productos']);
-}
-
-/* ---------- ventas ---------- */
-let carrito = [];
-
-function agregarCarrito(p, ipres, cant) {
-  cant = cant || 1;
-  const ex = carrito.find(l => l.productoId === p.id && l.pres === ipres);
-  if (ex) { ex.cant += cant; return ex; }
-  const l = {
-    productoId: p.id, pres: ipres,
-    nombre: p.nombre, presNombre: (p.pres[ipres] || {}).nombre || 'Unidad',
-    factor: nz((p.pres[ipres] || {}).factor) || 1,
-    cant: cant,
-    precioBase: precioBase(p, ipres),
-    costoBase: costoBase(p, ipres),
-    aplicaDesc: p.aplicaDesc !== false,
-    suelto: false
-  };
-  carrito.push(l);
-  return l;
-}
-function agregarSuelto(nombre, montoUsd) {
-  carrito.push({
-    productoId: null, pres: 0, nombre: nombre || 'Producto suelto', presNombre: 'suelto',
-    factor: 1, cant: 1, precioBase: nz(montoUsd), costoBase: 0, aplicaDesc: true, suelto: true
-  });
-}
-function totalesCarrito(t) {
-  let lista = 0, bs = 0, efectivo = 0, costo = 0, unidades = 0;
-  carrito.forEach(l => {
-    const p = l.productoId ? producto(l.productoId) : null;
-    const pr = preciosDe(l.precioBase, t, p);
-    lista += pr.lista * l.cant;
-    bs += pr.bs * l.cant;
-    efectivo += pr.efectivo * l.cant;
-    costo += l.costoBase * l.cant;
-    unidades += l.factor * l.cant;
-  });
-  const c = S.config;
-  return {
-    lista, costo, unidades,
-    bs: redondear(bs, c.redondeoBs),
-    efectivo: redondear(efectivo, c.redondeoUsd),
-    bsCrudo: bs, efectivoCrudo: efectivo
-  };
-}
-
-function registrarVenta(pago, t) {
-  // pago: {metodo, recibidoUsd, recibidoBs, vueltoBs, igtf}
-  const tt = totalesCarrito(t);
-  const esFiado = pago.metodo === 'fiado';
-  const grupoDivisa = ['efectivo_usd', 'binance'].indexOf(pago.metodo) >= 0;
-  const cobradoUsd = esFiado ? 0 : (pago.metodo === 'mixto' ? nz(pago.parteUsd) : (grupoDivisa ? tt.efectivo : 0));
-  const cobradoBs = esFiado ? 0 : (pago.metodo === 'mixto' ? nz(pago.parteBs) : (grupoDivisa ? 0 : tt.bs));
-  const metodoUsd = pago.metodo === 'mixto' ? (pago.metodoUsd || 'efectivo_usd') : (grupoDivisa ? pago.metodo : null);
-  const metodoBs = pago.metodo === 'mixto' ? (pago.metodoBs || 'pago_movil') : (grupoDivisa ? null : pago.metodo);
-  const fiadoUsd = esFiado ? tt.lista : 0;
-  const ingresoReal = esFiado ? fiadoUsd : (cobradoUsd + (t.usdt > 0 ? cobradoBs / t.usdt : 0));
-  const v = {
-    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
-    items: carrito.map(l => {
-      const p = l.productoId ? producto(l.productoId) : null;
-      const pr = preciosDe(l.precioBase, t, p);
-      return {
-        productoId: l.productoId, nombre: l.nombre, presNombre: l.presNombre,
-        cant: l.cant, factor: l.factor, unidades: l.factor * l.cant,
-        costoUnit: l.costoBase, precioLista: pr.lista, precioBs: pr.bs, precioEfectivo: pr.efectivo,
-        descPct: pr.desc,
-        subtotalLista: pr.lista * l.cant,
-        gananciaLinea: 0
-      };
-    }),
-    totalLista: tt.lista, totalBs: tt.bs, totalEfectivo: tt.efectivo,
-    costoTotal: tt.costo, unidades: tt.unidades,
-    metodo: pago.metodo, metodoUsd, metodoBs, cobradoUsd, cobradoBs, igtf: nz(pago.igtf),
-    fiadoUsd, clienteId: pago.clienteId || null,
-    bcv: t.bcv, usdt: t.usdt, tasaVenta: t.tasaVenta, descuentoPct: t.descuentoPct,
-    ingresoReal, gananciaNominal: tt.lista - tt.costo, gananciaReal: ingresoReal - tt.costo,
-    anulada: false
-  };
-  // reparte la ganancia real por línea, proporcional al peso de cada una
-  v.items.forEach(it => {
-    const peso = tt.lista > 0 ? it.subtotalLista / tt.lista : 0;
-    it.gananciaLinea = (ingresoReal * peso) - (it.costoUnit * it.cant);
-  });
-  S.ventas.push(v);
-  // descuenta inventario
-  v.items.forEach(it => {
-    if (!it.productoId) return;
-    ajustarStock(it.productoId, -it.unidades);
-    movimiento('venta', it.productoId, -it.unidades, it.costoUnit / (it.factor || 1), v.id, '');
-  });
-  guardar(['ventas', 'productos', 'movs']);
-  carrito = [];
-  return v;
-}
-
-function anularVenta(id) {
-  const v = S.ventas.find(x => x.id === id);
-  if (!v || v.anulada) return false;
-  v.anulada = true;
-  v.anuladaTs = ahora();
-  v.items.forEach(it => {
-    if (!it.productoId) return;
-    ajustarStock(it.productoId, it.unidades);
-    movimiento('devolucion', it.productoId, it.unidades, it.costoUnit / (it.factor || 1), v.id, 'anulación');
-  });
-  guardar(['ventas', 'productos', 'movs']);
-  return true;
-}
-
-/* ---------- formas de pago ---------- */
-const METODOS = [
-  { id: 'punto', nombre: 'Punto de venta', moneda: 'bs' },
-  { id: 'efectivo_bs', nombre: 'Efectivo en bolívares', moneda: 'bs' },
-  { id: 'pago_movil', nombre: 'Pago móvil o transferencia', moneda: 'bs' },
-  { id: 'efectivo_usd', nombre: 'Efectivo en divisas', moneda: 'usd' },
-  { id: 'binance', nombre: 'Binance USDT', moneda: 'usd' },
-  { id: 'fiado', nombre: 'Fiado (crédito)', moneda: 'fiado' }
-];
-function nombreMetodo(id) { const m = METODOS.find(x => x.id === id); return m ? m.nombre : (id || '—'); }
-function cobrosVacios() { const o = {}; METODOS.forEach(m => o[m.id] = 0); return o; }
-function metodosCobrables() { return METODOS.filter(m => m.moneda !== 'fiado'); }
-
-/* ---------- cierre del día ---------- */
-function resumenDia(fecha, ventas) {
-  const vs = (ventas || S.ventas).filter(v => v.fecha === fecha && !v.anulada);
-  const r = {
-    fecha, nVentas: vs.length, unidades: 0, ventaLista: 0, ventaBs: 0, ventaUsd: 0,
-    ingresoReal: 0, costo: 0, gananciaNominal: 0, gananciaReal: 0, descuentos: 0,
-    fiadoUsd: 0, abonosUsd: 0, entroCaja: 0,
-    porMetodo: {}, porUsuario: {}, cobros: cobrosVacios(), top: []
-  };
-  const acumProd = {};
-  vs.forEach(v => {
-    r.unidades += v.unidades;
-    r.ventaLista += v.totalLista;
-    r.ventaBs += v.cobradoBs;
-    r.ventaUsd += v.cobradoUsd;
-    r.ingresoReal += v.ingresoReal;
-    r.fiadoUsd += nz(v.fiadoUsd);
-    if (nz(v.fiadoUsd) > 0) r.cobros.fiado = (r.cobros.fiado || 0) + nz(v.fiadoUsd);
-    r.costo += v.costoTotal;
-    r.gananciaNominal += v.gananciaNominal;
-    r.gananciaReal += v.gananciaReal;
-    r.porMetodo[v.metodo] = (r.porMetodo[v.metodo] || 0) + v.ingresoReal;
-    const mBs = v.metodoBs || (['efectivo_usd', 'binance', 'mixto'].indexOf(v.metodo) < 0 ? v.metodo : null);
-    const mUsd = v.metodoUsd || (['efectivo_usd', 'binance'].indexOf(v.metodo) >= 0 ? v.metodo : null);
-    if (v.cobradoBs > 0 && mBs && r.cobros[mBs] !== undefined) r.cobros[mBs] += v.cobradoBs;
-    if (v.cobradoUsd > 0 && mUsd && r.cobros[mUsd] !== undefined) r.cobros[mUsd] += v.cobradoUsd;
-    r.porUsuario[v.usuario] = (r.porUsuario[v.usuario] || 0) + v.ingresoReal;
-    v.items.forEach(it => {
-      const k = it.nombre;
-      if (!acumProd[k]) acumProd[k] = { nombre: k, unidades: 0, ganancia: 0, venta: 0 };
-      acumProd[k].unidades += it.unidades;
-      acumProd[k].ganancia += it.gananciaLinea;
-      acumProd[k].venta += it.subtotalLista;
-    });
-  });
-  // los abonos de fiados viejos entran a la caja pero no son venta nueva
-  abonosDelDia(fecha).forEach(({ a }) => {
-    r.abonosUsd += nz(a.montoUsd);
-    const esDivisa = ['efectivo_usd', 'binance'].indexOf(a.metodo) >= 0;
-    if (r.cobros[a.metodo] !== undefined) r.cobros[a.metodo] += esDivisa ? nz(a.montoUsd) : nz(a.montoBs);
-    if (esDivisa) r.ventaUsd += nz(a.montoUsd); else r.ventaBs += nz(a.montoBs);
-  });
-  r.entroCaja = r.ingresoReal - r.fiadoUsd + r.abonosUsd;
-  r.descuentos = r.ventaLista - r.ingresoReal;
-  r.top = Object.values(acumProd).sort((a, b) => b.ganancia - a.ganancia).slice(0, 5);
-  r.margen = r.ingresoReal > 0 ? (r.gananciaReal / r.ingresoReal) * 100 : 0;
-  return r;
-}
-
-function cerrarDia(fecha) {
-  const t = tasaDe(fecha) || tasaVigente();
-  const r = resumenDia(fecha);
-  const c = {
-    fecha: r.fecha, nVentas: r.nVentas, unidades: r.unidades,
-    ventaLista: r.ventaLista, ingresoReal: r.ingresoReal, costo: r.costo,
-    gananciaNominal: r.gananciaNominal, gananciaReal: r.gananciaReal,
-    descuentos: r.descuentos, margen: r.margen,
-    fiadoUsd: r.fiadoUsd, abonosUsd: r.abonosUsd, entroCaja: r.entroCaja,
-    efectivoUsd: r.ventaUsd, bs: r.ventaBs,
-    bcv: t ? t.bcv : 0, usdt: t ? t.usdt : 0, tasaVenta: t ? t.tasaVenta : 0,
-    proyeccion: t ? t.proyeccion : 0, descuentoPct: t ? t.descuentoPct : 0,
-    porMetodo: r.porMetodo, porUsuario: r.porUsuario, cobros: r.cobros,
-    cerrado: ahora(), usuario: S.config.usuario
-  };
-  const i = S.cierres.findIndex(x => x.fecha === fecha);
-  if (i >= 0) S.cierres[i] = c; else S.cierres.push(c);
-  S.cierres.sort((a, b) => a.fecha < b.fecha ? -1 : 1);
-  guardar(['cierres']);
-  return c;
-}
-
-/* ---------- análisis ---------- */
-function capitalDormido(dias) {
-  const h = hoyISO();
-  return S.productos.filter(p => p.activo !== false && nz(p.stock) > 0)
-    .map(p => {
-      const ult = p.ultimaVenta || p.creadoFecha || h;
-      return { p, dias: diasEntre(ult, h), valor: nz(p.stock) * nz(p.costo) };
-    })
-    .filter(x => x.dias >= dias)
-    .sort((a, b) => b.valor - a.valor);
-}
-function bajoMinimo() {
-  return S.productos.filter(p => p.activo !== false && nz(p.stock) <= nz(p.minimo))
-    .sort((a, b) => nz(a.stock) - nz(b.stock));
-}
-function valorInventario() {
-  let costo = 0, venta = 0;
-  S.productos.forEach(p => {
-    if (p.activo === false) return;
-    costo += nz(p.stock) * nz(p.costo);
-    venta += nz(p.stock) * nz(p.precio);
-  });
-  return { costo, venta };
-}
-</script>
-<script>/* ==========================================================================
-   CAVA — fiado, clientes, mensajes y reporte PDF
-   ========================================================================== */
-'use strict';
-
-/* ---------- teléfonos ---------- */
-function telLimpio(t) {
-  let s = String(t || '').replace(/[^0-9]/g, '');
-  if (s.indexOf('58') === 0 && s.length >= 12) return s;
-  if (s.indexOf('0') === 0) s = s.slice(1);
-  if (s.length === 10) return '58' + s;
-  return s;
-}
-function telBonito(t) {
-  const s = telLimpio(t);
-  if (s.length === 12) return '+' + s.slice(0, 2) + ' ' + s.slice(2, 5) + '-' + s.slice(5, 8) + s.slice(8);
-  return t || '';
-}
-function abrirWhatsApp(tel, texto) {
-  const n = telLimpio(tel);
-  const url = 'https://wa.me/' + n + (texto ? '?text=' + encodeURIComponent(texto) : '');
-  window.open(url, '_blank');
-}
-
-/* ---------- clientes ---------- */
-function cliente(id) { return S.clientes.find(c => c.id === id); }
-function nombreCliente(id) { const c = cliente(id); return c ? c.nombre : 'Cliente'; }
-
-function crearCliente(nombre, telefono, nota) {
-  const c = {
-    id: uid(), nombre: (nombre || '').trim() || 'Sin nombre',
-    telefono: telLimpio(telefono), nota: (nota || '').trim(),
-    promos: true, creado: ahora(), creadoFecha: hoyISO()
-  };
-  S.clientes.push(c);
-  guardar(['clientes']);
-  return c;
-}
-function clientesBuscar(q) {
-  q = (q || '').toLowerCase().trim();
-  if (!q) return S.clientes.slice().sort((a, b) => a.nombre.localeCompare(b.nombre));
-  return S.clientes.filter(c => (c.nombre + ' ' + c.telefono).toLowerCase().includes(q));
-}
-function compradoPorCliente(id) {
-  let total = 0;
-  S.ventas.forEach(v => { if (!v.anulada && v.clienteId === id) total += nz(v.totalLista); });
-  return total;
-}
-
-/* ---------- deudas ---------- */
-function crearDeuda(o) {
-  const dias = Math.max(0, parseInt(o.dias, 10) || 0);
-  const d = {
-    id: uid(), clienteId: o.clienteId, origen: o.origen || 'venta', ventaId: o.ventaId || null,
-    fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
-    dias, vence: restarDias(hoyISO(), -dias),
-    montoUsd: nz(o.montoUsd), tasaVenta: nz(o.tasaVenta), usdt: nz(o.usdt),
-    abonos: [], pagada: false, fechaPago: null, nota: o.nota || ''
-  };
-  S.deudas.push(d);
-  guardar(['deudas']);
-  return d;
-}
-function deuda(id) { return S.deudas.find(d => d.id === id); }
-function saldoDeuda(d) {
-  const ab = (d.abonos || []).reduce((s, a) => s + nz(a.montoUsd), 0);
-  return Math.max(0, nz(d.montoUsd) - ab);
-}
-function abonar(deudaId, montoUsd, metodo) {
-  const d = deuda(deudaId);
-  if (!d) return null;
-  const t = tasaVigente();
-  const a = {
-    id: uid(), fecha: hoyISO(), ts: ahora(), usuario: S.config.usuario,
-    montoUsd: nz(montoUsd), metodo: metodo || 'efectivo_usd',
-    montoBs: metodo && ['efectivo_usd', 'binance'].indexOf(metodo) < 0 && t ? nz(montoUsd) * t.tasaVenta : 0,
-    tasaVenta: t ? t.tasaVenta : 0, usdt: t ? t.usdt : 0
-  };
-  d.abonos.push(a);
-  if (saldoDeuda(d) <= 0.009) { d.pagada = true; d.fechaPago = hoyISO(); }
-  guardar(['deudas']);
-  return a;
-}
-function deudasAbiertas() {
-  return S.deudas.filter(d => !d.pagada && saldoDeuda(d) > 0.009)
-    .sort((a, b) => a.vence < b.vence ? -1 : 1);
-}
-function totalFiado() { return deudasAbiertas().reduce((s, d) => s + saldoDeuda(d), 0); }
-function cobrosDeHoy() {
-  const h = hoyISO();
-  return deudasAbiertas().filter(d => d.vence <= h);
-}
-function abonosDelDia(fecha) {
-  const out = [];
-  S.deudas.forEach(d => (d.abonos || []).forEach(a => { if (a.fecha === fecha) out.push({ a, d }); }));
-  return out;
-}
-
-/* ---------- los tres montos que se le dicen al cliente ---------- */
-function montosDeuda(d, t) {
-  const saldo = saldoDeuda(d);
-  if (!t) return { saldo, bs: 0, bcv: saldo, efectivo: saldo };
-  return {
-    saldo,
-    bs: redondear(saldo * t.tasaVenta, S.config.redondeoBs),
-    bcv: saldo,
-    efectivo: redondear(saldo * (1 - t.descuentoPct / 100), 0.01)
-  };
-}
-
-/* ==========================================================================
-   Generador de mensajes de cobro
-   La gracia es que nunca salga igual dos días seguidos y no suene a robot.
-   ========================================================================== */
-function semilla(txt) {
-  let h = 2166136261;
-  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return Math.abs(h);
-}
-function elegir(lista, sem, desfase) { return lista[(sem + (desfase || 0) * 7919) % lista.length]; }
-
-const SALUDOS_AM = ['¡Buenos días, {n}!', 'Buenos días {n} 👋', '¡Epa {n}, buen día!', 'Buen día, {n} ☀️', '¡Hola {n}, buenos días!'];
-const SALUDOS_PM = ['¡Buenas tardes, {n}!', 'Buenas {n} 👋', '¡Hola {n}, buenas tardes!', '¿Cómo va la tarde, {n}?', 'Buenas tardes {n} 🙂'];
-const SALUDOS_NOCHE = ['¡Buenas noches, {n}!', 'Buenas noches {n} 👋', '¡Hola {n}, buenas noches!', '¿Todo bien, {n}?'];
-
-const APERTURAS = {
-  hoy: [
-    'Un recordatorio cortico de {neg}: hoy vence tu cuentica.',
-    'Te escribo de {neg} 🍻 Hoy es el día que habíamos quedado.',
-    'Pasando por aquí para recordarte lo de {neg}, que se cumple hoy.',
-    'De {neg} 🍺 Hoy toca cerrar la cuenta que teníamos.',
-    'Solo para avisarte que hoy vence lo de {neg}.'
-  ],
-  fresca: [
-    'Te escribo de {neg} 🍻 Se te pasó la fecha por {d}, nada grave.',
-    'De {neg} 🍺 Tu cuenta quedó pendiente desde hace {d}.',
-    'Recordatorio suave de {neg}: llevamos {d} de la fecha.',
-    'Aquí {neg} 👋 Se nos quedó abierta la cuenta hace {d}.',
-    'Pasando por {neg} a recordarte la cuentica de hace {d}.'
-  ],
-  media: [
-    'Te escribo de {neg}. Ya van {d} de la fecha y queríamos ponernos al día.',
-    'De {neg} 🍺 Tu cuenta lleva {d} esperando. ¿La cuadramos?',
-    'Aquí {neg}. Llevamos {d} con la cuenta abierta, ¿cómo hacemos?',
-    'Un toque de {neg}: ya son {d} y nos gustaría cerrar esto.',
-    'De parte de {neg} 👋 Van {d} de la fecha acordada.'
-  ],
-  vieja: [
-    'Te escribo de {neg}. Ya son {d} y necesitamos cerrar esta cuenta.',
-    'De {neg}. Llevamos {d} y de verdad nos hace falta cuadrar esto.',
-    'Aquí {neg} 👋 Van {d} con la cuenta abierta. ¿Podemos resolverlo esta semana?',
-    'De {neg}: {d} es bastante tiempo. Buscamos una solución que te sirva.'
-  ]
-};
-
-const CIERRES = {
-  suave: [
-    'Cuando puedas te lo agradezco 🙏 Aquí te esperamos con la nevera bien fría 🍺',
-    '¡Gracias de antemano! 🙌 Por acá siempre a la orden.',
-    'Cualquier cosa me avisas 👍 Seguimos a la orden.',
-    'Sin apuro, solo para que lo tengas presente 🙂 ¡Nos vemos pronto!',
-    'Gracias por la confianza 🙏 Aquí estamos para lo que necesites 🍻'
-  ],
-  media: [
-    'Avísame cómo prefieres pagar y lo cuadramos 👍 Seguimos a la orden 🍺',
-    'Si necesitas abonar por partes, se puede. Solo dime 🙂',
-    'Cualquiera de esas formas nos sirve 👌 ¡Y aquí seguimos para lo que haga falta!',
-    'Me escribes y lo resolvemos fácil 🙏 Gracias por la confianza.',
-    'Dime cómo te queda mejor y listo 👍 Siempre a la orden por acá 🍻'
-  ],
-  firme: [
-    'Necesito que me digas hoy cómo lo vamos a resolver 🙏 Gracias.',
-    'Escríbeme para cuadrar una fecha, aunque sea abonando por partes 👍',
-    'Te agradezco que me respondas para acomodarlo 🙏 Queremos seguir atendiéndote.',
-    'Dime algo hoy y lo arreglamos como sea más cómodo para ti 👌'
-  ]
-};
-
-function mensajeCobro(d, t, fecha, momento) {
-  const cli = cliente(d.clienteId) || { nombre: 'Cliente' };
-  fecha = fecha || hoyISO();
-  const atraso = diasEntre(d.vence, fecha);
-  const m = montosDeuda(d, t);
-  const sem = semilla(d.id + fecha + cli.nombre);
-
-  const hora = momento !== undefined ? momento : new Date().getHours();
-  const saludos = hora < 12 ? SALUDOS_AM : (hora < 19 ? SALUDOS_PM : SALUDOS_NOCHE);
-  const primerNombre = cli.nombre.split(' ')[0];
-
-  let grupo, cierre;
-  if (atraso <= 0) { grupo = 'hoy'; cierre = CIERRES.suave; }
-  else if (atraso <= 3) { grupo = 'fresca'; cierre = CIERRES.suave; }
-  else if (atraso <= 10) { grupo = 'media'; cierre = CIERRES.media; }
-  else { grupo = 'vieja'; cierre = CIERRES.firme; }
-
-  const txtDias = atraso === 1 ? 'un día' : (atraso < 7 ? atraso + ' días'
-    : (atraso < 14 ? 'una semana' : (atraso < 31 ? Math.round(atraso / 7) + ' semanas' : 'más de un mes')));
-
-  const saludo = elegir(saludos, sem, 1).replace('{n}', primerNombre);
-  const apertura = elegir(APERTURAS[grupo], sem, 2)
-    .replace('{neg}', S.config.negocio).replace('{d}', txtDias);
-  const final = elegir(cierre, sem, 3);
-
-  const montos = 'Quedó en *' + fmtBs(m.bs) + ' Bs* 💵, o *$' + fmtUsd(m.bcv) + '* al BCV, ' +
-    'o *$' + fmtUsd(m.efectivo) + '* pagando en efectivo o Binance 🤝';
-
-  return saludo + ' ' + apertura + '\n\n' + montos + '\n\n' + final;
-}
-
-function mensajePromo(texto) {
-  const extras = ['🍻', '🥃', '🍺', '🎉', '🔥'];
-  return texto;
-}
-
-/* ==========================================================================
-   PDF de una página, sin librerías
-   ========================================================================== */
-function pdfTexto(s) {
-  return String(s == null ? '' : s)
-    .replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-}
-function aLatin1(s) {
-  const out = [];
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    out.push(c < 256 ? c : 63); // lo que no entra en Latin-1 se vuelve "?"
-  }
-  return out;
-}
-
-function construirPDF(lineas, titulo) {
-  // lineas: [{txt, x, y, tam, negrita, gris}]
-  let contenido = '';
-  lineas.forEach(l => {
-    const fuente = l.negrita ? '/F2' : '/F1';
-    const color = l.gris ? '0.42 0.49 0.47 rg' : (l.ambar ? '0.72 0.46 0.08 rg' : '0.09 0.13 0.12 rg');
-    contenido += 'BT ' + color + ' ' + fuente + ' ' + (l.tam || 10) + ' Tf ' +
-      (l.x || 50) + ' ' + l.y + ' Td (' + pdfTexto(l.txt) + ') Tj ET\n';
-    if (l.linea) {
-      contenido += '0.88 0.88 0.85 RG 0.7 w ' + (l.x || 50) + ' ' + (l.y - 6) + ' m ' +
-        (l.linea) + ' ' + (l.y - 6) + ' l S\n';
-    }
-  });
-
-  const bytesContenido = aLatin1(contenido);
-  const objetos = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 4 0 R >>',
-    '<< /Length ' + bytesContenido.length + ' >>\nstream\n' + contenido + 'endstream',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>',
-    '<< /Type /Info /Title (' + pdfTexto(titulo || 'CAVA') + ') >>'
-  ];
-
-  let pdf = '%PDF-1.4\n';
-  const offsets = [];
-  objetos.forEach((o, i) => {
-    offsets.push(aLatin1(pdf).length);
-    pdf += (i + 1) + ' 0 obj\n' + o + '\nendobj\n';
-  });
-  const inicioXref = aLatin1(pdf).length;
-  pdf += 'xref\n0 ' + (objetos.length + 1) + '\n0000000000 65535 f \n';
-  offsets.forEach(o => { pdf += String(o).padStart(10, '0') + ' 00000 n \n'; });
-  pdf += 'trailer\n<< /Size ' + (objetos.length + 1) + ' /Root 1 0 R /Info 7 0 R >>\n' +
-    'startxref\n' + inicioXref + '\n%%EOF';
-
-  return new Uint8Array(aLatin1(pdf));
-}
-
-/* ---------- el resumen semanal ---------- */
-function armarResumenSemanal(hasta) {
-  hasta = hasta || hoyISO();
-  const desde = restarDias(hasta, 6);
-  const dias = S.cierres.filter(c => c.fecha >= desde && c.fecha <= hasta);
-  const hoyR = resumenDia(hasta);
-  if (!dias.some(c => c.fecha === hasta) && hoyR.nVentas) {
-    dias.push({
-      fecha: hasta, nVentas: hoyR.nVentas, unidades: hoyR.unidades, ventaLista: hoyR.ventaLista,
-      ingresoReal: hoyR.ingresoReal, costo: hoyR.costo, gananciaReal: hoyR.gananciaReal,
-      gananciaNominal: hoyR.gananciaNominal
-    });
-  }
-  const sum = k => dias.reduce((s, c) => s + nz(c[k]), 0);
-  const inv = valorInventario();
-  const fiado = totalFiado();
-  const t = tasaVigente();
-
-  const top = {};
-  S.ventas.forEach(v => {
-    if (v.anulada || v.fecha < desde || v.fecha > hasta) return;
-    v.items.forEach(it => {
-      if (!top[it.nombre]) top[it.nombre] = { u: 0, g: 0 };
-      top[it.nombre].u += it.unidades; top[it.nombre].g += it.gananciaLinea;
-    });
-  });
-  const ranking = Object.keys(top).map(k => ({ nombre: k, u: top[k].u, g: top[k].g }))
-    .sort((a, b) => b.g - a.g).slice(0, 6);
-
-  return {
-    desde, hasta, dias,
-    ventas: sum('ingresoReal'), costo: sum('costo'),
-    ganancia: sum('gananciaReal'), unidades: sum('unidades'), nVentas: sum('nVentas'),
-    inventarioCosto: inv.costo, inventarioVenta: inv.venta, fiado,
-    patrimonio: inv.costo + fiado,
-    margen: sum('ingresoReal') > 0 ? (sum('gananciaReal') / sum('ingresoReal')) * 100 : 0,
-    tasa: t, ranking, deudores: deudasAbiertas().length
-  };
-}
-
-function pdfResumenSemanal(r) {
-  const L = [];
-  let y = 790;
-  const fila = (etiqueta, valor, negrita) => {
-    L.push({ txt: etiqueta, x: 50, y, tam: 10.5, gris: !negrita });
-    L.push({ txt: valor, x: 400, y, tam: 10.5, negrita: !!negrita });
-    y -= 19;
-  };
-  const titulo = (txt) => {
-    y -= 10;
-    L.push({ txt: txt.toUpperCase(), x: 50, y, tam: 9, negrita: true, ambar: true, linea: 545 });
-    y -= 21;
-  };
-
-  L.push({ txt: S.config.negocio, x: 50, y, tam: 20, negrita: true }); y -= 21;
-  L.push({ txt: 'Resumen de la semana · ' + fechaLarga(r.desde) + ' al ' + fechaLarga(r.hasta), x: 50, y, tam: 10, gris: true });
-  y -= 30;
-
-  titulo('El resultado de la semana');
-  fila('Ventas cobradas', '$ ' + fmtUsd(r.ventas));
-  fila('Costo de la mercancía vendida', '$ ' + fmtUsd(r.costo));
-  fila('Ganancia real en divisas', '$ ' + fmtUsd(r.ganancia), true);
-  fila('Margen', fmtNum(r.margen, 1) + ' %');
-  fila('Ventas hechas', String(r.nVentas));
-  fila('Unidades despachadas', fmtNum(r.unidades, 0));
-
-  titulo('Patrimonio');
-  fila('Inventario a precio de costo', '$ ' + fmtUsd(r.inventarioCosto));
-  fila('Ese mismo inventario, a precio de venta', '$ ' + fmtUsd(r.inventarioVenta));
-  fila('Dinero fiado por cobrar', '$ ' + fmtUsd(r.fiado));
-  fila('Patrimonio total (inventario + fiado)', '$ ' + fmtUsd(r.patrimonio), true);
-  fila('Personas que deben', String(r.deudores));
-
-  titulo('Día por día');
-  r.dias.slice().sort((a, b) => a.fecha < b.fecha ? -1 : 1).forEach(c => {
-    fila(fechaLarga(c.fecha), '$ ' + fmtUsd(c.ingresoReal) + '   ·   ganancia $ ' + fmtUsd(c.gananciaReal));
-  });
-
-  if (r.ranking.length) {
-    titulo('Lo que más dejó');
-    r.ranking.forEach(x => fila(x.nombre + '  (' + fmtNum(x.u, 0) + ' u)', '$ ' + fmtUsd(x.g)));
-  }
-
-  if (r.tasa) {
-    titulo('Tasas al cierre');
-    fila('BCV', fmtNum(r.tasa.bcv, 2) + ' Bs');
-    fila('Tasa a la que se vendió', fmtNum(r.tasa.tasaVenta, 2) + ' Bs');
-    fila('USDT Binance', fmtNum(r.tasa.usdt, 2) + ' Bs');
-    fila('Descuento en divisa', fmtNum(r.tasa.descuentoPct, 2) + ' %');
-  }
-
-  L.push({ txt: 'Generado por CAVA el ' + fechaLarga(hoyISO()) + '. Documento de control interno, sin validez fiscal.', x: 50, y: 40, tam: 8, gris: true });
-  return construirPDF(L, 'Resumen semanal ' + r.hasta);
-}
-</script>
-<script>/* ==========================================================================
-   Generador .xlsx sin librerías: ZIP (store) + XML de Excel
-   ========================================================================== */
-'use strict';
-
-const CRC_TABLA = (function () {
-  const t = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-    t[n] = c >>> 0;
-  }
-  return t;
 })();
-
-function crc32(u8) {
-  let c = 0xFFFFFFFF;
-  for (let i = 0; i < u8.length; i++) c = CRC_TABLA[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
-  return (c ^ 0xFFFFFFFF) >>> 0;
-}
-
-function texto(s) { return new TextEncoder().encode(s); }
-
-function zipCrear(archivos) {
-  // archivos: [{nombre, datos:Uint8Array}]
-  const partes = [];
-  const central = [];
-  let offset = 0;
-  const d = new Date();
-  const hora = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() / 2)) & 0xFFFF;
-  const fecha = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
-
-  archivos.forEach(a => {
-    const nombre = texto(a.nombre);
-    const datos = a.datos;
-    const crc = crc32(datos);
-    const lh = new Uint8Array(30 + nombre.length);
-    const dv = new DataView(lh.buffer);
-    dv.setUint32(0, 0x04034b50, true);
-    dv.setUint16(4, 20, true);      // versión
-    dv.setUint16(6, 0, true);       // flags
-    dv.setUint16(8, 0, true);       // método = store
-    dv.setUint16(10, hora, true);
-    dv.setUint16(12, fecha, true);
-    dv.setUint32(14, crc, true);
-    dv.setUint32(18, datos.length, true);
-    dv.setUint32(22, datos.length, true);
-    dv.setUint16(26, nombre.length, true);
-    dv.setUint16(28, 0, true);
-    lh.set(nombre, 30);
-    partes.push(lh, datos);
-
-    const ch = new Uint8Array(46 + nombre.length);
-    const cv = new DataView(ch.buffer);
-    cv.setUint32(0, 0x02014b50, true);
-    cv.setUint16(4, 20, true);
-    cv.setUint16(6, 20, true);
-    cv.setUint16(8, 0, true);
-    cv.setUint16(10, 0, true);
-    cv.setUint16(12, hora, true);
-    cv.setUint16(14, fecha, true);
-    cv.setUint32(16, crc, true);
-    cv.setUint32(20, datos.length, true);
-    cv.setUint32(24, datos.length, true);
-    cv.setUint16(28, nombre.length, true);
-    cv.setUint32(42, offset, true);
-    ch.set(nombre, 46);
-    central.push(ch);
-
-    offset += lh.length + datos.length;
-  });
-
-  let tamCentral = 0;
-  central.forEach(c => tamCentral += c.length);
-  const eocd = new Uint8Array(22);
-  const ev = new DataView(eocd.buffer);
-  ev.setUint32(0, 0x06054b50, true);
-  ev.setUint16(8, archivos.length, true);
-  ev.setUint16(10, archivos.length, true);
-  ev.setUint32(12, tamCentral, true);
-  ev.setUint32(16, offset, true);
-
-  let total = offset + tamCentral + 22;
-  const out = new Uint8Array(total);
-  let pos = 0;
-  partes.forEach(p => { out.set(p, pos); pos += p.length; });
-  central.forEach(c => { out.set(c, pos); pos += c.length; });
-  out.set(eocd, pos);
-  return out;
-}
-
-function escX(s) {
-  return String(s == null ? '' : s)
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-function colLetra(n) {
-  let s = '';
-  n = n + 1;
-  while (n > 0) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); }
-  return s;
-}
-
-/* hoja: {nombre, columnas:[ancho], filas:[[celda,...]]}  celda: número | string | {v, s} */
-function hojaXML(hoja) {
-  let cols = '';
-  if (hoja.columnas && hoja.columnas.length) {
-    cols = '<cols>' + hoja.columnas.map((w, i) =>
-      '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>';
-  }
-  const filas = hoja.filas.map((fila, ri) => {
-    const celdas = fila.map((c, ci) => {
-      const ref = colLetra(ci) + (ri + 1);
-      let v = c, estilo = ri === 0 ? 1 : 0;
-      if (c && typeof c === 'object' && !Array.isArray(c)) { v = c.v; estilo = c.s != null ? c.s : estilo; }
-      if (v === null || v === undefined || v === '') return '<c r="' + ref + '" s="' + estilo + '"/>';
-      if (typeof v === 'number' && isFinite(v)) {
-        if (ri > 0 && estilo === 0) estilo = 2;
-        return '<c r="' + ref + '" s="' + estilo + '"><v>' + v + '</v></c>';
-      }
-      return '<c r="' + ref + '" s="' + estilo + '" t="inlineStr"><is><t xml:space="preserve">' + escX(v) + '</t></is></c>';
-    }).join('');
-    return '<row r="' + (ri + 1) + '">' + celdas + '</row>';
-  }).join('');
-  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    cols + '<sheetData>' + filas + '</sheetData></worksheet>';
-}
-
-function construirXLSX(hojas) {
-  const n = hojas.length;
-  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
-    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
-    '<Default Extension="xml" ContentType="application/xml"/>' +
-    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
-    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
-    hojas.map((h, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') +
-    '</Types>';
-
-  const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
-    '</Relationships>';
-
-  const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
-    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>' +
-    hojas.map((h, i) => '<sheet name="' + escX(h.nombre) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') +
-    '</sheets></workbook>';
-
-  const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-    hojas.map((h, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('') +
-    '<Relationship Id="rId' + (n + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
-    '</Relationships>';
-
-  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-    '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0.00"/></numFmts>' +
-    '<fonts count="2">' +
-    '<font><sz val="11"/><name val="Calibri"/></font>' +
-    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
-    '</fonts>' +
-    '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
-    '<fill><patternFill patternType="solid"><fgColor rgb="FF1F3A33"/><bgColor indexed="64"/></patternFill></fill></fills>' +
-    '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
-    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-    '<cellXfs count="3">' +
-    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
-    '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>' +
-    '<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>' +
-    '</cellXfs>' +
-    '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
-    '</styleSheet>';
-
-  const archivos = [
-    { nombre: '[Content_Types].xml', datos: texto(contentTypes) },
-    { nombre: '_rels/.rels', datos: texto(rels) },
-    { nombre: 'xl/workbook.xml', datos: texto(workbook) },
-    { nombre: 'xl/_rels/workbook.xml.rels', datos: texto(wbRels) },
-    { nombre: 'xl/styles.xml', datos: texto(styles) }
-  ];
-  hojas.forEach((h, i) => archivos.push({ nombre: 'xl/worksheets/sheet' + (i + 1) + '.xml', datos: texto(hojaXML(h)) }));
-  return zipCrear(archivos);
-}
-</script>
-<script>/* ==========================================================================
-   CAVA — interfaz
-   ========================================================================== */
-'use strict';
-
-const VERSION = '2.0';
-let VISTA = 'inicio';
-const ICONOS = {
-  inicio: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
-  vender: '<path d="M4 6h3l2.4 10.2a2 2 0 0 0 2 1.5h6.5a2 2 0 0 0 2-1.6L21.5 9H7"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/>',
-  cargar: '<path d="M12 3v11"/><path d="M8 10l4 4 4-4"/><path d="M4 17v3h16v-3"/>',
-  stock: '<path d="M4 7h16v13H4z"/><path d="M4 7l2-3h12l2 3"/><path d="M10 11h4"/>',
-  cierre: '<path d="M5 20V10"/><path d="M12 20V4"/><path d="M19 20v-7"/>'
-};
-
-function irA(v) {
-  if (S.config.soloConsulta && (v === 'vender' || v === 'cargar')) v = 'inicio';
-  VISTA = v;
-  $$('.vista').forEach(s => s.classList.remove('on'));
-  const el = $('#v-' + v);
-  if (el) el.classList.add('on');
-  window.scrollTo(0, 0);
-  render();
-}
-
-function brindis(msg, mal) {
-  const b = $('#brindis');
-  b.textContent = msg;
-  b.className = 'on' + (mal ? ' mal' : '');
-  clearTimeout(b._t);
-  b._t = setTimeout(() => b.className = '', 2600);
-}
-function abrirHoja(html) { $('#hoja').innerHTML = html; $('#velo').classList.add('on'); }
-function cerrarHoja() { $('#velo').classList.remove('on'); $('#hoja').innerHTML = ''; }
-$('#velo').addEventListener('click', e => { if (e.target.id === 'velo') cerrarHoja(); });
-
-function pitar(ok) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.frequency.value = ok ? 1180 : 320;
-    g.gain.setValueAtTime(.12, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .13);
-    o.start(); o.stop(ctx.currentTime + .14);
-    setTimeout(() => ctx.close(), 300);
-  } catch (e) { }
-  if (navigator.vibrate) navigator.vibrate(ok ? 35 : [50, 40, 50]);
-}
-
-function descargar(nombre, datos, tipo) {
-  const blob = datos instanceof Blob ? datos : new Blob([datos], { type: tipo || 'application/octet-stream' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = nombre;
-  document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
-}
-
-/* ====================== cabecera y navegación ====================== */
-function renderFranja() {
-  const t = tasaVigente();
-  const f = $('#franjaTasas');
-  const av = $('#avisoTasa');
-  if (!t) {
-    f.innerHTML = '<div class="tdato destaca"><b>Falta la tasa de hoy</b><span>toca aquí para cargarla</span></div>';
-    av.className = 'aviso on';
-    av.textContent = 'Sin tasa cargada no se puede vender. Toca la franja de arriba.';
-    return;
-  }
-  const v = vistaTasa(t);
-  f.innerHTML =
-    '<div class="tdato"><b class="num">' + fmtNum(v.tasa, 2) + '</b><span>' + v.etiqueta + '</span></div>' +
-    '<div class="tdato"><b class="num">' + fmtNum(t.usdt, 2) + '</b><span>USDT Binance</span></div>' +
-    '<div class="tdato destaca"><b class="num">' + fmtNum(t.descuentoPct, 1) + '%</b><span>descuento divisa</span></div>';
-  if (t.heredada) {
-    av.className = 'aviso on';
-    av.textContent = 'Estás usando la tasa del ' + fechaLarga(t.fechaOriginal) + '. Actualízala antes de vender.';
-  } else av.className = 'aviso';
-}
-
-function renderNav() {
-  let tabs = [['inicio', 'Inicio'], ['vender', 'Vender'], ['cargar', 'Cargar'], ['stock', 'Stock'], ['cierre', 'Cierre']];
-  if (S.config.soloConsulta) tabs = tabs.filter(t => t[0] !== 'vender' && t[0] !== 'cargar');
-  $('#barraNav').innerHTML = tabs.map(([k, n]) =>
-    '<button class="' + (VISTA === k ? 'on' : '') + '" onclick="irA(\'' + k + '\')">' +
-    '<svg viewBox="0 0 24 24">' + ICONOS[k] + '</svg>' + n + '</button>').join('');
-}
-
-function render() {
-  if (S.config.soloConsulta && (VISTA === 'vender' || VISTA === 'cargar')) return irA('inicio');
-  renderFranja(); renderNav();
-  $('#principal').className = (VISTA === 'vender' && carrito.length) ? 'conbarra' : '';
-  const f = {
-    inicio: renderInicio, vender: renderVender, cargar: renderCargar, stock: renderStock,
-    cierre: renderCierre, tasas: renderTasas, ajustes: renderAjustes, ayuda: renderAyuda,
-    fiado: renderFiado, clientes: renderClientes
-  }[VISTA];
-  if (f) f();
-  renderDinero();
-}
-
-/* ====================== inicio ====================== */
-function renderInicio() {
-  const r = resumenDia(hoyISO());
-  const bajo = bajoMinimo();
-  const inv = valorInventario();
-  const cerrado = S.cierres.some(c => c.fecha === hoyISO());
-  let h = '<h2>' + S.config.negocio + '</h2>';
-
-  h += '<div class="grande">' +
-    '<div><b class="num">$' + fmtUsd(r.ingresoReal) + '</b><span>vendido hoy</span></div>' +
-    '<div class="oro"><b class="num">$' + fmtUsd(r.gananciaReal) + '</b><span>ganancia de hoy</span></div>' +
-    '</div>' +
-    '<div class="grande">' +
-    '<div><b class="num">' + r.nVentas + '</b><span>ventas</span></div>' +
-    '<div><b class="num">' + fmtNum(r.unidades, 0) + '</b><span>unidades</span></div>' +
-    '<div><b class="num">' + fmtNum(r.margen, 0) + '%</b><span>margen</span></div>' +
-    '</div>';
-
-  const porCobrar = cobrosDeHoy();
-  if (porCobrar.length) {
-    h += '<div class="aviso-caja" onclick="irA(\'fiado\')" style="cursor:pointer">' +
-      '<b>Hay ' + porCobrar.length + ' cobro' + (porCobrar.length > 1 ? 's' : '') + ' para hoy</b> · $' +
-      fmtUsd(porCobrar.reduce((a, d) => a + saldoDeuda(d), 0)) + ' por recuperar. Toca aquí para mandar los mensajes.</div>';
-  }
-
-  h += S.config.soloConsulta
-    ? '<div class="aviso-caja">Este aparato es solo para consultar. Las ventas y la carga se hacen desde el teléfono de la caja.</div>'
-    : '<button class="btn oro enorme" onclick="irA(\'vender\')">Vender</button>';
-
-  if (bajo.length) {
-    h += '<h3>Se está acabando</h3><div class="lista">' +
-      bajo.slice(0, 6).map(p =>
-        '<div class="item" onclick="editarProducto(\'' + p.id + '\')">' +
-        '<div class="punto ' + (nz(p.stock) <= 0 ? 'p-rojo' : 'p-ama') + '"></div>' +
-        '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
-        '<div class="sub">' + esc(p.presentacion || '') + '</div></div>' +
-        '<div class="der"><b class="num">' + fmtNum(p.stock, 0) + '</b><span>mínimo ' + fmtNum(p.minimo, 0) + '</span></div></div>'
-      ).join('') + '</div>';
-    if (bajo.length > 6) h += '<p class="nota">y ' + (bajo.length - 6) + ' más en la pestaña Stock.</p>';
-  }
-
-  const fiado = totalFiado();
-  h += '<h3>Patrimonio</h3>' +
-    '<div class="grande">' +
-    '<div><b class="num">$' + fmtUsd(inv.costo) + '</b><span>inventario al costo</span></div>' +
-    '<div class="oro" onclick="irA(\'fiado\')"><b class="num">$' + fmtUsd(fiado) + '</b><span>dinero fiado ›</span></div>' +
-    '</div>' +
-    '<div class="tarjeta"><table class="mini">' +
-    '<tr><td>Productos cargados</td><td class="num">' + S.productos.filter(p => p.activo !== false).length + '</td></tr>' +
-    '<tr><td>Inventario a precio de venta</td><td class="num">$' + fmtUsd(inv.venta) + '</td></tr>' +
-    '<tr><td>Personas que deben</td><td class="num">' + deudasAbiertas().length + '</td></tr>' +
-    '<tr><td><b>Patrimonio total</b></td><td class="num">$' + fmtUsd(inv.costo + fiado) + '</td></tr>' +
-    '<tr><td>Día cerrado</td><td>' + (cerrado ? 'sí' : 'todavía no') + '</td></tr>' +
-    '</table></div>';
-
-  h += '<div class="fila"><button class="btn chico" onclick="irA(\'fiado\')">Fiado</button>' +
-    '<button class="btn chico" onclick="irA(\'clientes\')">Clientes</button></div>' +
-    '<div class="fila" style="margin-top:8px"><button class="btn chico" onclick="irA(\'tasas\')">Tasas</button>' +
-    '<button class="btn chico" onclick="irA(\'ayuda\')">Cómo se usa</button></div>';
-  $('#v-inicio').innerHTML = h;
-}
-
-/* ====================== vender ====================== */
-let ultimaVenta = null, ultimoEscaneo = { cod: '', t: 0 }, codigoPendiente = '';
-
-function renderVender() {
-  const t = tasaVigente();
-  let h = '<div class="buscador">' +
-    '<input id="entrada" placeholder="Código o nombre" autocomplete="off" enterkeyhint="done">' +
-    '<button onclick="escanear()" aria-label="Escanear">⛶</button></div>';
-
-  if (!t) {
-    h += '<div class="aviso-caja mal">Carga la tasa del día antes de vender. ' +
-      '<a onclick="irA(\'tasas\')">Ir a Tasas</a></div>';
-  }
-
-  const favs = productosFrecuentes();
-  if (favs.length) {
-    h += '<div class="favs">' + favs.slice(0, carrito.length ? 6 : 9).map(p => {
-      const pr = preciosDe(precioBase(p, 0), t, p);
-      return '<button onclick="tocarFav(\'' + p.id + '\')">' +
-        '<span class="n">' + esc(p.nombre) + '</span>' +
-        '<span class="pz num">$' + fmtUsd(pr.efectivo) + '</span></button>';
-    }).join('') + '</div>';
-  }
-
-  if (!carrito.length) {
-    h += '<div class="vacio"><b>Nada en la cuenta todavía</b>' +
-      'Escanea, toca un producto de arriba, o escribe el nombre.</div>';
-    if (ultimaVenta) {
-      h += '<div class="tarjeta"><div style="font-size:13px;color:var(--tenue)">Última venta ' +
-        hora(ultimaVenta.ts) + ' · $' + fmtUsd(ultimaVenta.ingresoReal) + '</div>' +
-        '<button class="btn rojo chico" style="margin-top:10px" onclick="deshacerUltima()">Anular esa venta</button></div>';
-    }
-  } else {
-    h += '<div class="lista">' + carrito.map((l, i) => {
-      const p = l.productoId ? producto(l.productoId) : null;
-      const pr = preciosDe(l.precioBase, t, p);
-      return '<div class="item">' +
-        '<div class="cant"><button onclick="cambiarCant(' + i + ',-1)">−</button>' +
-        '<b class="num">' + l.cant + '</b>' +
-        '<button onclick="cambiarCant(' + i + ',1)">+</button></div>' +
-        '<div class="cuerpo"><div class="tit">' + esc(l.nombre) + '</div>' +
-        '<div class="sub">' + esc(l.presNombre) + (l.factor > 1 ? ' · ' + (l.factor * l.cant) + ' unidades' : '') + '</div></div>' +
-        '<div class="der"><b class="num">$' + fmtUsd(pr.efectivo * l.cant) + '</b>' +
-        '<span class="num">Bs ' + fmtBs(pr.bs * l.cant) + '</span></div>' +
-        '<button style="color:var(--tenue);padding:0 4px;font-size:19px" onclick="quitarLinea(' + i + ')">×</button>' +
-        '</div>';
-    }).join('') + '</div>';
-  }
-  $('#v-vender').innerHTML = h;
-
-  const inp = $('#entrada');
-  if (inp) {
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { procesarEntrada(inp.value); inp.value = ''; } });
-    inp.addEventListener('input', () => { if (inp.value.length > 2) sugerir(inp.value); });
-  }
-}
-
-function productosFrecuentes() {
-  const marcados = S.productos.filter(p => p.favorito && p.activo !== false);
-  if (marcados.length) return marcados.slice(0, 9);
-  const cuenta = {};
-  S.ventas.forEach(v => !v.anulada && v.items.forEach(it => {
-    if (it.productoId) cuenta[it.productoId] = (cuenta[it.productoId] || 0) + it.unidades;
-  }));
-  return Object.keys(cuenta).sort((a, b) => cuenta[b] - cuenta[a]).slice(0, 9)
-    .map(id => producto(id)).filter(Boolean);
-}
-
-function tocarFav(id) {
-  const p = producto(id);
-  if (!p) return;
-  if ((p.pres || []).length > 1) return elegirPresentacion(p);
-  agregarCarrito(p, 0, 1); pitar(true); render();
-}
-
-function procesarEntrada(txt) {
-  txt = (txt || '').trim();
-  if (!txt) return;
-  const hit = buscarCodigo(txt);
-  if (hit) { agregarCarrito(hit.p, hit.pres, 1); pitar(true); render(); return; }
-  const q = txt.toLowerCase();
-  const encontrados = S.productos.filter(p => p.activo !== false &&
-    (p.nombre + ' ' + (p.presentacion || '') + ' ' + (p.categoria || '')).toLowerCase().includes(q));
-  if (encontrados.length === 1) { tocarFav(encontrados[0].id); return; }
-  if (encontrados.length > 1) return listaElegir(encontrados);
-  pitar(false);
-  codigoPendiente = txt;
-  abrirHoja('<div class="asa"></div><h4>No conozco ese código</h4>' +
-    '<p class="nota">' + esc(txt) + '</p>' +
-    '<button class="btn oro" style="margin-top:14px" onclick="cerrarHoja();altaProducto(codigoPendiente)">Darlo de alta ahora</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();pedirSuelto()">Cobrarlo como producto suelto</button>');
-}
-
-function sugerir(q) { /* la búsqueda se resuelve al presionar Enter; se deja el hook para el futuro */ }
-
-function listaElegir(lista) {
-  abrirHoja('<div class="asa"></div><h4>¿Cuál de estos?</h4><div class="lista" style="margin-top:10px">' +
-    lista.slice(0, 12).map(p =>
-      '<div class="item" onclick="cerrarHoja();tocarFav(\'' + p.id + '\')">' +
-      '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
-      '<div class="sub">' + esc(p.presentacion || '') + ' · quedan ' + fmtNum(p.stock, 0) + '</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(p.precio) + '</b></div></div>').join('') + '</div>');
-}
-
-function elegirPresentacion(p) {
-  const t = tasaVigente();
-  abrirHoja('<div class="asa"></div><h4>' + esc(p.nombre) + '</h4>' +
-    '<p class="nota">¿Cómo lo vas a vender?</p><div class="lista" style="margin-top:10px">' +
-    p.pres.map((pr, i) => {
-      const precio = preciosDe(precioBase(p, i), t, p);
-      return '<div class="item" onclick="cerrarHoja();agregarCarrito(producto(\'' + p.id + '\'),' + i + ',1);pitar(true);render()">' +
-        '<div class="cuerpo"><div class="tit">' + esc(pr.nombre) + '</div>' +
-        '<div class="sub">' + pr.factor + (pr.factor === 1 ? ' unidad' : ' unidades') + '</div></div>' +
-        '<div class="der"><b class="num">$' + fmtUsd(precio.efectivo) + '</b>' +
-        '<span class="num">Bs ' + fmtBs(precio.bs) + '</span></div></div>';
-    }).join('') + '</div>');
-}
-
-function cambiarCant(i, d) {
-  carrito[i].cant += d;
-  if (carrito[i].cant <= 0) carrito.splice(i, 1);
-  render();
-}
-function quitarLinea(i) { carrito.splice(i, 1); render(); }
-function vaciarCarrito() { carrito = []; render(); }
-
-function pedirSuelto() {
-  abrirHoja('<div class="asa"></div><h4>Producto suelto</h4>' +
-    '<p class="nota">Para cobrar algo que no está cargado. No descuenta inventario.</p>' +
-    '<label>Qué es</label><input id="sn" placeholder="Hielo, vaso, cigarro...">' +
-    '<label>Precio en dólares</label><input id="sm" type="number" inputmode="decimal" step="0.01" placeholder="1.50">' +
-    '<button class="btn oro" style="margin-top:16px" onclick="confirmarSuelto()">Agregar</button>');
-  setTimeout(() => $('#sn') && $('#sn').focus(), 100);
-}
-function confirmarSuelto() {
-  const n = $('#sn').value.trim(), m = parseFloat($('#sm').value);
-  if (!m || m <= 0) return brindis('Falta el precio', true);
-  agregarSuelto(n || 'Producto suelto', m);
-  cerrarHoja(); pitar(true); render();
-}
-
-/* ---- la barra del dinero ---- */
-function renderDinero() {
-  const b = $('#barraDinero');
-  if (VISTA !== 'vender' || !carrito.length) { b.className = 'dinero'; return; }
-  const t = tasaVigente();
-  const tt = totalesCarrito(t);
-  b.className = 'dinero on';
-  b.innerHTML =
-    '<div class="cifras">' +
-    '<div><b class="num">' + fmtBs(tt.bs) + '</b><span>bolívares</span></div>' +
-    '<div class="oro"><b class="num">$' + fmtUsd(tt.efectivo) + '</b><span>efectivo o Binance</span></div>' +
-    '</div><div class="pie">' +
-    '<button class="btn chico" style="flex:0 0 34%" onclick="vaciarCarrito()">Vaciar</button>' +
-    '<button class="btn oro chico" onclick="abrirCobro()">Cobrar</button></div>';
-}
-
-/* ---- cobro ---- */
-function abrirCobro() {
-  const t = tasaVigente();
-  if (!t) return brindis('Falta la tasa del día', true);
-  const tt = totalesCarrito(t);
-  abrirHoja('<div class="asa"></div><h4>¿Cómo paga?</h4>' +
-    '<p class="nota">' + fmtBs(tt.bs) + ' Bs  ·  $' + fmtUsd(tt.efectivo) + ' en divisa</p>' +
-    '<div style="margin-top:14px">' +
-    '<button class="btn" onclick="pantallaPago(\'efectivo_usd\')">Efectivo en dólares · $' + fmtUsd(tt.efectivo) + '</button>' +
-    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'binance\')">Binance USDT · $' + fmtUsd(tt.efectivo) + '</button>' +
-    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'pago_movil\')">Pago móvil o transferencia · ' + fmtBs(tt.bs) + ' Bs</button>' +
-    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'efectivo_bs\')">Efectivo en bolívares · ' + fmtBs(tt.bs) + ' Bs</button>' +
-    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'punto\')">Punto de venta · ' + fmtBs(tt.bs) + ' Bs</button>' +
-    '<button class="btn" style="margin-top:8px" onclick="pantallaPago(\'mixto\')">Combinado</button>' +
-    '<button class="btn" style="margin-top:8px;border-color:var(--ambar);color:var(--ambar)" onclick="pantallaPago(\'fiado\')">Fiado · crédito al cliente</button>' +
-    '</div>');
-}
-
-function pantallaPago(metodo) {
-  const t = tasaVigente();
-  const tt = totalesCarrito(t);
-  const enDivisa = ['efectivo_usd', 'binance'].indexOf(metodo) >= 0;
-  const nombres = {
-    efectivo_usd: 'Efectivo en dólares', binance: 'Binance USDT', pago_movil: 'Pago móvil o transferencia',
-    efectivo_bs: 'Efectivo en bolívares', punto: 'Punto de venta', mixto: 'Pago combinado'
-  };
-  let h = '<div class="asa"></div><h4>' + nombres[metodo] + '</h4>';
-
-  if (metodo === 'fiado') {
-    const lista = clientesBuscar('');
-    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.lista) +
-      '</b><span>queda debiendo (precio de lista)</span></div></div>' +
-      '<p class="nota">El fiado se anota al precio BCV. Si después paga en efectivo, ahí sí se le aplica el descuento.</p>' +
-      (lista.length ? '<label>¿Quién se lo lleva?</label><select id="fcli" onchange="cambioCliente()">' +
-        '<option value="">— cliente nuevo —</option>' +
-        lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + (c.telefono ? ' · ' + telBonito(c.telefono) : '') + '</option>').join('') +
-        '</select>' : '<input type="hidden" id="fcli" value="">') +
-      '<div id="fnuevo">' +
-      '<label>Nombre</label><input id="fnom" placeholder="Pedro Ramírez">' +
-      '<label>WhatsApp</label><input id="ftel" type="tel" inputmode="tel" placeholder="0412 3456789">' +
-      '</div>' +
-      '<label>¿En cuántos días paga?</label>' +
-      '<select id="fdias"><option value="1">Mañana</option><option value="3">3 días</option>' +
-      '<option value="7" selected>Una semana</option><option value="15">15 días</option>' +
-      '<option value="30">Un mes</option></select>' +
-      '<label>Nota (opcional)</label><input id="fnota" placeholder="Dijo que cobra el viernes">' +
-      '<button class="btn verde" style="margin-top:16px" onclick="confirmarPago(\'fiado\')">Anotar el fiado</button>';
-  } else if (metodo === 'mixto') {
-    h += '<p class="nota">Anota cuánto entra por cada lado. Lo que falte en dólares se completa en bolívares.</p>' +
-      '<label>Parte en divisa (dólares)</label>' +
-      '<input id="mx" type="number" inputmode="decimal" step="0.01" value="0" oninput="calcMixto()">' +
-      '<label>¿Cómo entra esa divisa?</label><select id="mxu">' +
-      METODOS.filter(m => m.moneda === 'usd').map(m => '<option value="' + m.id + '">' + m.nombre + '</option>').join('') +
-      '</select>' +
-      '<label>¿Cómo entra el resto en bolívares?</label><select id="mxb">' +
-      METODOS.filter(m => m.moneda === 'bs').map(m => '<option value="' + m.id + '"' + (m.id === 'pago_movil' ? ' selected' : '') + '>' + m.nombre + '</option>').join('') +
-      '</select>' +
-      '<div id="mxinfo" class="aviso-caja" style="margin-top:12px"></div>' +
-      '<button class="btn verde" onclick="confirmarPago(\'mixto\')">Confirmar venta</button>';
-  } else if (enDivisa) {
-    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.efectivo) + '</b><span>a cobrar</span></div></div>' +
-      '<label>¿Con cuánto paga? (opcional)</label>' +
-      '<input id="rec" type="number" inputmode="decimal" step="0.01" placeholder="' + fmtUsd(tt.efectivo) + '" oninput="calcVuelto()">' +
-      '<div id="vuelto" class="aviso-caja" style="margin-top:12px;display:none"></div>' +
-      '<button class="btn verde" style="margin-top:14px" onclick="confirmarPago(\'' + metodo + '\')">Confirmar venta</button>';
-  } else {
-    h += '<div class="grande" style="margin-top:4px"><div><b class="num">' + fmtBs(tt.bs) + '</b><span>bolívares a cobrar</span></div></div>' +
-      '<button class="btn verde" style="margin-top:14px" onclick="confirmarPago(\'' + metodo + '\')">Confirmar venta</button>';
-  }
-  h += '<button class="btn chico" style="margin-top:8px" onclick="abrirCobro()">Volver</button>';
-  abrirHoja(h);
-}
-
-function calcVuelto() {
-  const t = tasaVigente(), tt = totalesCarrito(t);
-  const rec = parseFloat($('#rec').value);
-  const d = $('#vuelto');
-  if (!rec || rec < tt.efectivo) { d.style.display = 'none'; return; }
-  const dif = rec - tt.efectivo;
-  d.style.display = 'block';
-  d.innerHTML = 'Vuelto: <b class="num">' + fmtBs(redondear(dif * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b>' +
-    ' <span style="color:var(--tenue)">(equivale a $' + fmtUsd(dif) + ')</span>';
-}
-function calcMixto() {
-  const t = tasaVigente(), tt = totalesCarrito(t);
-  const usd = Math.max(0, parseFloat($('#mx').value) || 0);
-  const restanteUsd = Math.max(0, tt.efectivo - usd);
-  // lo que falta se cobra en bolívares, a la tasa de venta y sin el descuento de divisa
-  const f = Math.max(0.01, 1 - t.descuentoPct / 100);
-  const faltaBs = redondear((restanteUsd / f) * t.tasaVenta, S.config.redondeoBs);
-  $('#mxinfo').innerHTML = 'Recibes <b class="num">$' + fmtUsd(usd) + '</b> en divisa y ' +
-    '<b class="num">' + fmtBs(faltaBs) + ' Bs</b> por el resto.';
-  $('#mxinfo').dataset.bs = faltaBs;
-  $('#mxinfo').dataset.usd = usd;
-}
-
-function cambioCliente() {
-  const sel = $('#fcli');
-  const nuevo = $('#fnuevo');
-  if (sel && nuevo) nuevo.style.display = sel.value ? 'none' : 'block';
-}
-
-function confirmarPago(metodo) {
-  const t = tasaVigente();
-  if (!t) return brindis('Falta la tasa del día', true);
-  const pago = { metodo };
-  if (metodo === 'fiado') {
-    let id = $('#fcli') ? $('#fcli').value : '';
-    if (!id) {
-      const nom = $('#fnom') ? $('#fnom').value.trim() : '';
-      const tel = $('#ftel') ? $('#ftel').value.trim() : '';
-      if (!nom) return brindis('Ponle el nombre al cliente', true);
-      if (telLimpio(tel).length < 11) return brindis('Falta el WhatsApp, sin eso no se le puede cobrar', true);
-      id = crearCliente(nom, tel).id;
-    }
-    pago.clienteId = id;
-    pago.dias = parseInt($('#fdias').value, 10) || 7;
-    pago.nota = $('#fnota') ? $('#fnota').value.trim() : '';
-  }
-  if (metodo === 'fiado') {
-    const lista = clientesBuscar('');
-    h += '<div class="grande" style="margin-top:4px"><div class="oro"><b class="num">$' + fmtUsd(tt.lista) +
-      '</b><span>queda debiendo (precio de lista)</span></div></div>' +
-      '<p class="nota">El fiado se anota al precio BCV. Si después paga en efectivo, ahí sí se le aplica el descuento.</p>' +
-      (lista.length ? '<label>¿Quién se lo lleva?</label><select id="fcli" onchange="cambioCliente()">' +
-        '<option value="">— cliente nuevo —</option>' +
-        lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + (c.telefono ? ' · ' + telBonito(c.telefono) : '') + '</option>').join('') +
-        '</select>' : '<input type="hidden" id="fcli" value="">') +
-      '<div id="fnuevo">' +
-      '<label>Nombre</label><input id="fnom" placeholder="Pedro Ramírez">' +
-      '<label>WhatsApp</label><input id="ftel" type="tel" inputmode="tel" placeholder="0412 3456789">' +
-      '</div>' +
-      '<label>¿En cuántos días paga?</label>' +
-      '<select id="fdias"><option value="1">Mañana</option><option value="3">3 días</option>' +
-      '<option value="7" selected>Una semana</option><option value="15">15 días</option>' +
-      '<option value="30">Un mes</option></select>' +
-      '<label>Nota (opcional)</label><input id="fnota" placeholder="Dijo que cobra el viernes">' +
-      '<button class="btn verde" style="margin-top:16px" onclick="confirmarPago(\'fiado\')">Anotar el fiado</button>';
-  } else if (metodo === 'mixto') {
-    const d = $('#mxinfo');
-    pago.parteUsd = parseFloat(d.dataset.usd || 0);
-    pago.parteBs = parseFloat(d.dataset.bs || 0);
-    pago.metodoUsd = $('#mxu') ? $('#mxu').value : 'efectivo_usd';
-    pago.metodoBs = $('#mxb') ? $('#mxb').value : 'pago_movil';
-  }
-  const v = registrarVenta(pago, t);
-  ultimaVenta = v;
-  if (metodo === 'fiado') {
-    crearDeuda({
-      clienteId: pago.clienteId, origen: 'venta', ventaId: v.id, dias: pago.dias,
-      montoUsd: v.totalLista, tasaVenta: t.tasaVenta, usdt: t.usdt, nota: pago.nota
-    });
-    cerrarHoja(); pitar(true);
-    brindis('Fiado anotado a ' + nombreCliente(pago.clienteId) + ' · $' + fmtUsd(v.totalLista));
-    render();
-    return;
-  }
-  cerrarHoja(); pitar(true);
-  brindis('Vendido · $' + fmtUsd(v.ingresoReal) + ' · ganancia $' + fmtUsd(v.gananciaReal));
-  render();
-}
-
-function deshacerUltima() {
-  if (!ultimaVenta) return;
-  if (anularVenta(ultimaVenta.id)) {
-    brindis('Venta anulada, el inventario volvió a su sitio');
-    ultimaVenta = null; render();
-  }
-}
-
-/* ====================== cámara ====================== */
-let stream = null, detector = null, escaneando = false, cbEscaneo = null, escaneoUnico = false;
-
-async function escanear(cb, unaVez) {
-  cbEscaneo = cb || (cod => { procesarEntrada(cod); });
-  escaneoUnico = !!unaVez;
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return brindis('Este navegador no da acceso a la cámara. Escribe el código.', true);
-  }
-  $('#camara').classList.add('on');
-  $('#camTexto').textContent = 'Abriendo la cámara...';
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } } });
-    const v = $('#video');
-    v.srcObject = stream;
-    await v.play();
-  } catch (e) {
-    cerrarCamara();
-    return brindis('No se pudo abrir la cámara. Revisa el permiso, o escribe el código.', true);
-  }
-  if (!('BarcodeDetector' in window)) {
-    $('#camTexto').textContent = 'Este navegador no lee códigos. Cierra y escribe el código a mano.';
-    return;
-  }
-  try {
-    detector = new window.BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'codabar', 'itf']
-    });
-  } catch (e) {
-    detector = new window.BarcodeDetector();
-  }
-  $('#camTexto').textContent = 'Apunta al código de barras';
-  escaneando = true;
-  bucleEscaneo();
-}
-
-async function bucleEscaneo() {
-  if (!escaneando) return;
-  const v = $('#video');
-  try {
-    const codes = await detector.detect(v);
-    if (codes && codes.length) {
-      const cod = codes[0].rawValue;
-      const t = Date.now();
-      if (!(cod === ultimoEscaneo.cod && t - ultimoEscaneo.t < 1400)) {
-        ultimoEscaneo = { cod, t };
-        const conocido = !!buscarCodigo(cod);
-        pitar(conocido);
-        $('#camTexto').textContent = conocido ? 'Leído: ' + cod : 'Código nuevo: ' + cod;
-        const cb = cbEscaneo;
-        if (!conocido || escaneoUnico) { escaneando = false; cerrarCamara(); cb(cod); return; }
-        cb(cod);
-      }
-    }
-  } catch (e) { }
-  requestAnimationFrame(bucleEscaneo);
-}
-
-function cerrarCamara() {
-  escaneando = false;
-  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-  $('#video').srcObject = null;
-  $('#camara').classList.remove('on');
-  render();
-}
-
-/* ====================== cargar mercancía ====================== */
-function renderCargar() {
-  let h = '<h2>Cargar mercancía</h2>' +
-    '<div class="buscador">' +
-    '<input id="entradaCarga" placeholder="Código del producto" autocomplete="off" enterkeyhint="done">' +
-    '<button onclick="escanear(cargaPorCodigo, true)" aria-label="Escanear">⛶</button></div>' +
-    '<p class="nota">Escanea o escribe el código. Si ya existe te pido cantidad y costo; si es nuevo, lo damos de alta.</p>';
-
-  const entradasHoy = S.movs.filter(m => m.fecha === hoyISO() && m.tipo === 'entrada');
-  if (entradasHoy.length) {
-    h += '<h3>Cargado hoy</h3><div class="lista">' + entradasHoy.slice().reverse().slice(0, 15).map(m => {
-      const p = producto(m.productoId);
-      return '<div class="item"><div class="cuerpo"><div class="tit">' + esc(p ? p.nombre : '?') + '</div>' +
-        '<div class="sub">' + hora(m.ts) + ' · ' + esc(m.usuario) + '</div></div>' +
-        '<div class="der"><b class="num">+' + fmtNum(m.unidades, 0) + '</b><span>a $' + fmtUsd(m.costo) + '</span></div></div>';
-    }).join('') + '</div>';
-  }
-  h += '<button class="btn" style="margin-top:14px" onclick="altaProducto(\'\')">Dar de alta un producto sin escanear</button>';
-  $('#v-cargar').innerHTML = h;
-  const inp = $('#entradaCarga');
-  if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') { cargaPorCodigo(inp.value); inp.value = ''; } });
-}
-
-function cargaPorCodigo(cod) {
-  cod = (cod || '').trim();
-  if (!cod) return;
-  const hit = buscarCodigo(cod);
-  if (!hit) { pitar(false); return altaProducto(cod); }
-  const pr = hit.p.pres[hit.pres];
-  abrirHoja('<div class="asa"></div><h4>' + esc(hit.p.nombre) + '</h4>' +
-    '<p class="nota">Entra por: <b>' + esc(pr.nombre) + '</b>' + (pr.factor > 1 ? ' (' + pr.factor + ' unidades cada una)' : '') +
-    ' · quedan ' + fmtNum(hit.p.stock, 0) + ' unidades</p>' +
-    '<label>¿Cuántas ' + esc(pr.nombre.toLowerCase()) + (pr.factor > 1 ? 's' : 'es') + ' entraron?</label>' +
-    '<input id="cc" type="number" inputmode="numeric" value="1" oninput="previaCarga(' + pr.factor + ')">' +
-    '<label>¿Cuánto costó cada ' + esc(pr.nombre.toLowerCase()) + ' en dólares?</label>' +
-    '<input id="ck" type="number" inputmode="decimal" step="0.01" value="' + (nz(hit.p.costo) * pr.factor).toFixed(2) + '" oninput="previaCarga(' + pr.factor + ')">' +
-    '<div id="cprev" class="aviso-caja" style="margin-top:12px"></div>' +
-    '<button class="btn verde" onclick="confirmarCarga(\'' + hit.p.id + '\',' + hit.pres + ')">Cargar al inventario</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();editarProducto(\'' + hit.p.id + '\')">Editar este producto</button>');
-  setTimeout(() => previaCarga(pr.factor), 30);
-}
-
-function previaCarga(factor) {
-  const c = parseFloat($('#cc').value) || 0, k = parseFloat($('#ck').value) || 0;
-  const unidades = c * factor, costoUnit = factor > 0 ? k / factor : k;
-  $('#cprev').innerHTML = 'Entran <b class="num">' + fmtNum(unidades, 0) + ' unidades</b>' +
-    (factor > 1 ? ' · costo por unidad <b class="num">$' + fmtUsd(costoUnit) + '</b>' : '') +
-    ' · inversión <b class="num">$' + fmtUsd(c * k) + '</b>';
-}
-
-function confirmarCarga(id, ipres) {
-  const p = producto(id);
-  const factor = nz(p.pres[ipres].factor) || 1;
-  const c = parseFloat($('#cc').value) || 0, k = parseFloat($('#ck').value) || 0;
-  if (c <= 0) return brindis('Falta la cantidad', true);
-  const unidades = c * factor, costoUnit = k / factor;
-  if (costoUnit > 0) p.costo = costoUnit;
-  ajustarStock(id, unidades);
-  movimiento('entrada', id, unidades, costoUnit, '', p.pres[ipres].nombre + ' x' + c);
-  cerrarHoja(); pitar(true);
-  brindis('Entraron ' + fmtNum(unidades, 0) + ' unidades de ' + p.nombre);
-  render();
-}
-
-/* ---- alta de producto ---- */
-function altaProducto(codigo) {
-  codigoPendiente = codigo || '';
-  abrirHoja('<div class="asa"></div><h4>Producto nuevo</h4>' +
-    (codigo ? '<p class="nota">Código leído: <b>' + esc(codigo) + '</b></p>' : '') +
-    '<label>Nombre</label><input id="an" placeholder="Ron Cacique 500">' +
-    '<label>Presentación</label><input id="ap" placeholder="750 ml">' +
-    '<label>Categoría</label><input id="ag" placeholder="Ron" list="cats">' +
-    '<datalist id="cats">' + categorias().map(c => '<option value="' + esc(c) + '">').join('') + '</datalist>' +
-    (codigo ? '<label>Ese código que escaneaste, ¿de qué es?</label>' +
-      '<select id="atipo" onchange="previaAlta()"><option value="1">De una unidad suelta</option>' +
-      '<option value="6">De un six-pack (6 unidades)</option>' +
-      '<option value="12">De una caja de 12</option>' +
-      '<option value="24">De una caja de 24</option>' +
-      '<option value="36">De una caja de 36</option></select>' : '') +
-    '<label>Costo por unidad, en dólares</label><input id="ak" type="number" inputmode="decimal" step="0.01" oninput="previaAlta()">' +
-    '<label>Precio de venta por unidad, en dólares</label><input id="av" type="number" inputmode="decimal" step="0.01" oninput="previaAlta()">' +
-    '<label>Cantidad que estás cargando (en unidades)</label><input id="aq" type="number" inputmode="numeric" value="0">' +
-    '<label>Avísame cuando queden menos de</label><input id="am" type="number" inputmode="numeric" value="' + S.config.minimoDefault + '">' +
-    '<div class="campo-inline"><label>Ponerlo en los botones rápidos</label><input type="checkbox" id="af"></div>' +
-    '<div id="aprev" class="aviso-caja" style="display:none"></div>' +
-    '<button class="btn verde" onclick="confirmarAlta()">Guardar producto</button>');
-  setTimeout(() => $('#an') && $('#an').focus(), 100);
-}
-
-function previaAlta() {
-  const k = parseFloat($('#ak').value) || 0, v = parseFloat($('#av').value) || 0;
-  const d = $('#aprev');
-  if (!k || !v) { d.style.display = 'none'; return; }
-  const t = tasaVigente();
-  const margen = ((v - k) / v) * 100;
-  const pr = preciosDe(v, t, null);
-  d.style.display = 'block';
-  d.className = 'aviso-caja' + (v <= k ? ' mal' : '');
-  d.innerHTML = v <= k
-    ? 'El precio de venta no puede ser menor o igual al costo.'
-    : 'Margen <b class="num">' + fmtNum(margen, 1) + '%</b> · ganas <b class="num">$' + fmtUsd(v - k) + '</b> por unidad.<br>' +
-    'Se vendería a <b class="num">' + fmtBs(pr.bs) + ' Bs</b> o <b class="num">$' + fmtUsd(pr.efectivo) + '</b> en divisa.';
-}
-
-function categorias() {
-  return Array.from(new Set(S.productos.map(p => p.categoria).filter(Boolean))).sort();
-}
-
-function confirmarAlta() {
-  const codigo = codigoPendiente || '';
-  const nombre = $('#an').value.trim();
-  if (!nombre) return brindis('Falta el nombre', true);
-  const costo = parseFloat($('#ak').value) || 0;
-  const precio = parseFloat($('#av').value) || 0;
-  if (precio <= 0) return brindis('Falta el precio de venta', true);
-  const factorCod = $('#atipo') ? parseInt($('#atipo').value, 10) : 1;
-  const cant = parseFloat($('#aq').value) || 0;
-
-  const pres = [{ nombre: 'Unidad', factor: 1, codigo: factorCod === 1 ? codigo : '', precio: null }];
-  if (factorCod > 1) {
-    const nom = factorCod === 6 ? 'Six-pack' : 'Caja de ' + factorCod;
-    pres.push({ nombre: nom, factor: factorCod, codigo: codigo, precio: null });
-  }
-  const p = {
-    id: uid(), nombre, presentacion: $('#ap').value.trim(), categoria: $('#ag').value.trim(),
-    costo, precio, stock: cant, minimo: parseFloat($('#am').value) || 0,
-    aplicaDesc: true, favorito: $('#af').checked, activo: true, pres,
-    creado: ahora(), creadoFecha: hoyISO(), actualizado: ahora()
-  };
-  S.productos.push(p);
-  reindexar();
-  if (cant > 0) movimiento('entrada', p.id, cant, costo, '', 'alta');
-  guardar(['productos']);
-  cerrarHoja(); pitar(true);
-  brindis(nombre + ' quedó cargado');
-  render();
-}
-
-/* ====================== stock ====================== */
-let filtroStock = '', ordenStock = 'nombre';
-
-function renderStock() {
-  const inv = valorInventario();
-  let lista = S.productos.filter(p => p.activo !== false);
-  if (filtroStock) {
-    const q = filtroStock.toLowerCase();
-    lista = lista.filter(p => (p.nombre + ' ' + (p.categoria || '') + ' ' + (p.presentacion || '')).toLowerCase().includes(q));
-  }
-  if (ordenStock === 'bajo') lista.sort((a, b) => nz(a.stock) - nz(b.stock));
-  else if (ordenStock === 'margen') lista.sort((a, b) => ((b.precio - b.costo) / (b.precio || 1)) - ((a.precio - a.costo) / (a.precio || 1)));
-  else lista.sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-  let h = '<h2>Inventario</h2>' +
-    '<div class="grande"><div><b class="num">$' + fmtUsd(inv.costo) + '</b><span>invertido en mercancía</span></div>' +
-    '<div class="oro"><b class="num">$' + fmtUsd(inv.venta - inv.costo) + '</b><span>ganancia por vender</span></div></div>' +
-    '<div class="buscador"><input id="fs" placeholder="Buscar" value="' + esc(filtroStock) + '" autocomplete="off"></div>' +
-    '<div class="fila" style="margin-bottom:12px">' +
-    ['nombre', 'bajo', 'margen'].map(o => '<button class="btn chico ' + (ordenStock === o ? 'oro' : '') + '" onclick="ordenStock=\'' + o + '\';render()">' +
-      ({ nombre: 'A-Z', bajo: 'Se acaba', margen: 'Margen' })[o] + '</button>').join('') + '</div>';
-
-  if (!lista.length) {
-    h += '<div class="vacio"><b>Todavía no hay productos</b>Ve a Cargar y escanea el primero.</div>';
-  } else {
-    const t = tasaVigente();
-    h += '<div class="lista">' + lista.map(p => {
-      const st = nz(p.stock), mn = nz(p.minimo);
-      const clase = st <= 0 ? 'p-rojo' : (st <= mn ? 'p-ama' : 'p-verde');
-      const pr = preciosDe(nz(p.precio), t, p);
-      const margen = p.precio > 0 ? ((p.precio - p.costo) / p.precio) * 100 : 0;
-      return '<div class="item" onclick="editarProducto(\'' + p.id + '\')">' +
-        '<div class="punto ' + clase + '"></div>' +
-        '<div class="cuerpo"><div class="tit">' + esc(p.nombre) + '</div>' +
-        '<div class="sub">' + fmtNum(st, 0) + ' en stock · margen ' + fmtNum(margen, 0) + '% · costó $' + fmtUsd(p.costo) + '</div></div>' +
-        '<div class="der"><b class="num">$' + fmtUsd(pr.efectivo) + '</b><span class="num">Bs ' + fmtBs(pr.bs) + '</span></div></div>';
-    }).join('') + '</div>';
-  }
-
-  const dormido = capitalDormido(30);
-  if (dormido.length) {
-    const total = dormido.reduce((s, x) => s + x.valor, 0);
-    h += '<h3>Plata dormida</h3>' +
-      '<div class="aviso-caja">Tienes <b class="num">$' + fmtUsd(total) + '</b> en ' + dormido.length +
-      ' producto' + (dormido.length > 1 ? 's' : '') + ' que no se venden hace más de 30 días.</div>' +
-      '<div class="lista">' + dormido.slice(0, 8).map(x =>
-        '<div class="item" onclick="editarProducto(\'' + x.p.id + '\')"><div class="cuerpo">' +
-        '<div class="tit">' + esc(x.p.nombre) + '</div><div class="sub">' + x.dias + ' días quieto</div></div>' +
-        '<div class="der"><b class="num">$' + fmtUsd(x.valor) + '</b><span>' + fmtNum(x.p.stock, 0) + ' unidades</span></div></div>').join('') + '</div>';
-  }
-  $('#v-stock').innerHTML = h;
-  const fs = $('#fs');
-  if (fs) fs.addEventListener('input', () => { filtroStock = fs.value; const pos = fs.selectionStart; render(); const n = $('#fs'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
-}
-
-function editarProducto(id) {
-  const p = producto(id);
-  if (!p) return;
-  abrirHoja('<div class="asa"></div><h4>' + esc(p.nombre) + '</h4>' +
-    '<label>Nombre</label><input id="en" value="' + esc(p.nombre) + '">' +
-    '<label>Presentación</label><input id="ep" value="' + esc(p.presentacion || '') + '">' +
-    '<label>Categoría</label><input id="eg" value="' + esc(p.categoria || '') + '">' +
-    '<div class="fila"><div><label>Costo unidad $</label><input id="ek" type="number" step="0.01" value="' + nz(p.costo) + '"></div>' +
-    '<div><label>Precio unidad $</label><input id="ev" type="number" step="0.01" value="' + nz(p.precio) + '"></div></div>' +
-    '<div class="fila"><div><label>En stock</label><input id="es" type="number" value="' + nz(p.stock) + '"></div>' +
-    '<div><label>Mínimo</label><input id="em" type="number" value="' + nz(p.minimo) + '"></div></div>' +
-    '<div class="campo-inline"><label>Aplica descuento en divisa</label><input type="checkbox" id="ed" ' + (p.aplicaDesc !== false ? 'checked' : '') + '></div>' +
-    '<div class="campo-inline"><label>Botón rápido al vender</label><input type="checkbox" id="ef" ' + (p.favorito ? 'checked' : '') + '></div>' +
-    '<h3>Códigos de barras</h3>' +
-    p.pres.map((pr, i) =>
-      '<div class="fila" style="margin-bottom:6px"><div style="flex:0 0 34%"><input value="' + esc(pr.nombre) + '" id="pn' + i + '"></div>' +
-      '<div style="flex:0 0 18%"><input type="number" value="' + pr.factor + '" id="pf' + i + '" title="unidades"></div>' +
-      '<div><input value="' + esc(pr.codigo || '') + '" id="pc' + i + '" placeholder="código"></div></div>').join('') +
-    '<button class="btn chico" onclick="agregarPres(\'' + id + '\')">Agregar otra presentación</button>' +
-    '<div class="fila" style="margin-top:16px">' +
-    '<button class="btn rojo chico" onclick="pedirMerma(\'' + id + '\')">Merma</button>' +
-    '<button class="btn verde" onclick="guardarProducto(\'' + id + '\')">Guardar</button></div>' +
-    '<button class="btn rojo chico" style="margin-top:8px" onclick="borrarProducto(\'' + id + '\')">Quitar del catálogo</button>');
-}
-
-function agregarPres(id) {
-  guardarProducto(id, true);
-  const p = producto(id);
-  p.pres.push({ nombre: 'Caja', factor: 24, codigo: '', precio: null });
-  guardar(['productos']); reindexar();
-  editarProducto(id);
-}
-
-function guardarProducto(id, silencioso) {
-  const p = producto(id);
-  p.nombre = $('#en').value.trim() || p.nombre;
-  p.presentacion = $('#ep').value.trim();
-  p.categoria = $('#eg').value.trim();
-  p.costo = parseFloat($('#ek').value) || 0;
-  p.precio = parseFloat($('#ev').value) || 0;
-  const nuevoStock = parseFloat($('#es').value) || 0;
-  if (nuevoStock !== nz(p.stock)) {
-    movimiento('ajuste', id, nuevoStock - nz(p.stock), p.costo, '', 'ajuste manual');
-    p.stock = nuevoStock;
-  }
-  p.minimo = parseFloat($('#em').value) || 0;
-  p.aplicaDesc = $('#ed').checked;
-  p.favorito = $('#ef').checked;
-  p.pres.forEach((pr, i) => {
-    if ($('#pn' + i)) pr.nombre = $('#pn' + i).value.trim() || pr.nombre;
-    if ($('#pf' + i)) pr.factor = parseFloat($('#pf' + i).value) || 1;
-    if ($('#pc' + i)) pr.codigo = $('#pc' + i).value.trim();
-  });
-  p.actualizado = ahora();
-  reindexar(); guardar(['productos', 'movs']);
-  if (!silencioso) { cerrarHoja(); brindis('Guardado'); render(); }
-}
-
-function borrarProducto(id) {
-  const p = producto(id);
-  abrirHoja('<div class="asa"></div><h4>¿Quitar ' + esc(p.nombre) + '?</h4>' +
-    '<p class="nota">Deja de aparecer al vender, pero las ventas viejas se conservan.</p>' +
-    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarBorrar(\'' + id + '\')">Sí, quitarlo</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="editarProducto(\'' + id + '\')">Mejor no</button>');
-}
-function confirmarBorrar(id) {
-  const p = producto(id);
-  p.activo = false; reindexar(); guardar(['productos']);
-  cerrarHoja(); brindis('Quitado del catálogo'); render();
-}
-
-function pedirMerma(id) {
-  const p = producto(id);
-  abrirHoja('<div class="asa"></div><h4>Merma de ' + esc(p.nombre) + '</h4>' +
-    '<p class="nota">Botella rota, vencida, o consumo de la casa. Sale del inventario y queda registrado.</p>' +
-    '<label>¿Cuántas unidades?</label><input id="mq" type="number" inputmode="numeric" value="1">' +
-    '<label>¿Qué pasó?</label><input id="mn" placeholder="Se cayó una caja">' +
-    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarMerma(\'' + id + '\')">Registrar merma</button>');
-}
-function confirmarMerma(id) {
-  const q = parseFloat($('#mq').value) || 0;
-  if (q <= 0) return brindis('Falta la cantidad', true);
-  const p = producto(id);
-  ajustarStock(id, -q);
-  movimiento('merma', id, -q, p.costo, '', $('#mn').value.trim());
-  cerrarHoja(); brindis('Merma registrada · $' + fmtUsd(q * p.costo) + ' perdidos');
-  render();
-}
-
-/* ====================== cierre ====================== */
-function renderCierre() {
-  const hoy = hoyISO();
-  const r = resumenDia(hoy);
-  const cerrado = S.cierres.find(c => c.fecha === hoy);
-  const t = tasaVigente();
-
-  let h = '<h2>Cierre del día</h2><p class="nota">' + fechaLarga(hoy) + '</p>';
-  h += '<div class="grande" style="margin-top:12px">' +
-    '<div><b class="num">$' + fmtUsd(r.ingresoReal) + '</b><span>entró hoy</span></div>' +
-    '<div class="oro"><b class="num">$' + fmtUsd(r.gananciaReal) + '</b><span>ganancia real</span></div></div>';
-
-  h += '<div class="tarjeta"><table class="mini">' +
-    '<tr><td><b>Entró a la caja</b></td><td class="num">$' + fmtUsd(r.entroCaja) + '</td></tr>' +
-    (r.fiadoUsd > 0 ? '<tr><td>De lo vendido, fiado</td><td class="num">$' + fmtUsd(r.fiadoUsd) + '</td></tr>' : '') +
-    (r.abonosUsd > 0 ? '<tr><td>Cobrado de fiados viejos</td><td class="num">$' + fmtUsd(r.abonosUsd) + '</td></tr>' : '') +
-    '<tr><td>Ventas</td><td class="num">' + r.nVentas + '</td></tr>' +
-    '<tr><td>Unidades</td><td class="num">' + fmtNum(r.unidades, 0) + '</td></tr>' +
-    '<tr><td>Venta a precio de lista</td><td class="num">$' + fmtUsd(r.ventaLista) + '</td></tr>' +
-    '<tr><td>Descuentos que diste</td><td class="num">$' + fmtUsd(r.descuentos) + '</td></tr>' +
-    '<tr><td>Costo de lo vendido</td><td class="num">$' + fmtUsd(r.costo) + '</td></tr>' +
-    '<tr><td>Ganancia nominal</td><td class="num">$' + fmtUsd(r.gananciaNominal) + '</td></tr>' +
-    '<tr><td>Ganancia real en divisa</td><td class="num">$' + fmtUsd(r.gananciaReal) + '</td></tr>' +
-    '<tr><td>Margen</td><td class="num">' + fmtNum(r.margen, 1) + '%</td></tr>' +
-    '</table></div>';
-
-  h += '<h3>Cómo te pagaron</h3><div class="tarjeta"><table class="mini">' +
-    metodosCobrables().map(m => '<tr><td>' + m.nombre + '</td><td class="num">' +
-      (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id])) + '</td></tr>').join('') +
-    '<tr><td><b>Total en bolívares</b></td><td class="num">' + fmtBs(r.ventaBs) + ' Bs</td></tr>' +
-    '<tr><td><b>Total en divisa</b></td><td class="num">$' + fmtUsd(r.ventaUsd) + '</td></tr>' +
-    (t && t.usdt ? '<tr><td>Esos bolívares valen</td><td class="num">$' + fmtUsd(r.ventaBs / t.usdt) + '</td></tr>' : '') +
-    '</table></div>';
-
-  if (Object.keys(r.porUsuario).length > 1) {
-    h += '<h3>Quién vendió</h3><div class="tarjeta"><table class="mini">' +
-      Object.keys(r.porUsuario).map(u => '<tr><td>' + esc(u) + '</td><td class="num">$' + fmtUsd(r.porUsuario[u]) + '</td></tr>').join('') +
-      '</table></div>';
-  }
-
-  if (r.top.length) {
-    h += '<h3>Lo que más dejó hoy</h3><div class="lista">' + r.top.map(x =>
-      '<div class="item"><div class="cuerpo"><div class="tit">' + esc(x.nombre) + '</div>' +
-      '<div class="sub">' + fmtNum(x.unidades, 0) + ' unidades</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(x.ganancia) + '</b><span>ganancia</span></div></div>').join('') + '</div>';
-  }
-
-  h += '<h3>Acciones</h3>';
-  if (!S.config.soloConsulta) {
-    h += '<button class="btn ' + (cerrado ? '' : 'oro') + '" onclick="hacerCierre()">' +
-      (cerrado ? 'Volver a calcular el cierre' : 'Cerrar el día') + '</button>';
-  }
-  h += '<button class="btn" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel de ganancias</button>';
-  h += '<button class="btn" style="margin-top:8px" onclick="mandarResumen()">Mandar resumen por WhatsApp</button>';
-  h += '<button class="btn" style="margin-top:8px" onclick="bajarResumenSemanal()">Resumen de la semana en PDF</button>';
-  if (new Date().getDay() === 0) {
-    h += '<div class="aviso-caja" style="margin-top:10px">Hoy es domingo: baja el PDF de la semana y mándalo a ' +
-      esc(S.config.correo || 'tu correo') + ' para tenerlo archivado.</div>';
-  }
-  h += '<button class="btn chico" style="margin-top:8px" onclick="verVentasHoy()">Ver las ventas de hoy</button>';
-
-  if (S.cierres.length) {
-    h += '<h3>Días anteriores</h3><div class="lista">' + S.cierres.slice().reverse().slice(0, 20).map(c =>
-      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(c.fecha) + '</div>' +
-      '<div class="sub">' + c.nVentas + ' ventas · ' + fmtNum(c.unidades, 0) + ' unidades</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(c.gananciaReal) + '</b><span>$' + fmtUsd(c.ingresoReal) + ' vendido</span></div></div>'
-    ).join('') + '</div>';
-    const mes = S.cierres.filter(c => mesDe(c.fecha) === mesDe(hoy));
-    const gm = mes.reduce((s, c) => s + c.gananciaReal, 0);
-    const vm = mes.reduce((s, c) => s + c.ingresoReal, 0);
-    h += '<div class="aviso-caja" style="margin-top:12px">En lo que va del mes llevas <b class="num">$' +
-      fmtUsd(vm) + '</b> vendidos y <b class="num">$' + fmtUsd(gm) + '</b> de ganancia.</div>';
-  }
-  $('#v-cierre').innerHTML = h;
-}
-
-function hacerCierre() {
-  const c = cerrarDia(hoyISO());
-  brindis('Día cerrado · ganancia $' + fmtUsd(c.gananciaReal));
-  render();
-}
-
-function verVentasHoy() {
-  const vs = S.ventas.filter(v => v.fecha === hoyISO()).slice().reverse();
-  if (!vs.length) return brindis('Todavía no hay ventas hoy');
-  abrirHoja('<div class="asa"></div><h4>Ventas de hoy</h4><div class="lista" style="margin-top:10px">' +
-    vs.map(v => '<div class="item"><div class="cuerpo">' +
-      '<div class="tit">' + hora(v.ts) + ' · ' + v.items.length + ' renglón' + (v.items.length > 1 ? 'es' : '') +
-      (v.anulada ? ' <span class="chip rojo">anulada</span>' : '') + '</div>' +
-      '<div class="sub">' + esc(v.items.map(i => i.nombre).join(', ')).slice(0, 60) + '</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(v.ingresoReal) + '</b>' +
-      (v.anulada ? '' : '<span onclick="anularDesdeLista(\'' + v.id + '\')" style="color:var(--rojo)">anular</span>') +
-      '</div></div>').join('') + '</div>');
-}
-function anularDesdeLista(id) {
-  if (anularVenta(id)) { brindis('Venta anulada'); cerrarHoja(); render(); }
-}
-
-function mandarResumen() {
-  const r = resumenDia(hoyISO());
-  const t = tasaVigente();
-  const txt = S.config.negocio + ' — ' + fechaLarga(hoyISO()) + '\n' +
-    '────────────────\n' +
-    'Ventas: ' + r.nVentas + '\n' +
-    'Unidades: ' + fmtNum(r.unidades, 0) + '\n' +
-    'Entró a la caja: $' + fmtUsd(r.entroCaja) + '\n' +
-    (r.fiadoUsd > 0 ? 'Fiado hoy: $' + fmtUsd(r.fiadoUsd) + '\n' : '') +
-    (r.abonosUsd > 0 ? 'Cobrado de fiados: $' + fmtUsd(r.abonosUsd) + '\n' : '') +
-    'Por cobrar en total: $' + fmtUsd(totalFiado()) + '\n' +
-    'Ganancia: $' + fmtUsd(r.gananciaReal) + '\n' +
-    'Margen: ' + fmtNum(r.margen, 1) + '%\n' +
-    '────────────────\n' +
-    metodosCobrables().map(m => m.nombre + ': ' +
-      (m.moneda === 'bs' ? fmtBs(r.cobros[m.id]) + ' Bs' : '$' + fmtUsd(r.cobros[m.id]))).join('\n') + '\n' +
-    (t ? 'Tasa de venta: ' + fmtNum(t.tasaVenta, 2) + ' · USDT ' + fmtNum(t.usdt, 2) + '\n' : '') +
-    (r.top.length ? '\nLo que más dejó:\n' + r.top.map(x => '· ' + x.nombre + ' — $' + fmtUsd(x.ganancia)).join('\n') : '');
-  if (navigator.share) {
-    navigator.share({ text: txt }).catch(() => { });
-  } else {
-    window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
-  }
-}
-
-/* ---- excel ---- */
-async function exportarExcel() {
-  brindis('Armando el archivo...');
-  let todasVentas = [], todosMovs = [];
-  for (const m of S.meses) {
-    const d = await cargarMes(m);
-    todasVentas = todasVentas.concat(d.ventas);
-    todosMovs = todosMovs.concat(d.movs);
-  }
-  // asegura que el día de hoy tenga resumen aunque no se haya cerrado
-  const fechas = Array.from(new Set(todasVentas.map(v => v.fecha))).sort();
-  const resumen = [['Fecha', 'BCV', 'Proyección', 'Tasa de venta', 'USDT', 'Descuento %', 'Ventas', 'Unidades',
-    'Venta lista $', 'Descuentos $', 'Entró $', 'Costo $', 'Ganancia nominal $', 'Ganancia real $', 'Margen %',
-    'Punto de venta Bs', 'Efectivo Bs', 'Pago móvil Bs', 'Efectivo divisas $', 'Binance $',
-    'Total Bs', 'Total divisas $', 'Fiado del día $', 'Cobrado de fiados $', 'Entró a la caja $']];
-  fechas.forEach(f => {
-    const r = resumenDia(f, todasVentas);
-    const t = S.tasas.find(x => x.fecha === f) || {};
-    resumen.push([f, nz(t.bcv), nz(t.proyeccion), nz(t.tasaVenta), nz(t.usdt), nz(t.descuentoPct),
-      r.nVentas, r.unidades, r.ventaLista, r.descuentos, r.ingresoReal, r.costo,
-      r.gananciaNominal, r.gananciaReal, r.margen,
-      r.cobros.punto, r.cobros.efectivo_bs, r.cobros.pago_movil,
-      r.cobros.efectivo_usd, r.cobros.binance,
-      r.ventaBs, r.ventaUsd, r.fiadoUsd, r.abonosUsd, r.entroCaja]);
-  });
-
-  // hoja de fiado
-  const fiados = [['Cliente', 'WhatsApp', 'Fiado el', 'Vence', 'Días', 'Monto $', 'Abonado $', 'Saldo $',
-    'Saldo en Bs hoy', 'Estado', 'Días de atraso', 'Origen', 'Nota']];
-  const tHoy = tasaVigente();
-  S.deudas.slice().sort((a, b) => a.vence < b.vence ? -1 : 1).forEach(d => {
-    const c = cliente(d.clienteId) || { nombre: '?', telefono: '' };
-    const saldo = saldoDeuda(d);
-    const abonado = nz(d.montoUsd) - saldo;
-    const atraso = d.pagada ? 0 : diasEntre(d.vence, hoyISO());
-    fiados.push([c.nombre, c.telefono ? '+' + c.telefono : '', d.fecha, d.vence, d.dias,
-      nz(d.montoUsd), abonado, saldo,
-      tHoy ? saldo * tHoy.tasaVenta : 0,
-      d.perdida ? 'Perdida' : (d.pagada ? 'Pagada' : (atraso > 0 ? 'Atrasada' : 'Al día')),
-      d.pagada ? 0 : Math.max(0, atraso), d.origen === 'manual' ? 'Cargada a mano' : 'Venta', d.nota || '']);
-  });
-
-  const abonosH = [['Fecha', 'Hora', 'Quién cobró', 'Cliente', 'Forma de pago', 'Monto $', 'Monto Bs']];
-  S.deudas.forEach(d => (d.abonos || []).forEach(a => {
-    abonosH.push([a.fecha, hora(a.ts), a.usuario, nombreCliente(d.clienteId), nombreMetodo(a.metodo),
-      nz(a.montoUsd), nz(a.montoBs)]);
-  }));
-
-  // hoja nueva: una fila por venta con cómo entró la plata
-  const cobros = [['Fecha', 'Hora', 'Quién', 'Venta', 'Forma de pago',
-    'Método en bolívares', 'Monto Bs', 'Método en divisa', 'Monto $',
-    'Total en divisa $', 'Costo $', 'Ganancia real $', 'Anulada']];
-  todasVentas.forEach(v => {
-    const mBs = v.metodoBs || (['efectivo_usd', 'binance', 'mixto'].indexOf(v.metodo) < 0 ? v.metodo : null);
-    const mUsd = v.metodoUsd || (['efectivo_usd', 'binance'].indexOf(v.metodo) >= 0 ? v.metodo : null);
-    cobros.push([v.fecha, hora(v.ts), v.usuario, v.id,
-      v.metodo === 'mixto' ? 'Combinado' : nombreMetodo(v.metodo),
-      mBs ? nombreMetodo(mBs) : '', nz(v.cobradoBs),
-      mUsd ? nombreMetodo(mUsd) : '', nz(v.cobradoUsd),
-      nz(v.ingresoReal), nz(v.costoTotal), nz(v.gananciaReal), v.anulada ? 'sí' : 'no']);
-  });
-
-  const detalle = [['Fecha', 'Hora', 'Quién', 'Venta', 'Producto', 'Presentación', 'Cantidad', 'Unidades',
-    'Costo unit $', 'Precio lista $', 'Precio Bs', 'Precio efectivo $', 'Subtotal $', 'Ganancia $', 'Pago', 'Anulada']];
-  todasVentas.forEach(v => v.items.forEach(it => {
-    detalle.push([v.fecha, hora(v.ts), v.usuario, v.id, it.nombre, it.presNombre, it.cant, it.unidades,
-      it.costoUnit, it.precioLista, it.precioBs, it.precioEfectivo, it.subtotalLista, it.gananciaLinea,
-      v.metodo === 'mixto' ? 'Combinado' : nombreMetodo(v.metodo), v.anulada ? 'sí' : 'no']);
-  }));
-
-  const inventario = [['Código', 'Producto', 'Presentación', 'Categoría', 'Stock', 'Costo $', 'Precio $',
-    'Valor costo $', 'Valor venta $', 'Margen %', 'Última venta']];
-  S.productos.forEach(p => {
-    const cod = (p.pres.find(x => x.factor === 1) || p.pres[0] || {}).codigo || '';
-    inventario.push([cod, p.nombre, p.presentacion || '', p.categoria || '', nz(p.stock), nz(p.costo), nz(p.precio),
-      nz(p.stock) * nz(p.costo), nz(p.stock) * nz(p.precio),
-      p.precio > 0 ? ((p.precio - p.costo) / p.precio) * 100 : 0, p.ultimaVenta || '']);
-  });
-
-  const movs = [['Fecha', 'Hora', 'Quién', 'Producto', 'Tipo', 'Unidades', 'Costo unit $', 'Nota']];
-  todosMovs.forEach(m => {
-    const p = producto(m.productoId);
-    movs.push([m.fecha, hora(m.ts), m.usuario, p ? p.nombre : m.productoId, m.tipo, m.unidades, m.costo, m.nota || '']);
-  });
-
-  const tasas = [['Fecha', 'BCV', 'USDT', 'Promedio 3 días', 'Proyección', 'Tasa de venta', 'Descuento %', 'Brecha %', 'Origen']];
-  S.tasas.forEach(t => tasas.push([t.fecha, t.bcv, t.usdt, t.promedio3d, t.proyeccion, t.tasaVenta, t.descuentoPct,
-    t.usdt > 0 ? (1 - t.bcv / t.usdt) * 100 : 0, t.origen]));
-
-  const hojas = [
-    { nombre: 'Resumen_Diario', columnas: [11, 10, 11, 13, 10, 11, 8, 9, 13, 12, 11, 10, 17, 15, 10, 16, 13, 15, 17, 12, 13, 16, 14, 17, 16], filas: resumen },
-    { nombre: 'Fiado', columnas: [22, 15, 11, 11, 7, 10, 11, 10, 15, 11, 13, 14, 24], filas: fiados },
-    { nombre: 'Abonos_Fiado', columnas: [11, 7, 12, 22, 24, 11, 14], filas: abonosH },
-    { nombre: 'Cobros_Por_Venta', columnas: [11, 7, 10, 14, 14, 24, 13, 20, 11, 15, 10, 14, 9], filas: cobros },
-    { nombre: 'Ventas_Detalle', columnas: [11, 7, 10, 12, 26, 13, 9, 9, 11, 13, 12, 15, 11, 11, 14, 9], filas: detalle },
-    { nombre: 'Inventario', columnas: [16, 26, 13, 12, 8, 9, 9, 12, 12, 9, 12], filas: inventario },
-    { nombre: 'Movimientos', columnas: [11, 7, 10, 26, 12, 9, 11, 24], filas: movs },
-    { nombre: 'Tasas', columnas: [11, 10, 10, 14, 11, 13, 11, 10, 9], filas: tasas }
-  ];
-  const bytes = construirXLSX(hojas);
-  const nombre = 'CAVA_' + S.config.negocio.replace(/[^a-zA-Z0-9]/g, '_') + '_' + hoyISO() + '.xlsx';
-  descargar(nombre, new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-  brindis('Excel listo, revisa tus descargas');
-}
-
-/* ====================== tasas ====================== */
-function renderTasas() {
-  const hoy = hoyISO();
-  const t = tasaDe(hoy);
-  const vig = tasaVigente();
-  let h = '<h2>Tasas del día</h2>';
-
-  if (!t) h += '<div class="aviso-caja mal">Todavía no has cargado la tasa de hoy.</div>';
-
-  h += '<button class="btn oro" onclick="bajarAuto()">Bajar tasas de internet</button>' +
-    '<p class="nota">Toma el BCV y el paralelo de ve.dolarapi.com. Si no hay internet, métela a mano abajo.</p>';
-
-  h += '<div class="tarjeta" style="margin-top:14px">' +
-    '<label>BCV de hoy (Bs por dólar)</label><input id="tbcv" type="number" step="0.0001" value="' + (t ? t.bcv : (vig ? vig.bcv : '')) + '" oninput="previaTasa()">' +
-    '<label>USDT Binance de hoy (Bs por dólar)</label><input id="tusdt" type="number" step="0.0001" value="' + (t ? t.usdt : (vig ? vig.usdt : '')) + '" oninput="previaTasa()">' +
-    '<div id="tprev" style="margin-top:12px"></div>' +
-    '<button class="btn verde" style="margin-top:12px" onclick="guardarTasaManual()">Guardar la tasa de hoy</button>' +
-    '</div>';
-
-  if (S.tasas.length) {
-    const ult = S.tasas.slice(-15);
-    const min = Math.min.apply(null, ult.map(x => x.bcv));
-    const max = Math.max.apply(null, ult.map(x => x.bcv));
-    const rango = (max - min) || 1;
-    h += '<h3>Cómo viene subiendo el BCV</h3>' +
-      '<div class="grafico">' + ult.map(x =>
-        '<div style="height:' + (12 + ((x.bcv - min) / rango) * 58) + 'px" title="' + x.fecha + ': ' + fmtNum(x.bcv, 2) + '"></div>').join('') + '</div>' +
-      '<p class="nota">' + fmtNum(min, 2) + ' → ' + fmtNum(max, 2) + ' Bs en los últimos ' + ult.length + ' registros</p>';
-
-    h += '<h3>Historial</h3><div class="lista">' + S.tasas.slice().reverse().slice(0, 30).map(x =>
-      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(x.fecha) + '</div>' +
-      '<div class="sub">BCV ' + fmtNum(x.bcv, 2) + ' · venta ' + fmtNum(x.tasaVenta, 2) + ' · ' + esc(x.origen || 'manual') + '</div></div>' +
-      '<div class="der"><b class="num">' + fmtNum(x.descuentoPct, 1) + '%</b><span>USDT ' + fmtNum(x.usdt, 0) + '</span></div></div>'
-    ).join('') + '</div>';
-  }
-  h += '<button class="btn chico" style="margin-top:14px" onclick="irA(\'ajustes\')">Cambiar cómo se calcula</button>';
-  $('#v-tasas').innerHTML = h;
-  previaTasa();
-}
-
-function previaTasa() {
-  const bcv = parseFloat($('#tbcv').value) || 0;
-  const usdt = parseFloat($('#tusdt').value) || 0;
-  const d = $('#tprev');
-  if (!bcv || !usdt) { d.innerHTML = '<p class="nota">Mete las dos tasas para ver el cálculo.</p>'; return; }
-  const t = calcularTasa(hoyISO(), bcv, usdt, 'manual');
-  const brecha = (1 - bcv / usdt) * 100;
-  d.innerHTML = '<table class="mini">' +
-    '<tr><td>Sube en promedio (últimos 3 días)</td><td class="num">' + fmtNum(t.promedio3d, 2) + ' Bs/día</td></tr>' +
-    '<tr><td>Proyección a ' + S.config.diasCobertura + ' día' + (S.config.diasCobertura > 1 ? 's' : '') + (t.topado ? ' (topada)' : '') + '</td><td class="num">+' + fmtNum(t.proyeccion, 2) + ' Bs</td></tr>' +
-    '<tr><td><b>Tasa a la que vendes</b></td><td class="num">' + fmtNum(t.tasaVenta, 2) + '</td></tr>' +
-    '<tr><td>Brecha BCV contra USDT</td><td class="num">' + fmtNum(brecha, 2) + '%</td></tr>' +
-    '<tr><td><b>Descuento en divisa</b></td><td class="num">' + fmtNum(t.descuentoPct, 2) + '%</td></tr>' +
-    '</table>' +
-    '<div class="aviso-caja" style="margin-top:10px">Algo de <b>$10</b> se vende a <b class="num">' +
-    fmtBs(redondear(10 * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b> o <b class="num">$' +
-    fmtUsd(redondear(10 * (1 - t.descuentoPct / 100), 0.01)) + '</b> en efectivo.</div>' +
-    (t.refFecha ? '<p class="nota">Comparado contra el BCV del ' + t.refFecha + ' (' + fmtNum(t.refBcv, 2) + ').</p>'
-      : '<p class="nota">Todavía no hay 3 días de historia, así que la proyección va en cero. Se corrige sola.</p>');
-}
-
-function guardarTasaManual() {
-  const bcv = parseFloat($('#tbcv').value) || 0;
-  const usdt = parseFloat($('#tusdt').value) || 0;
-  if (!bcv || !usdt) return brindis('Faltan las tasas', true);
-  guardarTasa(calcularTasa(hoyISO(), bcv, usdt, 'manual'));
-  brindis('Tasa guardada'); render();
-}
-
-async function bajarAuto() {
-  brindis('Buscando las tasas...');
-  const r = await bajarTasas();
-  if (r.error || !r.bcv) return brindis(r.error || 'No se pudo', true);
-  guardarTasa(calcularTasa(hoyISO(), r.bcv, r.usdt, 'auto'));
-  brindis('Tasas actualizadas'); render();
-}
-
-/* ====================== ajustes ====================== */
-function renderAjustes() {
-  const c = S.config;
-  let h = '<h2>Ajustes</h2>';
-
-  h += '<h3>Quién está atendiendo</h3><div class="fila">' +
-    c.usuarios.map((u, i) => '<button class="btn chico ' + (c.usuario === u ? 'oro' : '') + '" onclick="elegirUsuario(' + i + ')">' + esc(u) + '</button>').join('') +
-    '</div>';
-
-  h += '<h3>El negocio</h3><div class="tarjeta">' +
-    '<label>Nombre</label><input id="cneg" value="' + esc(c.negocio) + '">' +
-    '<label>Nombres de quienes atienden (separados por coma)</label><input id="cusr" value="' + esc(c.usuarios.join(', ')) + '">' +
-    '<label>Correo para los resúmenes</label><input id="cmail" type="email" value="' + esc(c.correo || '') + '">' +
-    '</div>';
-
-  h += '<h3>Cómo se calcula el precio</h3><div class="tarjeta">' +
-    '<label>Dónde va el recargo por la subida del dólar</label>' +
-    '<select id="cmodo"><option value="B"' + (c.modoRecargo === 'B' ? ' selected' : '') + '>Dentro del precio (exhibes la tasa BCV)</option>' +
-    '<option value="A"' + (c.modoRecargo === 'A' ? ' selected' : '') + '>En la tasa (exhibes la tasa de venta)</option></select>' +
-    '<p class="nota">El dinero que cobras es idéntico en las dos. Cambia solo qué número se ve.</p>' +
-    '<div class="campo-inline"><label>Días de cobertura</label><input id="ccob" type="number" min="0" max="7" value="' + c.diasCobertura + '"></div>' +
-    '<p class="nota">Cada cuántos días conviertes los bolívares. Si conviertes el mismo día, deja 1.</p>' +
-    '<div class="campo-inline"><label>Tope de la proyección (% del BCV)</label><input id="ctop" type="number" step="0.5" value="' + c.topeProyeccionPct + '"></div>' +
-    '<div class="campo-inline"><label>Tope del descuento (%)</label><input id="ctd" type="number" step="1" value="' + c.topeDescuentoPct + '"></div>' +
-    '<div class="campo-inline"><label>Piso del descuento (%)</label><input id="cpd" type="number" step="0.5" value="' + c.pisoDescuentoPct + '"></div>' +
-    '<div class="campo-inline"><label>Redondear bolívares a</label><input id="crb" type="number" step="1" value="' + c.redondeoBs + '"></div>' +
-    '<div class="campo-inline"><label>Redondear dólares a</label><input id="cru" type="number" step="0.05" value="' + c.redondeoUsd + '"></div>' +
-    '<div class="campo-inline"><label>Cobrar IGTF ' + c.igtfPct + '% en divisa</label><input type="checkbox" id="cigtf" ' + (c.igtf ? 'checked' : '') + '></div>' +
-    '</div>';
-
-  h += '<button class="btn verde" onclick="guardarAjustes()">Guardar ajustes</button>';
-
-  h += '<h3>Para qué sirve este aparato</h3><div class="tarjeta">' +
-    '<div class="campo-inline"><label>Solo consultar, sin vender ni cargar</label>' +
-    '<input type="checkbox" id="ccons" ' + (c.soloConsulta ? 'checked' : '') + ' onchange="cambiarModo(this.checked)"></div>' +
-    '<p class="nota">Enciéndelo en los teléfonos que no son la caja. Esconde Vender y Cargar para que nadie cobre desde el aparato equivocado por costumbre.</p></div>';
-
-  h += '<h3>Tus datos</h3><div class="tarjeta">' +
-    '<p class="nota">Todo vive dentro de este teléfono. Si lo pierdes o lo formateas, se pierde. Baja un respaldo cada tanto.</p>' +
-    '<button class="btn" style="margin-top:10px" onclick="bajarRespaldo()">Bajar respaldo</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="pedirRestaurar()">Restaurar desde un respaldo</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="exportarExcel()">Bajar el Excel</button>' +
-    '</div>';
-
-  h += '<div class="tarjeta"><p class="nota"><b style="color:var(--ambar)">CAVA versión ' + VERSION + '</b><br>' +
-    'Guardado en: ' + (DB.modo === 'idb' ? 'base de datos del navegador' : 'almacenamiento simple') +
-    ' · ' + S.productos.length + ' productos · ' + S.ventas.length + ' ventas este mes</p>' +
-    '<button class="btn rojo chico" style="margin-top:10px" onclick="pedirBorrarTodo()">Borrar todo y empezar de cero</button></div>';
-
-  h += '<button class="btn chico" style="margin-top:14px" onclick="irA(\'ayuda\')">Cómo se usa</button>';
-  $('#v-ajustes').innerHTML = h;
-}
-
-function cambiarModo(activo) {
-  if (activo && (S.ventas.length || S.productos.length)) {
-    abrirHoja('<div class="asa"></div><h4>¿Este aparato deja de vender?</h4>' +
-      '<p class="nota">Se esconden Vender y Cargar. Lo que ya está guardado acá no se borra, pero deja de moverse: para verlo al día habrá que restaurar el respaldo de la caja.</p>' +
-      '<button class="btn oro" style="margin-top:14px" onclick="confirmarModo(true)">Sí, solo consultar</button>' +
-      '<button class="btn chico" style="margin-top:8px" onclick="cerrarHoja();render()">Mejor no</button>');
-    return;
-  }
-  confirmarModo(activo);
-}
-function confirmarModo(activo) {
-  S.config.soloConsulta = !!activo;
-  guardar(['config']);
-  cerrarHoja();
-  brindis(activo ? 'Aparato en modo consulta' : 'Aparato habilitado para vender');
-  irA('inicio');
-}
-
-function elegirUsuario(i) {
-  const u = S.config.usuarios[i];
-  if (u) { S.config.usuario = u; guardar(['config']); render(); }
-}
-
-function guardarAjustes() {
-  const c = S.config;
-  c.negocio = $('#cneg').value.trim() || c.negocio;
-  const us = $('#cusr').value.split(',').map(s => s.trim()).filter(Boolean);
-  if (us.length) { c.usuarios = us; if (us.indexOf(c.usuario) < 0) c.usuario = us[0]; }
-  if ($('#cmail')) c.correo = $('#cmail').value.trim();
-  c.modoRecargo = $('#cmodo').value;
-  c.diasCobertura = Math.max(0, parseFloat($('#ccob').value) || 0);
-  c.topeProyeccionPct = Math.max(0, parseFloat($('#ctop').value) || 0);
-  c.topeDescuentoPct = Math.max(0, parseFloat($('#ctd').value) || 0);
-  c.pisoDescuentoPct = Math.max(0, parseFloat($('#cpd').value) || 0);
-  c.redondeoBs = Math.max(0, parseFloat($('#crb').value) || 0);
-  c.redondeoUsd = Math.max(0, parseFloat($('#cru').value) || 0);
-  c.igtf = $('#cigtf').checked;
-  if ($('#ccons')) c.soloConsulta = $('#ccons').checked;
-  // recalcula la tasa de hoy con los parámetros nuevos
-  const t = tasaDe(hoyISO());
-  if (t) guardarTasa(calcularTasa(hoyISO(), t.bcv, t.usdt, t.origen));
-  guardar(['config']);
-  brindis('Ajustes guardados'); render();
-}
-
-async function bajarRespaldo() {
-  const datos = { version: 2, fecha: ahora(), config: S.config, productos: S.productos, tasas: S.tasas, cierres: S.cierres, meses: S.meses, clientes: S.clientes, deudas: S.deudas, ventas: {}, movs: {} };
-  for (const m of S.meses) {
-    const d = await cargarMes(m);
-    datos.ventas[m] = d.ventas; datos.movs[m] = d.movs;
-  }
-  descargar('respaldo_cava_' + hoyISO() + '.json', JSON.stringify(datos), 'application/json');
-  brindis('Respaldo bajado');
-}
-
-function pedirRestaurar() {
-  abrirHoja('<div class="asa"></div><h4>Restaurar respaldo</h4>' +
-    '<p class="nota">Reemplaza todo lo que hay ahora por lo que traiga el archivo.</p>' +
-    '<input type="file" id="arch" accept=".json" style="margin-top:14px">' +
-    '<button class="btn rojo" style="margin-top:14px" onclick="hacerRestaurar()">Restaurar</button>');
-}
-function hacerRestaurar() {
-  const f = $('#arch').files[0];
-  if (!f) return brindis('Elige el archivo', true);
-  const r = new FileReader();
-  r.onload = async () => {
-    try {
-      const d = JSON.parse(r.result);
-      S.config = Object.assign({}, CFG_DEF, d.config || {});
-      S.productos = d.productos || []; S.tasas = d.tasas || [];
-      S.cierres = d.cierres || []; S.meses = d.meses || [];
-      S.clientes = d.clientes || []; S.deudas = d.deudas || [];
-      for (const m of Object.keys(d.ventas || {})) await DB.set('ventas_' + m, d.ventas[m]);
-      for (const m of Object.keys(d.movs || {})) await DB.set('movs_' + m, d.movs[m]);
-      const mm = mesDe(hoyISO());
-      S.mesCargado = mm;
-      S.ventas = (d.ventas || {})[mm] || []; S.movs = (d.movs || {})[mm] || [];
-      if (S.meses.indexOf(mm) < 0) S.meses.push(mm);
-      reindexar(); await DB.set('iniciado', true); await guardarYa();
-      cerrarHoja(); brindis('Restaurado'); render();
-    } catch (e) { brindis('El archivo no sirve', true); }
-  };
-  r.readAsText(f);
-}
-
-function pedirBorrarTodo() {
-  abrirHoja('<div class="asa"></div><h4>¿Borrar todo?</h4>' +
-    '<p class="nota">Se van los productos, las ventas y el historial. No hay vuelta atrás. Baja un respaldo antes si tienes dudas.</p>' +
-    '<button class="btn chico" style="margin-top:14px" onclick="bajarRespaldo()">Primero bajar respaldo</button>' +
-    '<button class="btn rojo" style="margin-top:8px" onclick="hacerBorrarTodo()">Sí, borrar todo</button>');
-}
-async function hacerBorrarTodo() {
-  cancelarGuardado();               // que ningún guardado en cola resucite lo borrado
-  carrito = [];
-  await DB.borrarTodo();
-  await DB.set('iniciado', true);   // que no vuelva a sembrar los ejemplos
-  location.reload();
-}
-
-/* ====================== ayuda ====================== */
-function renderAyuda() {
-  $('#v-ayuda').innerHTML = '<h2>Cómo se usa</h2>' +
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Todos los días, al abrir</h4>' +
-    '<p class="nota">Entra a Tasas y toca "Bajar tasas de internet". Con eso queda listo el precio del día. Si no hay señal, escribe el BCV y el USDT a mano.</p></div>' +
-
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Para vender</h4>' +
-    '<p class="nota">Toca Vender. Escanea con el botón de la derecha, o toca uno de los botones rápidos, o escribe el nombre y dale a la tecla de enviar. Cuando esté todo, toca Cobrar y elige cómo paga. Los dos totales — bolívares y divisa — están siempre abajo.</p></div>' +
-
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Si escaneas de más</h4>' +
-    '<p class="nota">Toca el signo menos para bajar la cantidad, o la equis para sacar el renglón. Si ya cobraste, en Vender aparece "Anular esa venta" y el inventario vuelve a su sitio.</p></div>' +
-
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Cuando llega mercancía</h4>' +
-    '<p class="nota">Toca Cargar y escanea. Si el producto ya existe te pide cuántas entraron y cuánto costaron. Si escaneaste una caja, pon el costo de la caja completa: la app divide sola. Si el código es nuevo, te lleva a darlo de alta.</p></div>' +
-
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Al terminar el día</h4>' +
-    '<p class="nota">Toca Cierre y luego "Cerrar el día". Ahí ves cuánto entró, cuánto ganaste de verdad y qué producto dejó más. El botón del Excel baja el archivo con todo el historial.</p></div>' +
-
-    '<div class="tarjeta"><h4 style="margin:0 0 8px">Una vez por semana</h4>' +
-    '<p class="nota">En Ajustes, baja un respaldo. Es un archivo chiquito. Si el teléfono se pierde o se moja, con ese archivo recuperas todo.</p></div>' +
-
-    '<button class="btn" onclick="irA(\'inicio\')">Volver al inicio</button>';
-}
-
-/* ====================== arranque ====================== */
-function esc(s) {
-  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
-async function arrancar() {
-  await cargarEstado();
-  const yaArrancado = await DB.get('iniciado');
-  if (!yaArrancado) {
-    if (!S.productos.length && !S.tasas.length) await sembrarEjemplo();
-    await DB.set('iniciado', true);
-  }
-  irA(S.tasas.length ? 'inicio' : 'tasas');
-  if (S.config.autoTasas && !tasaDe(hoyISO())) {
-    const r = await bajarTasas();
-    if (!r.error && r.bcv) { guardarTasa(calcularTasa(hoyISO(), r.bcv, r.usdt, 'auto')); render(); }
-  }
-}
-
-async function sembrarEjemplo() {
-  const demo = [
-    ['Cerveza Polar Pilsen', 'lata 269 cc', 'Cerveza', 0.62, 0.90, 96, 24, true, 24],
-    ['Cerveza Solera Verde', 'lata 269 cc', 'Cerveza', 0.68, 1.00, 48, 24, true, 24],
-    ['Ron Cacique 500 Añejo', '750 ml', 'Ron', 6.10, 9.50, 12, 3, true, 12],
-    ['Ron Santa Teresa 1796', '750 ml', 'Ron', 21.00, 31.00, 4, 2, false, 6],
-    ['Whisky Old Parr', '750 ml', 'Whisky', 26.00, 38.00, 3, 2, false, 6],
-    ['Vodka Absolut', '750 ml', 'Vodka', 14.50, 22.00, 5, 2, false, 6],
-    ['Ponche Crema', '750 ml', 'Licor', 5.20, 8.00, 8, 3, false, 12],
-    ['Agua Minalba', '600 ml', 'Bebidas', 0.35, 0.70, 40, 12, true, 24],
-    ['Hielo', 'bolsa 2 kg', 'Otros', 0.60, 1.25, 20, 6, true, 1],
-    ['Cigarrillos Belmont', 'cajetilla', 'Cigarrillos', 1.40, 1.90, 25, 10, true, 10]
-  ];
-  S.productos = demo.map((d, i) => {
-    const pres = [{ nombre: 'Unidad', factor: 1, codigo: 'DEMO' + pad(i + 1), precio: null }];
-    if (d[8] > 1) pres.push({ nombre: 'Caja de ' + d[8], factor: d[8], codigo: 'DEMOC' + pad(i + 1), precio: null });
-    return {
-      id: uid(), nombre: d[0], presentacion: d[1], categoria: d[2], costo: d[3], precio: d[4],
-      stock: d[5], minimo: d[6], favorito: d[7], aplicaDesc: true, activo: true, pres,
-      creado: ahora(), creadoFecha: hoyISO(), actualizado: ahora(), demo: true
-    };
-  });
-  reindexar();
-  guardar(['productos']);
-}
-
-if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => { try { reg.update(); } catch (e) { } })
-      .catch(() => { });
-  });
-  let recargando = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (recargando) return;
-    recargando = true;
-    location.reload();
-  });
-}
-
-document.addEventListener('DOMContentLoaded', arrancar);
-if (document.readyState !== 'loading') arrancar();
-
-/* acceso desde la consola del navegador, útil para revisar o depurar */
-window.CAVA = {
-  version: VERSION,
-  get S() { return S; },
-  get carrito() { return carrito; }, set carrito(v) { carrito = v; },
-  hoyISO, tasaVigente, calcularTasa, guardarTasa, preciosDe, totalesCarrito,
-  registrarVenta, resumenDia, cerrarDia, anularVenta, producto, buscarCodigo,
-  exportarExcel, bajarRespaldo, render
-};
-
-/* ====================== fiado ====================== */
-function renderFiado() {
-  const t = tasaVigente();
-  const abiertas = deudasAbiertas();
-  const hoyCobrar = cobrosDeHoy();
-  const total = totalFiado();
-
-  let h = '<h2>Fiado</h2>' +
-    '<div class="grande">' +
-    '<div class="oro"><b class="num">$' + fmtUsd(total) + '</b><span>por cobrar</span></div>' +
-    '<div><b class="num">' + abiertas.length + '</b><span>personas deben</span></div>' +
-    '</div>';
-
-  if (t) {
-    h += '<p class="nota">Son ' + fmtBs(total * t.tasaVenta) + ' Bs a la tasa de hoy.</p>';
-  }
-
-  if (hoyCobrar.length) {
-    h += '<h3>Cobros de hoy</h3>';
-    h += '<div class="aviso-caja">Toca <b>Cobrar</b> y se abre WhatsApp con el mensaje ya escrito. El texto cambia todos los días, no se repite.</div>';
-    h += '<div class="lista">' + hoyCobrar.map(d => filaDeuda(d, t, true)).join('') + '</div>';
-    if (hoyCobrar.length > 1) {
-      h += '<button class="btn oro" style="margin-top:10px" onclick="cobrarEnFila(0)">Cobrarles a los ' + hoyCobrar.length + ', uno por uno</button>';
-    }
-  }
-
-  const pendientes = abiertas.filter(d => hoyCobrar.indexOf(d) < 0);
-  if (pendientes.length) {
-    h += '<h3>Todavía no vencen</h3><div class="lista">' + pendientes.map(d => filaDeuda(d, t, false)).join('') + '</div>';
-  }
-
-  if (!abiertas.length) {
-    h += '<div class="vacio"><b>Nadie debe nada</b>Cuando vendas fiado o agregues una deuda vieja, aparece aquí.</div>';
-  }
-
-  h += '<button class="btn" style="margin-top:14px" onclick="nuevaDeudaVieja()">Agregar una deuda que ya existía</button>';
-  h += '<button class="btn chico" style="margin-top:8px" onclick="irA(\'clientes\')">Ver clientes</button>';
-
-  const pagadas = S.deudas.filter(d => d.pagada).slice().reverse().slice(0, 10);
-  if (pagadas.length) {
-    h += '<h3>Ya pagaron</h3><div class="lista">' + pagadas.map(d =>
-      '<div class="item"><div class="cuerpo"><div class="tit">' + esc(nombreCliente(d.clienteId)) + '</div>' +
-      '<div class="sub">pagó el ' + fechaLarga(d.fechaPago || d.fecha) + '</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(d.montoUsd) + '</b></div></div>').join('') + '</div>';
-  }
-  $('#v-fiado').innerHTML = h;
-}
-
-function filaDeuda(d, t, urgente) {
-  const c = cliente(d.clienteId) || { nombre: 'Cliente', telefono: '' };
-  const m = montosDeuda(d, t);
-  const atraso = diasEntre(d.vence, hoyISO());
-  const etiqueta = atraso > 0 ? ('atrasado ' + atraso + (atraso === 1 ? ' día' : ' días'))
-    : (atraso === 0 ? 'vence hoy' : 'vence en ' + (-atraso) + (atraso === -1 ? ' día' : ' días'));
-  return '<div class="item">' +
-    '<div class="punto ' + (atraso > 3 ? 'p-rojo' : (atraso >= 0 ? 'p-ama' : 'p-verde')) + '"></div>' +
-    '<div class="cuerpo" onclick="verDeuda(\'' + d.id + '\')">' +
-    '<div class="tit">' + esc(c.nombre) + '</div>' +
-    '<div class="sub">' + etiqueta + ' · ' + fmtBs(m.bs) + ' Bs</div></div>' +
-    '<div class="der"><b class="num">$' + fmtUsd(m.saldo) + '</b>' +
-    (c.telefono ? '<span onclick="cobrar(\'' + d.id + '\')" style="color:var(--ambar);font-weight:600">Cobrar</span>' : '<span>sin WhatsApp</span>') +
-    '</div></div>';
-}
-
-function cobrar(id) {
-  const d = deuda(id);
-  const c = cliente(d.clienteId);
-  if (!c || !c.telefono) return brindis('Ese cliente no tiene WhatsApp guardado', true);
-  const texto = mensajeCobro(d, tasaVigente());
-  abrirWhatsApp(c.telefono, texto);
-  d.ultimoCobro = hoyISO();
-  guardar(['deudas']);
-}
-
-let filaCobro = [];
-function cobrarEnFila(i) {
-  if (i === 0) filaCobro = cobrosDeHoy().filter(d => { const c = cliente(d.clienteId); return c && c.telefono; });
-  if (i >= filaCobro.length) { cerrarHoja(); brindis('Listo, ya les escribiste a todos'); return render(); }
-  const d = filaCobro[i];
-  const c = cliente(d.clienteId);
-  const texto = mensajeCobro(d, tasaVigente());
-  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + ' · ' + (i + 1) + ' de ' + filaCobro.length + '</h4>' +
-    '<div class="tarjeta" style="white-space:pre-wrap;font-size:14px;line-height:1.5">' + esc(texto) + '</div>' +
-    '<button class="btn oro" onclick="cobrar(\'' + d.id + '\');setTimeout(function(){cobrarEnFila(' + (i + 1) + ')},900)">Abrir WhatsApp y enviar</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="cobrarEnFila(' + (i + 1) + ')">Saltar a este</button>');
-}
-
-function verDeuda(id) {
-  const d = deuda(id);
-  const c = cliente(d.clienteId) || { nombre: 'Cliente', telefono: '' };
-  const t = tasaVigente();
-  const m = montosDeuda(d, t);
-  let h = '<div class="asa"></div><h4>' + esc(c.nombre) + '</h4>' +
-    '<p class="nota">' + (c.telefono ? telBonito(c.telefono) : 'sin WhatsApp') + ' · fiado el ' + fechaLarga(d.fecha) +
-    ' · vence ' + fechaLarga(d.vence) + '</p>' +
-    (d.nota ? '<p class="nota">Nota: ' + esc(d.nota) + '</p>' : '') +
-    '<div class="tarjeta"><table class="mini">' +
-    '<tr><td>Debe</td><td class="num">$' + fmtUsd(m.saldo) + '</td></tr>' +
-    '<tr><td>En bolívares hoy</td><td class="num">' + fmtBs(m.bs) + ' Bs</td></tr>' +
-    '<tr><td>En efectivo o Binance</td><td class="num">$' + fmtUsd(m.efectivo) + '</td></tr>' +
-    '</table></div>';
-  if ((d.abonos || []).length) {
-    h += '<h3>Abonos</h3><div class="lista">' + d.abonos.map(a =>
-      '<div class="item"><div class="cuerpo"><div class="tit">' + fechaLarga(a.fecha) + '</div>' +
-      '<div class="sub">' + nombreMetodo(a.metodo) + '</div></div>' +
-      '<div class="der"><b class="num">$' + fmtUsd(a.montoUsd) + '</b></div></div>').join('') + '</div>';
-  }
-  h += '<div class="fila" style="margin-top:14px">' +
-    (c.telefono ? '<button class="btn chico" onclick="cobrar(\'' + d.id + '\')">Mandar cobro</button>' : '') +
-    '<button class="btn verde" onclick="pantallaAbono(\'' + d.id + '\')">Registrar pago</button></div>' +
-    '<button class="btn rojo chico" style="margin-top:8px" onclick="perdonarDeuda(\'' + d.id + '\')">Dar por perdida</button>';
-  abrirHoja(h);
-}
-
-function pantallaAbono(id) {
-  const d = deuda(id);
-  const t = tasaVigente();
-  const m = montosDeuda(d, t);
-  abrirHoja('<div class="asa"></div><h4>¿Cuánto pagó?</h4>' +
-    '<p class="nota">' + esc(nombreCliente(d.clienteId)) + ' debe $' + fmtUsd(m.saldo) + '</p>' +
-    '<label>¿Cómo pagó?</label><select id="ab_met" onchange="previaAbono(\'' + id + '\')">' +
-    metodosCobrables().map(x => '<option value="' + x.id + '">' + x.nombre + '</option>').join('') + '</select>' +
-    '<label>Monto en dólares</label>' +
-    '<input id="ab_monto" type="number" inputmode="decimal" step="0.01" value="' + m.saldo.toFixed(2) + '" oninput="previaAbono(\'' + id + '\')">' +
-    '<div id="ab_prev" class="aviso-caja" style="margin-top:12px"></div>' +
-    '<button class="btn verde" onclick="confirmarAbono(\'' + id + '\')">Registrar el pago</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="verDeuda(\'' + id + '\')">Volver</button>');
-  setTimeout(() => previaAbono(id), 30);
-}
-
-function previaAbono(id) {
-  const d = deuda(id), t = tasaVigente();
-  const met = $('#ab_met').value;
-  const monto = parseFloat($('#ab_monto').value) || 0;
-  const esDivisa = ['efectivo_usd', 'binance'].indexOf(met) >= 0;
-  const resto = Math.max(0, saldoDeuda(d) - monto);
-  let txt;
-  if (esDivisa) {
-    const conDesc = redondear(monto * (1 - t.descuentoPct / 100), 0.01);
-    txt = 'Pagando en divisa se le aplica el descuento: entrega <b class="num">$' + fmtUsd(conDesc) +
-      '</b> y se le descuentan <b class="num">$' + fmtUsd(monto) + '</b> de la deuda.';
-  } else {
-    txt = 'Debe entregarte <b class="num">' + fmtBs(redondear(monto * t.tasaVenta, S.config.redondeoBs)) + ' Bs</b>.';
-  }
-  txt += resto > 0.009 ? '<br>Le quedarían debiendo <b class="num">$' + fmtUsd(resto) + '</b>.' : '<br>Con eso queda saldado. ✓';
-  $('#ab_prev').innerHTML = txt;
-}
-
-function confirmarAbono(id) {
-  const monto = parseFloat($('#ab_monto').value) || 0;
-  if (monto <= 0) return brindis('Falta el monto', true);
-  const met = $('#ab_met').value;
-  abonar(id, monto, met);
-  const d = deuda(id);
-  cerrarHoja(); pitar(true);
-  brindis(d.pagada ? nombreCliente(d.clienteId) + ' quedó al día ✓' : 'Abono registrado · faltan $' + fmtUsd(saldoDeuda(d)));
-  render();
-}
-
-function perdonarDeuda(id) {
-  const d = deuda(id);
-  abrirHoja('<div class="asa"></div><h4>¿Dar por perdida?</h4>' +
-    '<p class="nota">Sale de "por cobrar" y deja de aparecer en los cobros. Queda anotada como pérdida.</p>' +
-    '<button class="btn rojo" style="margin-top:14px" onclick="confirmarPerdon(\'' + id + '\')">Sí, darla por perdida</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="verDeuda(\'' + id + '\')">Mejor no</button>');
-}
-function confirmarPerdon(id) {
-  const d = deuda(id);
-  d.pagada = true; d.fechaPago = hoyISO(); d.perdida = true;
-  guardar(['deudas']);
-  cerrarHoja(); brindis('Marcada como perdida'); render();
-}
-
-function nuevaDeudaVieja() {
-  const lista = clientesBuscar('');
-  abrirHoja('<div class="asa"></div><h4>Deuda que ya existía</h4>' +
-    '<p class="nota">Para cargar lo que la gente ya debía antes de empezar con el sistema. No toca el inventario ni cuenta como venta de hoy.</p>' +
-    (lista.length ? '<label>¿Quién debe?</label><select id="vcli" onchange="cambioClienteViejo()">' +
-      '<option value="">— persona nueva —</option>' +
-      lista.map(c => '<option value="' + c.id + '">' + esc(c.nombre) + '</option>').join('') + '</select>'
-      : '<input type="hidden" id="vcli" value="">') +
-    '<div id="vnuevo"><label>Nombre</label><input id="vnom" placeholder="Pedro Ramírez">' +
-    '<label>WhatsApp</label><input id="vtel" type="tel" inputmode="tel" placeholder="0412 3456789"></div>' +
-    '<label>¿Cuánto debe, en dólares?</label><input id="vmonto" type="number" inputmode="decimal" step="0.01" placeholder="25.00">' +
-    '<label>¿En cuántos días le cobras?</label>' +
-    '<select id="vdias"><option value="0">Ya está vencida</option><option value="1">Mañana</option>' +
-    '<option value="3">3 días</option><option value="7" selected>Una semana</option>' +
-    '<option value="15">15 días</option><option value="30">Un mes</option></select>' +
-    '<label>Nota (opcional)</label><input id="vnota" placeholder="De las cervezas del sábado">' +
-    '<button class="btn verde" style="margin-top:16px" onclick="confirmarDeudaVieja()">Anotar la deuda</button>');
-}
-function cambioClienteViejo() {
-  const sel = $('#vcli'), nuevo = $('#vnuevo');
-  if (sel && nuevo) nuevo.style.display = sel.value ? 'none' : 'block';
-}
-function confirmarDeudaVieja() {
-  let id = $('#vcli') ? $('#vcli').value : '';
-  if (!id) {
-    const nom = $('#vnom').value.trim();
-    const tel = $('#vtel').value.trim();
-    if (!nom) return brindis('Falta el nombre', true);
-    if (telLimpio(tel).length < 11) return brindis('Falta el WhatsApp', true);
-    id = crearCliente(nom, tel).id;
-  }
-  const monto = parseFloat($('#vmonto').value) || 0;
-  if (monto <= 0) return brindis('Falta el monto', true);
-  const t = tasaVigente();
-  crearDeuda({
-    clienteId: id, origen: 'manual', dias: parseInt($('#vdias').value, 10) || 0,
-    montoUsd: monto, tasaVenta: t ? t.tasaVenta : 0, usdt: t ? t.usdt : 0,
-    nota: $('#vnota').value.trim()
-  });
-  cerrarHoja(); pitar(true);
-  brindis('Deuda anotada a ' + nombreCliente(id));
-  render();
-}
-
-/* ====================== clientes ====================== */
-let filtroClientes = '';
-
-function renderClientes() {
-  const lista = clientesBuscar(filtroClientes);
-  let h = '<h2>Clientes</h2>' +
-    '<div class="grande"><div><b class="num">' + S.clientes.length + '</b><span>en la cartera</span></div>' +
-    '<div><b class="num">' + S.clientes.filter(c => c.promos !== false && c.telefono).length + '</b><span>reciben promociones</span></div></div>' +
-    '<div class="buscador"><input id="fcl" placeholder="Buscar por nombre o teléfono" value="' + esc(filtroClientes) + '" autocomplete="off"></div>' +
-    '<div class="fila"><button class="btn chico" onclick="nuevoCliente()">Agregar cliente</button>' +
-    '<button class="btn oro chico" onclick="pantallaPromo()">Enviar promoción</button></div>';
-
-  if (!lista.length) {
-    h += '<div class="vacio"><b>Todavía no hay clientes</b>Se agregan solos cuando fías, o los cargas tú aquí.</div>';
-  } else {
-    h += '<div class="lista" style="margin-top:12px">' + lista.map(c => {
-      const debe = deudasAbiertas().filter(d => d.clienteId === c.id).reduce((s, d) => s + saldoDeuda(d), 0);
-      return '<div class="item" onclick="editarCliente(\'' + c.id + '\')">' +
-        '<div class="cuerpo"><div class="tit">' + esc(c.nombre) + '</div>' +
-        '<div class="sub">' + (c.telefono ? telBonito(c.telefono) : 'sin WhatsApp') +
-        (c.promos === false ? ' · no recibe promos' : '') + '</div></div>' +
-        '<div class="der">' + (debe > 0 ? '<b class="num" style="color:var(--ambar)">$' + fmtUsd(debe) + '</b><span>debe</span>' : '<span>al día</span>') +
-        '</div></div>';
-    }).join('') + '</div>';
-  }
-
-  h += '<button class="btn chico" style="margin-top:14px" onclick="exportarNumeros()">Copiar todos los números</button>' +
-    '<p class="nota">Para armar una lista de difusión en WhatsApp y mandar las promociones de un solo golpe, sin tocarlos uno por uno.</p>';
-  $('#v-clientes').innerHTML = h;
-  const f = $('#fcl');
-  if (f) f.addEventListener('input', () => {
-    filtroClientes = f.value; const pos = f.selectionStart; render();
-    const n = $('#fcl'); if (n) { n.focus(); n.setSelectionRange(pos, pos); }
-  });
-}
-
-function nuevoCliente() {
-  abrirHoja('<div class="asa"></div><h4>Cliente nuevo</h4>' +
-    '<label>Nombre</label><input id="cln" placeholder="Pedro Ramírez">' +
-    '<label>WhatsApp</label><input id="clt" type="tel" inputmode="tel" placeholder="0412 3456789">' +
-    '<label>Nota (opcional)</label><input id="clx" placeholder="Vecino, compra los viernes">' +
-    '<button class="btn verde" style="margin-top:16px" onclick="confirmarCliente()">Guardar</button>');
-  setTimeout(() => $('#cln') && $('#cln').focus(), 100);
-}
-function confirmarCliente() {
-  const n = $('#cln').value.trim();
-  if (!n) return brindis('Falta el nombre', true);
-  crearCliente(n, $('#clt').value, $('#clx').value);
-  cerrarHoja(); brindis('Cliente agregado'); render();
-}
-
-function editarCliente(id) {
-  const c = cliente(id);
-  const deudas = deudasAbiertas().filter(d => d.clienteId === id);
-  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + '</h4>' +
-    '<label>Nombre</label><input id="edn" value="' + esc(c.nombre) + '">' +
-    '<label>WhatsApp</label><input id="edt" type="tel" value="' + esc(c.telefono) + '">' +
-    '<label>Nota</label><input id="edx" value="' + esc(c.nota || '') + '">' +
-    '<div class="campo-inline"><label>Le mando promociones</label><input type="checkbox" id="edp" ' + (c.promos !== false ? 'checked' : '') + '></div>' +
-    (deudas.length ? '<div class="aviso-caja">Debe $' + fmtUsd(deudas.reduce((s, d) => s + saldoDeuda(d), 0)) +
-      ' en ' + deudas.length + ' cuenta' + (deudas.length > 1 ? 's' : '') + '. <a onclick="cerrarHoja();irA(\'fiado\')">Ver en Fiado</a></div>' : '') +
-    '<div class="fila" style="margin-top:14px">' +
-    (c.telefono ? '<button class="btn chico" onclick="abrirWhatsApp(\'' + c.telefono + '\',\'\')">Escribirle</button>' : '') +
-    '<button class="btn verde" onclick="guardarCliente(\'' + id + '\')">Guardar</button></div>');
-}
-function guardarCliente(id) {
-  const c = cliente(id);
-  c.nombre = $('#edn').value.trim() || c.nombre;
-  c.telefono = telLimpio($('#edt').value);
-  c.nota = $('#edx').value.trim();
-  c.promos = $('#edp').checked;
-  guardar(['clientes']);
-  cerrarHoja(); brindis('Guardado'); render();
-}
-
-function pantallaPromo() {
-  const cuantos = S.clientes.filter(c => c.promos !== false && c.telefono).length;
-  abrirHoja('<div class="asa"></div><h4>Promoción</h4>' +
-    '<p class="nota">Le llega a ' + cuantos + ' cliente' + (cuantos !== 1 ? 's' : '') + '. Escríbela corta y con gancho.</p>' +
-    '<label>El mensaje</label>' +
-    '<textarea id="pmtx" rows="5" placeholder="🔥 Hoy jueves de cervezas: caja de Polar a $XX hasta las 8pm. ¡Pasa antes que se acabe! 🍺"></textarea>' +
-    '<div class="fila" style="margin-top:8px">' +
-    '<button class="btn chico" onclick="plantillaPromo(1)">Idea 1</button>' +
-    '<button class="btn chico" onclick="plantillaPromo(2)">Idea 2</button>' +
-    '<button class="btn chico" onclick="plantillaPromo(3)">Idea 3</button></div>' +
-    '<button class="btn oro" style="margin-top:14px" onclick="enviarPromo(0)">Empezar a enviar, uno por uno</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="copiarPromo()">Copiar el texto para una difusión</button>');
-}
-function plantillaPromo(n) {
-  const p = {
-    1: '🔥 ¡Oferta de hoy en ' + S.config.negocio + '!\n\nCaja de cerveza a precio especial hasta las 8pm 🍺\n\nPasa antes que se acabe 🏃',
-    2: '🥃 ¡Llegó mercancía nueva a ' + S.config.negocio + '!\n\nRon, whisky y lo que buscabas, a buen precio 💰\n\nTe esperamos 🙌',
-    3: '🎉 ¡Fin de semana en ' + S.config.negocio + '!\n\nCombos armados y hielo bien frío ❄️🍻\n\nPide por aquí y te lo tenemos listo 👌'
-  }[n];
-  $('#pmtx').value = p;
-}
-let filaPromo = [];
-function enviarPromo(i) {
-  const txt = $('#pmtx') ? $('#pmtx').value.trim() : (filaPromo.texto || '');
-  if (i === 0) {
-    if (!txt) return brindis('Escribe el mensaje primero', true);
-    filaPromo = S.clientes.filter(c => c.promos !== false && c.telefono);
-    filaPromo.texto = txt;
-  }
-  if (i >= filaPromo.length) { cerrarHoja(); brindis('Promoción enviada a ' + filaPromo.length + ' clientes'); return render(); }
-  const c = filaPromo[i];
-  abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + ' · ' + (i + 1) + ' de ' + filaPromo.length + '</h4>' +
-    '<div class="tarjeta" style="white-space:pre-wrap;font-size:14px">' + esc(filaPromo.texto) + '</div>' +
-    '<button class="btn oro" onclick="abrirWhatsApp(\'' + c.telefono + '\',filaPromo.texto);setTimeout(function(){enviarPromo(' + (i + 1) + ')},900)">Enviar y seguir</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="enviarPromo(' + (i + 1) + ')">Saltar</button>');
-}
-function copiarPromo() {
-  const txt = $('#pmtx').value.trim();
-  if (!txt) return brindis('Escribe el mensaje primero', true);
-  copiar(txt, 'Mensaje copiado, pégalo en tu lista de difusión');
-}
-function exportarNumeros() {
-  const nums = S.clientes.filter(c => c.telefono && c.promos !== false).map(c => '+' + c.telefono).join('\n');
-  if (!nums) return brindis('No hay números guardados', true);
-  copiar(nums, 'Números copiados');
-}
-function copiar(txt, msg) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(txt).then(() => brindis(msg)).catch(() => mostrarParaCopiar(txt));
-  } else mostrarParaCopiar(txt);
-}
-function mostrarParaCopiar(txt) {
-  abrirHoja('<div class="asa"></div><h4>Cópialo de aquí</h4>' +
-    '<textarea rows="10" onclick="this.select()">' + esc(txt) + '</textarea>');
-}
-
-/* ---- resumen semanal en PDF ---- */
-async function bajarResumenSemanal() {
-  const r = armarResumenSemanal(hoyISO());
-  const bytes = pdfResumenSemanal(r);
-  const nombre = 'CAVA_semana_' + r.hasta + '.pdf';
-  const blob = new Blob([bytes], { type: 'application/pdf' });
-  const archivo = (window.File) ? new File([blob], nombre, { type: 'application/pdf' }) : null;
-
-  if (archivo && navigator.canShare && navigator.canShare({ files: [archivo] })) {
-    try {
-      await navigator.share({
-        files: [archivo],
-        title: 'Resumen semanal',
-        text: S.config.negocio + ' — semana del ' + r.desde + ' al ' + r.hasta +
-          '\nGanancia: $' + fmtUsd(r.ganancia) + ' · Patrimonio: $' + fmtUsd(r.patrimonio)
-      });
-      return;
-    } catch (e) { /* si cancela, cae al descargado normal */ }
-  }
-  descargar(nombre, blob);
-  const correo = S.config.correo || '';
-  brindis('PDF listo en tus descargas');
-  if (correo) {
-    setTimeout(() => {
-      abrirHoja('<div class="asa"></div><h4>Mandarlo por correo</h4>' +
-        '<p class="nota">El PDF ya está en tus descargas. Toca abajo para abrir el correo con el asunto listo, y adjúntalo desde ahí.</p>' +
-        '<button class="btn oro" style="margin-top:14px" onclick="window.location.href=\'mailto:' + correo +
-        '?subject=' + encodeURIComponent('Resumen semanal ' + S.config.negocio + ' · ' + r.hasta) +
-        '&body=' + encodeURIComponent('Ganancia de la semana: $' + fmtUsd(r.ganancia) +
-          '\nPatrimonio: $' + fmtUsd(r.patrimonio) + '\nPor cobrar: $' + fmtUsd(r.fiado) +
-          '\n\n(adjunta el PDF que está en tus descargas)') + '\'">Abrir el correo</button>');
-    }, 600);
-  }
-}
 </script>
 </body>
 </html>
