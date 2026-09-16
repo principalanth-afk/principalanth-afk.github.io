@@ -851,21 +851,41 @@ const DESPEDIDAS = [
   'Nos vemos en la próxima 👋'
 ];
 
-function mensajeRecibo(v, t) {
+function mensajeRecibo(v, t, deudaRef) {
   const sem = semilla(v.id);
   const c = cliente(v.clienteId);
   const nombre = c ? c.nombre.split(' ')[0] : '';
   const lineas = v.items.map(it =>
     '• ' + it.cant + 'x ' + it.nombre + (it.presNombre && it.presNombre !== 'Unidad' ? ' (' + it.presNombre + ')' : '')
   ).join('\n');
-  const pagado = v.metodo === 'fiado'
-    ? 'Quedó fiado: *$' + fmtUsd(nz(v.fiadoUsd)) + '*'
-    : (nz(v.cobradoBs) > 0 && nz(v.cobradoUsd) > 0
-      ? 'Pagaste *' + fmtBs(v.cobradoBs) + ' Bs* y *$' + fmtUsd(v.cobradoUsd) + '*'
-      : (nz(v.cobradoBs) > 0 ? 'Total: *' + fmtBs(v.cobradoBs) + ' Bs*' : 'Total: *$' + fmtUsd(v.cobradoUsd) + '*'));
-  return (nombre ? '¡Hola ' + nombre + '! ' : '') + elegir(GRACIAS, sem, 1) + '\n' +
-    '_' + S.config.negocio + ' · ' + hora(v.ts) + '_\n\n' +
-    lineas + '\n\n' + pagado + '\n\n' + elegir(DESPEDIDAS, sem, 2);
+
+  let cab = (nombre ? '¡Hola ' + nombre + '! ' : '') + elegir(GRACIAS, sem, 1) + '\n' +
+    '*' + String(S.config.negocio || '').toUpperCase() + '*\n' +
+    'HORA: ' + hora(v.ts) + '\n';
+
+  let cuerpo;
+  if (v.metodo === 'fiado') {
+    const d = deudaRef || S.deudas.filter(x => x.ventaId === v.id).pop();
+    if (d) {
+      cab += 'DIAS DE CREDITO: ' + d.dias + '\n' +
+        'DIA DEL PAGO: ' + fechaLarga(d.vence) + '\n';
+    }
+    cuerpo = 'Quedó pendiente por pagar: *$' + fmtUsd(nz(v.fiadoUsd)) + '*';
+  } else {
+    const bcv = t && t.bcv > 0 ? t.bcv : 0;
+    const bs = nz(v.cobradoBs);
+    const usd = nz(v.cobradoUsd);
+    const partes = [];
+    if (bs > 0) {
+      partes.push('Total en bs: *' + fmtBs(bs) + ' Bs*');
+      if (bcv) partes.push('Total en dólares BCV: *$' + fmtUsd(bs / bcv) + '*');
+    }
+    if (usd > 0) partes.push('Total en divisas: *$' + fmtUsd(usd) + '*');
+    if (!partes.length) partes.push('Total: *$' + fmtUsd(nz(v.ingresoReal)) + '*');
+    cuerpo = partes.join('\n');
+  }
+
+  return cab + '\n' + lineas + '\n\n' + cuerpo + '\n\n' + elegir(DESPEDIDAS, sem, 2);
 }
 
 /* ---------- deudas ---------- */
@@ -1708,7 +1728,7 @@ function construirXLSX(hojas) {
    ========================================================================== */
 'use strict';
 
-const VERSION = '3.0';
+const VERSION = '3.2';
 let VISTA = 'inicio';
 const ICONOS = {
   inicio: '<path d="M4 11 12 4l8 7"/><path d="M6 10v9h12v-9"/>',
@@ -1834,6 +1854,8 @@ function renderInicio() {
     '<div><b class="num">' + fmtNum(r.unidades, 0) + '</b><span>unidades</span></div>' +
     '<div><b class="num">' + fmtNum(r.margen, 0) + '%</b><span>margen</span></div>' +
     '</div>';
+
+  h += avisoRespaldo();
 
   const porCobrar = cobrosDeHoy();
   if (porCobrar.length) {
@@ -2219,6 +2241,7 @@ function confirmarPago(metodo) {
       clienteId: pago.clienteId, origen: 'venta', ventaId: v.id, dias: pago.dias,
       montoUsd: v.totalLista, tasaVenta: t.tasaVenta, usdt: t.usdt, nota: pago.nota
     });
+    if (!v.clienteId) v.clienteId = pago.clienteId;
     pitar(true);
     clienteVenta = null;
     ofrecerRecibo(v.id);
@@ -2327,6 +2350,7 @@ function renderCargar() {
     }).join('') + '</div>';
   }
   h += '<button class="btn" style="margin-top:14px" onclick="altaProducto(\'\')">Dar de alta un producto sin escanear</button>';
+  h += '<button class="btn oro" style="margin-top:8px" onclick="pantallaImportar()">Cargar muchos de golpe · pegar desde Excel</button>';
   $('#v-cargar').innerHTML = h;
   const inp = $('#entradaCarga');
   if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') { cargaPorCodigo(inp.value); inp.value = ''; } });
@@ -3010,7 +3034,10 @@ async function bajarRespaldo() {
     datos.ventas[m] = d.ventas; datos.movs[m] = d.movs;
   }
   descargar('respaldo_cava_' + hoyISO() + '.json', JSON.stringify(datos), 'application/json');
-  brindis('Respaldo bajado');
+  S.config.ultimoRespaldo = hoyISO();
+  guardar(['config']);
+  brindis('Respaldo bajado · guárdalo en Drive');
+  render();
 }
 
 function pedirRestaurar() {
@@ -3169,6 +3196,8 @@ window.CAVA = {
   get clienteVenta() { return clienteVenta; }, set clienteVenta(v) { clienteVenta = v; },
   crearCliente, clientePorCedula, mejoresClientes, mensajeRecibo, totalFiado, saldoDeuda, deuda, cliente,
   get SYNC() { return SYNC; }, get DB() { return DB; }, sincronizar, syncConfigurado, syncArrancarAuto,
+  get promoTxt() { return promoTxt; }, get promoNums() { return promoNums; },
+  parsearImport, pantallaImportar,
   hoyISO, tasaVigente, calcularTasa, guardarTasa, preciosDe, totalesCarrito,
   registrarVenta, resumenDia, cerrarDia, anularVenta, producto, buscarCodigo,
   exportarExcel, bajarRespaldo, render
@@ -3475,16 +3504,43 @@ function guardarCliente(id) {
 function pantallaPromo() {
   const cuantos = S.clientes.filter(c => c.promos !== false && c.telefono).length;
   abrirHoja('<div class="asa"></div><h4>Promoción</h4>' +
-    '<p class="nota">Le llega a ' + cuantos + ' cliente' + (cuantos !== 1 ? 's' : '') + '. Escríbela corta y con gancho.</p>' +
+    '<p class="nota">Tienes ' + cuantos + ' cliente' + (cuantos !== 1 ? 's' : '') + ' con WhatsApp. Escríbela corta y con gancho.</p>' +
     '<label>El mensaje</label>' +
     '<textarea id="pmtx" rows="5" placeholder="🔥 Hoy jueves de cervezas: caja de Polar a $XX hasta las 8pm. ¡Pasa antes que se acabe! 🍺"></textarea>' +
     '<div class="fila" style="margin-top:8px">' +
     '<button class="btn chico" onclick="plantillaPromo(1)">Idea 1</button>' +
     '<button class="btn chico" onclick="plantillaPromo(2)">Idea 2</button>' +
     '<button class="btn chico" onclick="plantillaPromo(3)">Idea 3</button></div>' +
-    '<button class="btn oro" style="margin-top:14px" onclick="enviarPromo(0)">Empezar a enviar, uno por uno</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="copiarPromo()">Copiar el texto para una difusión</button>');
+    '<h3>¿Cómo la mandas?</h3>' +
+    '<button class="btn oro" onclick="promoDifusion()">A todos de golpe · lista de difusión</button>' +
+    '<p class="nota">Un solo mensaje para los ' + cuantos + '. Es la forma correcta y la que WhatsApp no castiga.</p>' +
+    '<button class="btn" style="margin-top:8px" onclick="promoUnoAUno(0)">Uno por uno</button>' +
+    '<p class="nota">Abre el chat de cada cliente con el mensaje escrito. Más personal, pero son ' + cuantos + ' toques.</p>');
 }
+
+function promoDifusion() {
+  const txt = $('#pmtx') ? $('#pmtx').value.trim() : '';
+  if (!txt) return brindis('Escribe el mensaje primero', true);
+  const gente = S.clientes.filter(c => c.promos !== false && c.telefono);
+  if (!gente.length) return brindis('No hay clientes con WhatsApp', true);
+  const nums = gente.map(c => '+' + c.telefono).join('\n');
+  abrirHoja('<div class="asa"></div><h4>A todos de golpe</h4>' +
+    '<p class="nota">La lista de difusión se arma una sola vez en WhatsApp. Después cada promoción es un mensaje y listo.</p>' +
+    '<div class="tarjeta"><b style="font-size:14px">Si es la primera vez</b>' +
+    '<ol style="font-size:13.5px;color:var(--tenue);line-height:1.7;padding-left:20px;margin:8px 0 0">' +
+    '<li>Copia los números con el botón de abajo.</li>' +
+    '<li>En WhatsApp: menú de tres puntos → <b>Nueva difusión</b>.</li>' +
+    '<li>Agrega los contactos, ponle nombre <b>Clientes CAVA</b> y créala.</li>' +
+    '</ol></div>' +
+    '<div class="fila"><button class="btn chico" onclick="copiar(promoNums,\'Números copiados\')">Copiar los ' + gente.length + ' números</button>' +
+    '<button class="btn oro chico" onclick="copiar(promoTxt,\'Mensaje copiado, pégalo en la difusión\')">Copiar el mensaje</button></div>' +
+    '<button class="btn" style="margin-top:12px" onclick="abrirWhatsApp(\'\',promoTxt)">Abrir WhatsApp</button>' +
+    '<p class="nota">Con la lista ya creada: abre WhatsApp, entra a <b>Clientes CAVA</b>, pega el mensaje y envía.</p>' +
+    '<button class="btn chico" style="margin-top:10px" onclick="pantallaPromo()">Volver</button>');
+  promoTxt = txt; promoNums = nums;
+}
+let promoTxt = '', promoNums = '';
+
 function plantillaPromo(n) {
   const p = {
     1: '🔥 ¡Oferta de hoy en ' + S.config.negocio + '!\n\nCaja de cerveza a precio especial hasta las 8pm 🍺\n\nPasa antes que se acabe 🏃',
@@ -3494,7 +3550,7 @@ function plantillaPromo(n) {
   $('#pmtx').value = p;
 }
 let filaPromo = [];
-function enviarPromo(i) {
+function promoUnoAUno(i) {
   const txt = $('#pmtx') ? $('#pmtx').value.trim() : (filaPromo.texto || '');
   if (i === 0) {
     if (!txt) return brindis('Escribe el mensaje primero', true);
@@ -3505,8 +3561,8 @@ function enviarPromo(i) {
   const c = filaPromo[i];
   abrirHoja('<div class="asa"></div><h4>' + esc(c.nombre) + ' · ' + (i + 1) + ' de ' + filaPromo.length + '</h4>' +
     '<div class="tarjeta" style="white-space:pre-wrap;font-size:14px">' + esc(filaPromo.texto) + '</div>' +
-    '<button class="btn oro" onclick="abrirWhatsApp(\'' + c.telefono + '\',filaPromo.texto);setTimeout(function(){enviarPromo(' + (i + 1) + ')},900)">Enviar y seguir</button>' +
-    '<button class="btn chico" style="margin-top:8px" onclick="enviarPromo(' + (i + 1) + ')">Saltar</button>');
+    '<button class="btn oro" onclick="abrirWhatsApp(\'' + c.telefono + '\',filaPromo.texto);setTimeout(function(){promoUnoAUno(' + (i + 1) + ')},900)">Enviar y seguir</button>' +
+    '<button class="btn chico" style="margin-top:8px" onclick="promoUnoAUno(' + (i + 1) + ')">Saltar</button>');
 }
 function copiarPromo() {
   const txt = $('#pmtx').value.trim();
@@ -3768,10 +3824,8 @@ function renderPanelSync() {
 
   if (!puesto) {
     h += '<div class="tarjeta">' +
-      '<p class="nota">Ahora mismo cada teléfono lleva su propia cuenta. Al conectarlos, el inventario, ' +
-      'los clientes, los fiados y las ventas se ven iguales en los tres. Sigue funcionando sin señal: ' +
-      'lo que hagas se guarda y se pone al día cuando vuelve el internet.</p>' +
-      '<button class="btn oro" style="margin-top:12px" onclick="irA(\'ayuda\')">Ver los pasos para crear la cuenta</button>' +
+      '<p class="nota">Conéctalos y el inventario vive en la nube: ningún borrado de Chrome ni apagón se lo lleva.</p>' +
+      '<button class="btn oro" style="margin-top:12px" onclick="irA(\'ayuda\')">Ver los pasos</button>' +
       '</div>';
   } else {
     h += '<div class="tarjeta">' +
@@ -3847,6 +3901,153 @@ async function desconectarSync() {
   SYNC.cfg = null; SYNC.token = null; SYNC.refresh = null; SYNC.estado = 'apagado';
   clearInterval(SYNC.timer);
   cerrarHoja(); brindis('Aparato desconectado. Los datos siguen aquí.'); render();
+}
+
+/* ====================== cargar muchos de golpe ====================== */
+function pantallaImportar() {
+  abrirHoja('<div class="asa"></div><h4>Cargar muchos de golpe</h4>' +
+    '<p class="nota">Arma la hoja en Excel con calma, en el teclado grande. Después copias todo y lo pegas aquí.</p>' +
+    '<button class="btn oro" onclick="bajarPlantilla()">Bajar la plantilla de Excel</button>' +
+    '<div class="tarjeta" style="font-size:12.5px;color:var(--tenue);margin-top:12px">' +
+    '<b style="color:var(--texto)">Las diez columnas, en este orden</b><br>' +
+    '1 Código unidad · 2 Nombre · 3 Presentación · 4 Categoría · 5 Costo $ · 6 Precio $ · ' +
+    '7 Existencia · 8 Mínimo · 9 Código caja · 10 Unidades por caja<br><br>' +
+    'Solo <b>Nombre</b> y <b>Precio</b> son obligatorias. Costo y precio son <b>por unidad suelta</b>, ' +
+    'aunque compres por caja. Las columnas 9 y 10 se dejan vacías si el producto no viene en caja.' +
+    '</div>' +
+    '<textarea id="impTxt" rows="8" placeholder="Pega aquí lo que copiaste de Excel..." oninput="previaImportar()" ' +
+    'style="font-family:ui-monospace,monospace;font-size:12px"></textarea>' +
+    '<div id="impPrev"></div>' +
+    '<button class="btn verde" id="impBtn" style="margin-top:14px;display:none" onclick="confirmarImportar()">Cargar al inventario</button>');
+}
+
+function bajarPlantilla() {
+  const filas = [
+    ['Código unidad', 'Nombre', 'Presentación', 'Categoría', 'Costo $', 'Precio $',
+      'Existencia', 'Mínimo', 'Código caja', 'Unidades por caja'],
+    ['7591234567890', 'Cerveza Polar Pilsen', 'lata 269 cc', 'Cerveza', 0.62, 0.90, 96, 24, '7591234500001', 24],
+    ['7599876543210', 'Ron Cacique 500', '750 ml', 'Ron', 6.10, 9.50, 12, 3, '7599876500002', 12],
+    ['', 'Hielo en bolsa', '2 kg', 'Otros', 0.55, 1.20, 30, 8, '', ''],
+    ['', '', '', '', '', '', '', '', '', '']
+  ];
+  const hoja = {
+    nombre: 'Inventario',
+    columnas: [17, 28, 15, 14, 10, 10, 12, 10, 17, 18],
+    filas: filas
+  };
+  descargar('CAVA_plantilla_inventario.xlsx',
+    new Blob([construirXLSX([hoja])], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+  brindis('Plantilla lista en tus descargas');
+}
+
+function parsearImport(txt) {
+  const filas = [];
+  (txt || '').split(/\r?\n/).forEach((linea, i) => {
+    if (!linea.trim()) return;
+    // ojo: no se recorta la línea antes de partirla, porque una primera celda
+    // vacía (producto sin código de barras) correría todas las columnas
+    const sep = linea.indexOf('\t') >= 0 ? '\t' : (linea.indexOf(';') >= 0 ? ';' : ',');
+    const c = linea.split(sep).map(x => x.trim().replace(/^"|"$/g, ''));
+    const num = v => {
+      if (v === undefined || v === '') return 0;
+      const n = parseFloat(String(v).replace(/[^0-9,.-]/g, '').replace(',', '.'));
+      return isFinite(n) ? n : 0;
+    };
+    const f = {
+      linea: i + 1, codigo: c[0] || '', nombre: c[1] || '', presentacion: c[2] || '',
+      categoria: c[3] || '', costo: num(c[4]), precio: num(c[5]),
+      stock: num(c[6]), minimo: num(c[7]) || S.config.minimoDefault,
+      codigoCaja: c[8] || '', porCaja: num(c[9]), error: ''
+    };
+    // solo si pegó dos columnas sueltas (nombre y precio) se reacomoda
+    if (c.length <= 2 && f.codigo && !f.nombre) {
+      f.nombre = f.codigo; f.codigo = '';
+      f.precio = num(c[1]); f.costo = 0; f.stock = 0;
+    }
+    if (/c[óo]digo/i.test(f.codigo) || /nombre/i.test(f.nombre)) return;  // fila de encabezado
+    if (!f.nombre) f.error = 'sin nombre';
+    else if (f.precio <= 0) f.error = 'sin precio de venta';
+    else if (f.costo > 0 && f.precio <= f.costo) f.error = 'el precio no supera al costo';
+    else if (f.codigo && buscarCodigo(f.codigo)) f.error = 'ese código ya existe';
+    else if (f.codigoCaja && buscarCodigo(f.codigoCaja)) f.error = 'el código de caja ya existe';
+    else if (f.codigoCaja && f.porCaja < 2) f.error = 'pusiste código de caja pero no cuántas unidades trae';
+    filas.push(f);
+  });
+  return filas;
+}
+
+let importFilas = [];
+function previaImportar() {
+  const filas = parsearImport($('#impTxt').value);
+  importFilas = filas;
+  const buenas = filas.filter(f => !f.error);
+  const malas = filas.filter(f => f.error);
+  const caja = $('#impPrev');
+  if (!filas.length) { caja.innerHTML = ''; $('#impBtn').style.display = 'none'; return; }
+
+  const inv = buenas.reduce((s, f) => s + f.costo * f.stock, 0);
+  let h = '<div class="aviso-caja" style="margin-top:12px">' +
+    '<b>' + buenas.length + ' producto' + (buenas.length !== 1 ? 's' : '') + ' listo' + (buenas.length !== 1 ? 's' : '') + '</b>' +
+    (inv > 0 ? ' · inversión $' + fmtUsd(inv) : '') +
+    (malas.length ? '<br><span style="color:var(--rojo)">' + malas.length + ' con problema, esas se saltan</span>' : '') +
+    '</div>';
+  h += '<div class="lista" style="max-height:220px;overflow-y:auto">' +
+    filas.slice(0, 40).map(f => '<div class="item">' +
+      '<div class="punto ' + (f.error ? 'p-rojo' : 'p-verde') + '"></div>' +
+      '<div class="cuerpo"><div class="tit">' + esc(f.nombre || '(vacío)') + '</div>' +
+      '<div class="sub">' + (f.error ? 'línea ' + f.linea + ': ' + f.error
+        : (f.codigo ? f.codigo + ' · ' : '') + fmtNum(f.stock, 0) + ' unidades · costó $' + fmtUsd(f.costo) +
+          (f.porCaja >= 2 ? ' · caja de ' + f.porCaja : '')) + '</div></div>' +
+      (f.error ? '' : '<div class="der"><b class="num">$' + fmtUsd(f.precio) + '</b></div>') +
+      '</div>').join('') + '</div>';
+  if (filas.length > 40) h += '<p class="nota">y ' + (filas.length - 40) + ' más</p>';
+  caja.innerHTML = h;
+  $('#impBtn').style.display = buenas.length ? 'block' : 'none';
+}
+
+function confirmarImportar() {
+  const buenas = importFilas.filter(f => !f.error);
+  if (!buenas.length) return brindis('No hay nada que cargar', true);
+  buenas.forEach(f => {
+    const pres = [{ nombre: 'Unidad', factor: 1, codigo: f.codigo, precio: null }];
+    if (f.porCaja >= 2) {
+      pres.push({
+        nombre: f.porCaja === 6 ? 'Six-pack' : 'Caja de ' + f.porCaja,
+        factor: f.porCaja, codigo: f.codigoCaja, precio: null
+      });
+    }
+    const p = {
+      id: uid(), nombre: f.nombre, presentacion: f.presentacion, categoria: f.categoria,
+      costo: f.costo, precio: f.precio, stock: f.stock, minimo: f.minimo,
+      aplicaDesc: true, favorito: false, activo: true, pres,
+      creado: ahora(), creadoFecha: hoyISO(), actualizado: ahora()
+    };
+    S.productos.push(p);
+    if (f.stock > 0) movimiento('entrada', p.id, f.stock, f.costo, '', 'carga masiva');
+  });
+  reindexar();
+  guardar(['productos', 'movs']);
+  cerrarHoja(); pitar(true);
+  brindis(buenas.length + ' productos cargados');
+  syncEmpujar();
+  render();
+}
+
+/* ====================== protección del respaldo ====================== */
+function diasSinRespaldo() {
+  const u = S.config.ultimoRespaldo;
+  if (!u) return 999;
+  return diasEntre(u, hoyISO());
+}
+function avisoRespaldo() {
+  if (!S.productos.length) return '';
+  if (syncConfigurado() && SYNC.estado === 'listo') return '';
+  const d = diasSinRespaldo();
+  if (d < 3) return '';
+  return '<div class="aviso-caja mal" onclick="bajarRespaldo()" style="cursor:pointer">' +
+    '<b>' + (d > 900 ? 'Nunca has bajado un respaldo' : 'Hace ' + d + ' días que no bajas respaldo') + '</b><br>' +
+    'Todo vive dentro de este aparato. Si borras los datos de Chrome o se pierde el teléfono, se va el inventario completo. ' +
+    'Toca aquí para bajarlo ahora, o conecta la nube en Ajustes.</div>';
 }
 </script>
 </body>
