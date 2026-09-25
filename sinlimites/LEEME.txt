@@ -1,0 +1,17 @@
+SIN LÍMITES v1.1 — cómo instalarla (igual que CAVA)
+
+1. En tu repositorio principalanth-afk.github.io crea una carpeta llamada  sinlimites
+2. Sube ahí TODOS estos archivos: index.html, manifest.json, sw.js y los 3 íconos PNG.
+3. Espera 1-2 minutos y abre en el teléfono:  https://principalanth-afk.github.io/sinlimites/
+4. En Chrome: menú ⋮ → "Agregar a pantalla principal" / "Instalar app".
+5. Para el APK: entra a pwabuilder.com, pega esa misma dirección y descarga el paquete Android.
+
+IMPORTANTE
+- Va en su propia carpeta para no tocar a CAVA. Cada app guarda sus datos aparte.
+- Los datos viven en el teléfono. Si borras los "datos de sitios" de Chrome se pierden:
+  usa el botón Respaldar (pestaña Plan) una vez por semana y guarda el .json en Drive o WhatsApp.
+- Funciona sin internet después de abrirla la primera vez.
+
+ACTUALIZAR (si ya la tenías instalada)
+- Reemplaza en la carpeta sinlimites el index.html y el sw.js. Tus datos no se tocan.
+- Abre la app con internet una vez y ya queda la versión nueva.

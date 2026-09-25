@@ -1,0 +1,18 @@
+{
+  "id": "sinlimites",
+  "name": "Sin Límites — Plan de capital",
+  "short_name": "Sin Límites",
+  "description": "Plan de capital con cobertura y disciplina diaria",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070b16",
+  "theme_color": "#070b16",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

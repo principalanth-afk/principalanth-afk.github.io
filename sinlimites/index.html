@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070b16">
+<title>Sin Límites</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#070b16; --bg2:#0b1122; --card:#101829; --card2:#152038; --line:#22304f; --line2:#2d3d62;
+  --text:#e9eef8; --muted:#8e9bb8; --dim:#5e6b88;
+  --gold:#f5b841; --gold2:#ffd27a; --cyan:#3fd0ff; --win:#35d49a; --loss:#ff5d6c; --prot:#f5b841;
+  --r:18px; --nav:68px;
+  --sat: env(safe-area-inset-top,0px); --sab: env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;padding-bottom:calc(var(--nav) + var(--sab) + 10px)}
+button,input,select{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:800;letter-spacing:.02em}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+.muted{color:var(--muted)} .dim{color:var(--dim)} .gold{color:var(--gold)} .cyan{color:var(--cyan)} .win{color:var(--win)} .loss{color:var(--loss)}
+.num{font-variant-numeric:tabular-nums}
+.caps{text-transform:uppercase;letter-spacing:.14em;font-size:11px;font-weight:700;color:var(--muted)}
+
+/* Barra superior */
+.top{position:sticky;top:0;z-index:20;background:linear-gradient(var(--bg) 70%,transparent);padding:calc(10px + var(--sat)) 0 8px}
+.top .wrap{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;flex:none}
+.brand{font-weight:900;letter-spacing:.2em;font-size:15px}
+.brand small{display:block;font-size:10px;letter-spacing:.18em;color:var(--muted);font-weight:600}
+.top .dia{margin-left:auto;font-size:12px;color:var(--gold);border:1px solid var(--line2);padding:4px 10px;border-radius:99px;font-weight:700}
+
+/* Tarjetas */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0}
+.card h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;font-weight:800}
+.row{display:flex;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+
+/* Portada con ilustración que "se enfoca" */
+.hero{position:relative;border-radius:var(--r);overflow:hidden;margin:6px 0 12px;border:1px solid var(--line);aspect-ratio:400/240;background:#0a1024;cursor:pointer}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero .art{position:absolute;inset:0;animation:enfocar 2.4s cubic-bezier(.2,.7,.2,1) both}
+@keyframes enfocar{0%{filter:blur(7px) grayscale(1) brightness(.55);transform:scale(1.06)}55%{filter:blur(1.5px) grayscale(.4) brightness(.85)}100%{filter:none;transform:none}}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,11,22,0) 30%,rgba(7,11,22,.92) 100%)}
+.hero .txt{position:absolute;left:16px;right:16px;bottom:12px}
+.hero .pil{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.2em;color:#1b1406;background:var(--gold);padding:3px 8px;border-radius:99px}
+.hero .msg{font-size:17px;font-weight:700;line-height:1.3;margin-top:6px;text-shadow:0 2px 12px rgba(0,0,0,.6);animation:aparecer .9s .6s both}
+@keyframes aparecer{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hero .tap{position:absolute;top:10px;right:12px;font-size:11px;color:#fff;opacity:.6}
+
+/* Capital */
+.cap{display:flex;gap:16px;align-items:center}
+.ring{width:108px;height:108px;flex:none;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .in{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .in b{font-size:22px;display:block;line-height:1}
+.ring .in span{font-size:10px;color:var(--muted);letter-spacing:.1em}
+.big{font-size:34px;font-weight:900;line-height:1.05;letter-spacing:-.01em}
+.bar{height:8px;border-radius:99px;background:var(--card2);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:99px}
+
+/* Barra de avance a la meta */
+.mb{margin-top:14px}
+.mb-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.mb-head b{font-size:22px;font-weight:900;color:var(--gold)}
+.mb-track{position:relative;height:18px;border-radius:99px;background:var(--card2);border:1px solid var(--line2)}
+.mb-fill{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:width 1.2s cubic-bezier(.2,.8,.2,1);min-width:0}
+.mb-tick{position:absolute;top:3px;bottom:3px;width:2px;background:rgba(233,238,248,.18);border-radius:2px}
+.mb-dot{position:absolute;top:50%;width:26px;height:26px;border-radius:50%;background:var(--bg);border:3px solid var(--gold);transform:translate(-50%,-50%);box-shadow:0 0 14px rgba(245,184,65,.6);transition:left 1.2s cubic-bezier(.2,.8,.2,1)}
+.mb-lab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;font-weight:700}
+.mb-lab span:nth-child(2),.mb-lab span:nth-child(3),.mb-lab span:nth-child(4){opacity:.7}
+.topbar{height:4px;background:var(--card2);border-radius:99px;margin:8px 16px 0;overflow:hidden;max-width:528px}
+@media (min-width:560px){.topbar{margin:8px auto 0}}
+.topbar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:99px;transition:width 1s}
+.mov-it .dn{font-size:20px}
+.dn.imp{background:rgba(255,93,108,.15);color:var(--loss)} .dn.apo{background:rgba(63,208,255,.14);color:var(--cyan)}
+.badge.imp{background:rgba(255,93,108,.15);color:var(--loss)} .badge.apo{background:rgba(63,208,255,.14);color:var(--cyan)}
+.leg .cobra{font-size:12px;margin-top:6px;color:var(--muted);border-top:1px dashed var(--line2);padding-top:6px}
+.leg .tag{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;font-weight:900;font-size:15px;margin-right:6px;vertical-align:middle}
+.leg.r .tag{background:var(--cyan);color:#04121a} .leg.p .tag{background:var(--gold);color:#1b1406}
+.leg.vacia b{color:var(--dim)!important}
+.res.tres{grid-template-columns:1fr}
+.res.tres .rbtn{justify-content:flex-start;padding:14px 16px;font-size:15px;white-space:nowrap}
+.res.tres .rbtn small{margin-left:auto;font-weight:600;color:var(--dim);font-size:12px}
+.oblig{color:var(--loss);font-weight:800}
+
+/* Días que faltan */
+.tile{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
+.tile b{display:block;font-size:26px;font-weight:900;line-height:1.1}
+.tile .l{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+.tile .f{font-size:11px;color:var(--dim);margin-top:2px}
+.tile.main{border-color:var(--gold);background:linear-gradient(180deg,rgba(245,184,65,.12),rgba(245,184,65,.02))}
+.tile.main b{color:var(--gold)}
+.faltan-frase{margin-top:10px;font-size:14px}
+
+/* Formularios */
+label.f{display:block;font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin:0 0 6px}
+.inp{width:100%;background:var(--bg2);border:1.5px solid var(--line2);border-radius:12px;padding:12px 12px;font-size:18px;font-weight:700;outline:none}
+.inp:focus{border-color:var(--cyan)}
+.inp.sm{font-size:15px;padding:10px}
+.pre{position:relative}.pre .inp{padding-left:28px}.pre::before{content:"$";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700}
+.hint{font-size:12px;color:var(--dim);margin-top:5px}
+
+/* Reparto de la apuesta */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.leg{border-radius:14px;padding:12px;border:1.5px solid}
+.leg.r{border-color:rgba(63,208,255,.5);background:rgba(63,208,255,.07)}
+.leg.p{border-color:rgba(245,184,65,.5);background:rgba(245,184,65,.07)}
+.leg .caps{font-size:10px}
+.leg b{display:block;font-size:26px;font-weight:900;margin-top:2px}
+.leg.r b{color:var(--cyan)} .leg.p b{color:var(--gold)}
+.escen{margin-top:12px;border-top:1px dashed var(--line2);padding-top:10px}
+.escen .row{justify-content:space-between;padding:4px 0;font-size:14px}
+
+/* Resultado (botones) */
+.res{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.rbtn{background:var(--bg2);border:1.5px solid var(--line2);border-radius:14px;padding:12px 8px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;justify-content:center}
+.rbtn .ic{width:20px;height:20px}
+.rbtn.on.ganan{border-color:var(--win);background:rgba(53,212,154,.14);color:var(--win)}
+.rbtn.on.prot{border-color:var(--prot);background:rgba(245,184,65,.14);color:var(--gold)}
+.rbtn.on.pierden{border-color:var(--loss);background:rgba(255,93,108,.14);color:var(--loss)}
+.rbtn.on.noaposte{border-color:var(--muted);background:rgba(142,155,184,.14)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;padding:15px;font-weight:900;font-size:16px;letter-spacing:.04em;cursor:pointer;background:linear-gradient(90deg,var(--gold),var(--gold2));color:#1b1406}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sec{background:var(--card2);color:var(--text);border:1.5px solid var(--line2);font-weight:800}
+.btn.dang{background:transparent;color:var(--loss);border:1.5px solid rgba(255,93,108,.5)}
+.btn.sm{padding:10px;font-size:14px}
+.lnk{background:none;border:0;color:var(--cyan);font-weight:700;cursor:pointer;padding:0;font-size:13px}
+
+.aviso{border-radius:14px;padding:12px 14px;font-size:13.5px;margin:10px 0;display:flex;gap:10px;align-items:flex-start;border:1px solid}
+.aviso.warn{background:rgba(245,184,65,.1);border-color:rgba(245,184,65,.45)}
+.aviso.bad{background:rgba(255,93,108,.1);border-color:rgba(255,93,108,.5)}
+.aviso.ok{background:rgba(53,212,154,.08);border-color:rgba(53,212,154,.4)}
+.aviso.info{background:rgba(63,208,255,.07);border-color:rgba(63,208,255,.35)}
+.aviso b.t{display:block}
+
+/* Chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line2);background:var(--bg2);border-radius:99px;padding:8px 14px;font-weight:800;cursor:pointer}
+.chip.on{border-color:var(--gold);color:var(--gold);background:rgba(245,184,65,.1)}
+
+/* Registro */
+.dia-it{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.dia-it:last-child{border-bottom:0}
+.dn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:900;background:var(--card2);font-size:14px}
+.badge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;letter-spacing:.04em}
+.badge.ganan{background:rgba(53,212,154,.15);color:var(--win)}
+.badge.prot{background:rgba(245,184,65,.15);color:var(--gold)}
+.badge.pierden{background:rgba(255,93,108,.15);color:var(--loss)}
+.badge.noaposte{background:rgba(142,155,184,.15);color:var(--muted)}
+.chart{width:100%;height:auto;display:block}
+.stat{background:var(--card2);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-size:20px;font-weight:900}
+.stat span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+/* Disciplina */
+.hab{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+.hab:last-child{border-bottom:0}
+.hab .ck{width:28px;height:28px;border-radius:9px;border:2px solid var(--line2);display:grid;place-items:center;flex:none;transition:.15s}
+.hab.on .ck{background:var(--gold);border-color:var(--gold)}
+.hab .ck svg{opacity:0;width:18px;height:18px}
+.hab.on .ck svg{opacity:1}
+.hab .ti{font-weight:700}
+.hab.on .ti{color:var(--gold)}
+.hab small{display:block;color:var(--dim);font-size:12px;font-weight:500}
+.hab .hi{width:22px;height:22px;color:var(--cyan);flex:none;margin-left:auto;opacity:.8}
+.pilar{border-radius:var(--r);overflow:hidden;background:var(--card);border:1px solid var(--line);margin:12px 0}
+.pilar .img{aspect-ratio:400/200;position:relative;overflow:hidden}
+.pilar .img svg{width:100%;height:100%;display:block}
+.pilar .bd{padding:14px 16px 16px}
+.pilar h3{font-size:13px;letter-spacing:.18em;color:var(--gold)}
+.pilar .fr{font-size:17px;font-weight:800;margin:6px 0 6px;line-height:1.3}
+.pilar ul{margin:8px 0 0;padding:0;list-style:none}
+.pilar li{padding:5px 0 5px 22px;position:relative;font-size:14px}
+.pilar li::before{content:"";position:absolute;left:2px;top:12px;width:10px;height:2px;background:var(--cyan)}
+.regla{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.regla:last-child{border-bottom:0}
+.regla .n{width:28px;height:28px;border-radius:50%;background:rgba(245,184,65,.14);color:var(--gold);display:grid;place-items:center;font-weight:900;flex:none;font-size:13px}
+
+/* Navegación inferior */
+nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(9,14,28,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:var(--sab)}
+nav.bot .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);height:var(--nav)}
+nav.bot button{background:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--dim);font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer}
+nav.bot button svg{width:24px;height:24px}
+nav.bot button.on{color:var(--gold)}
+.view{display:none}.view.on{display:block;animation:aparecer .35s both}
+
+/* Modales */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(3,5,11,.78);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s both}
+@keyframes fade{from{opacity:0}}
+.sheet{background:var(--bg2);border:1px solid var(--line2);border-bottom:0;border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:18px 16px calc(18px + var(--sab));animation:subir .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes subir{from{transform:translateY(40px);opacity:0}}
+.sheet h3{font-size:18px;margin-bottom:10px}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + var(--sab) + 16px);transform:translateX(-50%);background:var(--card2);border:1px solid var(--line2);padding:10px 16px;border-radius:99px;z-index:60;font-weight:700;font-size:14px;animation:aparecer .25s both;max-width:90vw;text-align:center}
+
+/* Asistente inicial */
+.wiz{position:fixed;inset:0;z-index:70;background:var(--bg);overflow:auto;padding:calc(16px + var(--sat)) 0 calc(16px + var(--sab))}
+.wiz .hero{aspect-ratio:400/220}
+.wiz h1{font-size:26px;line-height:1.15;margin:14px 0 8px}
+.wiz p{color:var(--muted);margin:0 0 16px}
+.dots{display:flex;gap:6px;justify-content:center;margin:14px 0}
+.dots i{width:8px;height:8px;border-radius:99px;background:var(--line2)}
+.dots i.on{width:22px;background:var(--gold)}
+.celebra{text-align:center}
+.celebra .big{font-size:40px}
+.confeti{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.confeti i{position:absolute;top:-10px;width:8px;height:14px;border-radius:2px;animation:caer 2.6s linear forwards}
+@keyframes caer{to{transform:translateY(110vh) rotate(720deg)}}
+details summary{cursor:pointer;color:var(--cyan);font-weight:700;font-size:13px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+.sep{height:1px;background:var(--line);margin:14px 0}
+.kv{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:0}
+input[type=range]{width:100%;accent-color:var(--gold)}
+input[type=date].inp{font-size:15px}
+@media (max-width:360px){.big{font-size:28px}.tile b{font-size:22px}.leg b{font-size:22px}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <svg class="logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="190" fill="none" stroke="#3fd0ff" stroke-opacity=".35" stroke-width="16" stroke-dasharray="14 18"/><circle cx="256" cy="256" r="146" fill="none" stroke="#3fd0ff" stroke-width="22"/><circle cx="256" cy="256" r="98" fill="none" stroke="#f5b841" stroke-width="30"/><circle cx="256" cy="256" r="46" fill="#ffd27a"/></svg>
+  <div class="brand">SIN LÍMITES<small>CAPITAL · DISCIPLINA · ENFOQUE</small></div>
+  <div class="dia" id="topDia"></div>
+</div><div class="topbar" title="Avance a la meta"><i id="topBar" style="width:0"></i></div></header>
+
+<main class="wrap">
+  <section class="view on" id="v-hoy"></section>
+  <section class="view" id="v-reg"></section>
+  <section class="view" id="v-dis"></section>
+  <section class="view" id="v-plan"></section>
+</main>
+
+<nav class="bot"><div class="in">
+  <button data-v="hoy" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>Hoy</button>
+  <button data-v="reg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/></svg>Registro</button>
+  <button data-v="dis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.6 6.2L21 9l-5 4.4L17.5 20 12 16.6 6.5 20 8 13.4 3 9l6.4-.8z"/></svg>Disciplina</button>
+  <button data-v="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Plan</button>
+</div></nav>
+
+<input type="file" id="fileImp" accept=".json,application/json" hidden>
+
+<script>
+const ART = {"ciudad": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#070c1e\"/><stop offset=\".55\" stop-color=\"#22305a\"/><stop offset=\".82\" stop-color=\"#c46f37\"/><stop offset=\"1\" stop-color=\"#f5b841\"/></linearGradient><radialGradient id=\"$$g\" cx=\".5\" cy=\".86\" r=\".55\"><stop offset=\"0\" stop-color=\"#ffd98a\" stop-opacity=\".95\"/><stop offset=\"1\" stop-color=\"#ffd98a\" stop-opacity=\"0\"/></radialGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><circle cx=\"97.8\" cy=\"51.3\" r=\"0.87\" fill=\"#fff\" opacity=\"0.58\"/><circle cx=\"249.0\" cy=\"10.6\" r=\"0.51\" fill=\"#fff\" opacity=\"0.71\"/><circle cx=\"106.1\" cy=\"24.9\" r=\"1.50\" fill=\"#fff\" opacity=\"0.51\"/><circle cx=\"331.2\" cy=\"45.5\" r=\"1.14\" fill=\"#fff\" opacity=\"0.33\"/><circle cx=\"252.6\" cy=\"78.8\" r=\"1.02\" fill=\"#fff\" opacity=\"0.66\"/><circle cx=\"266.9\" cy=\"10.4\" r=\"1.26\" fill=\"#fff\" opacity=\"0.58\"/><circle cx=\"122.5\" cy=\"7.6\" r=\"1.37\" fill=\"#fff\" opacity=\"0.51\"/><circle cx=\"285.3\" cy=\"79.7\" r=\"1.21\" fill=\"#fff\" opacity=\"0.76\"/><circle cx=\"159.0\" cy=\"73.1\" r=\"0.94\" fill=\"#fff\" opacity=\"0.76\"/><circle cx=\"347.8\" cy=\"13.3\" r=\"0.64\" fill=\"#fff\" opacity=\"0.37\"/><circle cx=\"381.5\" cy=\"42.1\" r=\"1.13\" fill=\"#fff\" opacity=\"0.42\"/><circle cx=\"202.8\" cy=\"37.8\" r=\"0.85\" fill=\"#fff\" opacity=\"0.57\"/><circle cx=\"232.9\" cy=\"81.9\" r=\"1.18\" fill=\"#fff\" opacity=\"0.76\"/><circle cx=\"339.0\" cy=\"89.2\" r=\"1.17\" fill=\"#fff\" opacity=\"0.34\"/><circle cx=\"340.6\" cy=\"87.0\" r=\"1.40\" fill=\"#fff\" opacity=\"0.56\"/><circle cx=\"283.4\" cy=\"22.9\" r=\"1.33\" fill=\"#fff\" opacity=\"0.57\"/><circle cx=\"116.1\" cy=\"10.4\" r=\"1.35\" fill=\"#fff\" opacity=\"0.79\"/><circle cx=\"39.5\" cy=\"73.1\" r=\"0.91\" fill=\"#fff\" opacity=\"0.33\"/><circle cx=\"119.6\" cy=\"70.3\" r=\"1.37\" fill=\"#fff\" opacity=\"0.27\"/><circle cx=\"244.7\" cy=\"8.8\" r=\"1.22\" fill=\"#fff\" opacity=\"0.43\"/><circle cx=\"348.6\" cy=\"88.4\" r=\"1.01\" fill=\"#fff\" opacity=\"0.80\"/><circle cx=\"125.8\" cy=\"11.5\" r=\"1.10\" fill=\"#fff\" opacity=\"0.27\"/><circle cx=\"82.0\" cy=\"39.7\" r=\"1.11\" fill=\"#fff\" opacity=\"0.34\"/><circle cx=\"21.5\" cy=\"78.8\" r=\"0.81\" fill=\"#fff\" opacity=\"0.78\"/><circle cx=\"354.7\" cy=\"37.1\" r=\"0.96\" fill=\"#fff\" opacity=\"0.54\"/><circle cx=\"256.1\" cy=\"55.6\" r=\"1.06\" fill=\"#fff\" opacity=\"0.59\"/><circle cx=\"371.8\" cy=\"48.1\" r=\"0.93\" fill=\"#fff\" opacity=\"0.65\"/><circle cx=\"97.7\" cy=\"30.6\" r=\"1.48\" fill=\"#fff\" opacity=\"0.54\"/><circle cx=\"218.9\" cy=\"6.0\" r=\"0.92\" fill=\"#fff\" opacity=\"0.57\"/><circle cx=\"12.8\" cy=\"57.3\" r=\"1.13\" fill=\"#fff\" opacity=\"0.28\"/><circle cx=\"170\" cy=\"170\" r=\"170\" fill=\"url(#$$g)\"/><line x1=\"126.0\" y1=\"158.0\" x2=\"-20.0\" y2=\"158.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"126.7\" y1=\"149.9\" x2=\"-16.8\" y2=\"123.1\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"129.0\" y1=\"142.1\" x2=\"-7.2\" y2=\"89.4\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"132.6\" y1=\"134.8\" x2=\"8.5\" y2=\"58.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"137.5\" y1=\"128.4\" x2=\"29.6\" y2=\"30.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"143.5\" y1=\"122.9\" x2=\"55.5\" y2=\"6.4\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"150.4\" y1=\"118.6\" x2=\"85.3\" y2=\"-12.1\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"158.0\" y1=\"115.7\" x2=\"118.0\" y2=\"-24.7\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"165.9\" y1=\"114.2\" x2=\"152.5\" y2=\"-31.2\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"174.1\" y1=\"114.2\" x2=\"187.5\" y2=\"-31.2\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"182.0\" y1=\"115.7\" x2=\"222.0\" y2=\"-24.7\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"189.6\" y1=\"118.6\" x2=\"254.7\" y2=\"-12.1\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"196.5\" y1=\"122.9\" x2=\"284.5\" y2=\"6.4\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"202.5\" y1=\"128.4\" x2=\"310.4\" y2=\"30.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"207.4\" y1=\"134.8\" x2=\"331.5\" y2=\"58.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"211.0\" y1=\"142.1\" x2=\"347.2\" y2=\"89.4\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"213.3\" y1=\"149.9\" x2=\"356.8\" y2=\"123.1\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"214.0\" y1=\"158.0\" x2=\"360.0\" y2=\"158.0\" stroke=\"#ffe6ad\" stroke-opacity=\"0.18\" stroke-width=\"2\" stroke-linecap=\"round\"/><circle cx=\"170\" cy=\"158\" r=\"30\" fill=\"#ffe7b0\"/><rect x=\"-10\" y=\"162.4\" width=\"34\" height=\"79.6\" fill=\"#0d1630\"/><rect x=\"15\" y=\"170\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.83\"/><rect x=\"8\" y=\"179\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.62\"/><rect x=\"15\" y=\"179\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.67\"/><rect x=\"1\" y=\"206\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.37\"/><rect x=\"15\" y=\"215\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.49\"/><rect x=\"1\" y=\"224\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.40\"/><rect x=\"8\" y=\"233\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.50\"/><rect x=\"28\" y=\"208.4\" width=\"30\" height=\"33.6\" fill=\"#0d1630\"/><rect x=\"32\" y=\"216\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.41\"/><rect x=\"46\" y=\"216\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.36\"/><rect x=\"32\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.91\"/><rect x=\"39\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.58\"/><rect x=\"62\" y=\"199.1\" width=\"18\" height=\"42.9\" fill=\"#0d1630\"/><rect x=\"66\" y=\"216\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.60\"/><rect x=\"66\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.77\"/><rect x=\"73\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.63\"/><rect x=\"82\" y=\"172.5\" width=\"26\" height=\"69.5\" fill=\"#0d1630\"/><rect x=\"94.0\" y=\"158.5\" width=\"2\" height=\"14\" fill=\"#0d1630\"/><rect x=\"93\" y=\"198\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.87\"/><rect x=\"100\" y=\"207\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.46\"/><rect x=\"86\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.44\"/><rect x=\"100\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.72\"/><rect x=\"110\" y=\"206.0\" width=\"34\" height=\"36.0\" fill=\"#0d1630\"/><rect x=\"126.0\" y=\"192.0\" width=\"2\" height=\"14\" fill=\"#0d1630\"/><rect x=\"121\" y=\"231\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.44\"/><rect x=\"144\" y=\"199.6\" width=\"18\" height=\"42.4\" fill=\"#0d1630\"/><rect x=\"155\" y=\"207\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.92\"/><rect x=\"155\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.37\"/><rect x=\"164\" y=\"169.3\" width=\"26\" height=\"72.7\" fill=\"#0d1630\"/><rect x=\"168\" y=\"195\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.64\"/><rect x=\"168\" y=\"204\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.48\"/><rect x=\"168\" y=\"213\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.60\"/><rect x=\"182\" y=\"213\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.52\"/><rect x=\"182\" y=\"222\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.43\"/><rect x=\"194\" y=\"157.9\" width=\"40\" height=\"84.1\" fill=\"#0d1630\"/><rect x=\"226\" y=\"165\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.71\"/><rect x=\"198\" y=\"174\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.39\"/><rect x=\"212\" y=\"174\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.39\"/><rect x=\"198\" y=\"183\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.91\"/><rect x=\"212\" y=\"183\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.93\"/><rect x=\"226\" y=\"183\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.63\"/><rect x=\"198\" y=\"192\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.86\"/><rect x=\"212\" y=\"192\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.65\"/><rect x=\"219\" y=\"192\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.75\"/><rect x=\"198\" y=\"201\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.39\"/><rect x=\"205\" y=\"201\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.42\"/><rect x=\"219\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.36\"/><rect x=\"198\" y=\"228\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.82\"/><rect x=\"234\" y=\"176.4\" width=\"18\" height=\"65.6\" fill=\"#0d1630\"/><rect x=\"238\" y=\"229\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.48\"/><rect x=\"245\" y=\"229\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.90\"/><rect x=\"252\" y=\"202.6\" width=\"26\" height=\"39.4\" fill=\"#0d1630\"/><rect x=\"263\" y=\"210\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.39\"/><rect x=\"263\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.63\"/><rect x=\"282\" y=\"170.6\" width=\"30\" height=\"71.4\" fill=\"#0d1630\"/><rect x=\"286\" y=\"205\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.81\"/><rect x=\"293\" y=\"214\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.42\"/><rect x=\"293\" y=\"223\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.47\"/><rect x=\"307\" y=\"232\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.49\"/><rect x=\"314\" y=\"171.6\" width=\"40\" height=\"70.4\" fill=\"#0d1630\"/><rect x=\"318\" y=\"188\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.91\"/><rect x=\"332\" y=\"188\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.62\"/><rect x=\"332\" y=\"206\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.78\"/><rect x=\"325\" y=\"215\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.89\"/><rect x=\"318\" y=\"233\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.61\"/><rect x=\"346\" y=\"233\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.84\"/><rect x=\"354\" y=\"166.0\" width=\"34\" height=\"76.0\" fill=\"#0d1630\"/><rect x=\"370.0\" y=\"152.0\" width=\"2\" height=\"14\" fill=\"#0d1630\"/><rect x=\"372\" y=\"174\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.44\"/><rect x=\"372\" y=\"192\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.48\"/><rect x=\"372\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.86\"/><rect x=\"372\" y=\"228\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.67\"/><rect x=\"392\" y=\"208.5\" width=\"34\" height=\"33.5\" fill=\"#0d1630\"/><rect x=\"410\" y=\"225\" width=\"3\" height=\"4\" fill=\"#ffcf6e\" opacity=\"0.67\"/><rect x=\"-10\" y=\"191.8\" width=\"30\" height=\"50.2\" fill=\"#070c19\"/><rect x=\"-6\" y=\"199\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.84\"/><rect x=\"1\" y=\"199\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.70\"/><rect x=\"-6\" y=\"208\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.60\"/><rect x=\"15\" y=\"208\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.69\"/><rect x=\"15\" y=\"217\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.70\"/><rect x=\"-6\" y=\"226\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.48\"/><rect x=\"24\" y=\"205.0\" width=\"22\" height=\"37.0\" fill=\"#070c19\"/><rect x=\"35\" y=\"213\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.69\"/><rect x=\"35\" y=\"222\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.78\"/><rect x=\"48\" y=\"206.4\" width=\"18\" height=\"35.6\" fill=\"#070c19\"/><rect x=\"66\" y=\"214.5\" width=\"40\" height=\"27.5\" fill=\"#070c19\"/><rect x=\"91\" y=\"222\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.66\"/><rect x=\"98\" y=\"231\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.68\"/><rect x=\"108\" y=\"200.7\" width=\"30\" height=\"41.3\" fill=\"#070c19\"/><rect x=\"126\" y=\"217\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.77\"/><rect x=\"142\" y=\"224.2\" width=\"30\" height=\"17.8\" fill=\"#070c19\"/><rect x=\"153\" y=\"232\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.39\"/><rect x=\"172\" y=\"211.3\" width=\"34\" height=\"30.7\" fill=\"#070c19\"/><rect x=\"176\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.62\"/><rect x=\"208\" y=\"219.7\" width=\"26\" height=\"22.3\" fill=\"#070c19\"/><rect x=\"220.0\" y=\"205.7\" width=\"2\" height=\"14\" fill=\"#070c19\"/><rect x=\"238\" y=\"215.8\" width=\"26\" height=\"26.2\" fill=\"#070c19\"/><rect x=\"250.0\" y=\"201.8\" width=\"2\" height=\"14\" fill=\"#070c19\"/><rect x=\"268\" y=\"201.3\" width=\"18\" height=\"40.7\" fill=\"#070c19\"/><rect x=\"276.0\" y=\"187.3\" width=\"2\" height=\"14\" fill=\"#070c19\"/><rect x=\"286\" y=\"202.8\" width=\"34\" height=\"39.2\" fill=\"#070c19\"/><rect x=\"302.0\" y=\"188.8\" width=\"2\" height=\"14\" fill=\"#070c19\"/><rect x=\"290\" y=\"210\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.48\"/><rect x=\"311\" y=\"210\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.35\"/><rect x=\"297\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.57\"/><rect x=\"304\" y=\"219\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.87\"/><rect x=\"320\" y=\"195.3\" width=\"22\" height=\"46.7\" fill=\"#070c19\"/><rect x=\"324\" y=\"212\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.41\"/><rect x=\"331\" y=\"230\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.92\"/><rect x=\"346\" y=\"219.9\" width=\"30\" height=\"22.1\" fill=\"#070c19\"/><rect x=\"350\" y=\"227\" width=\"3\" height=\"4\" fill=\"#ffb84d\" opacity=\"0.67\"/><rect x=\"378\" y=\"212.2\" width=\"40\" height=\"29.8\" fill=\"#070c19\"/><rect x=\"397.0\" y=\"198.2\" width=\"2\" height=\"14\" fill=\"#070c19\"/><path d=\"M230 212 H400 V240 H230Z\" fill=\"#03050b\"/><rect x=\"230\" y=\"206\" width=\"170\" height=\"7\" fill=\"#0b1224\"/><g transform=\"translate(318 122) scale(1.0)\" fill=\"#03050b\"><circle cx=\"0\" cy=\"0\" r=\"8\"/><path d=\"M-4 7h8v5h-8z\"/><path d=\"M-16 16 Q0 8 16 16 L13 52 L-13 52 Z\"/><path d=\"M-16 16 L-19 44 L-14 45 L-11 22Z M16 16 L19 44 L14 45 L11 22Z\"/><rect x=\"-11\" y=\"50\" width=\"9\" height=\"34\" rx=\"2\"/><rect x=\"2\" y=\"50\" width=\"9\" height=\"34\" rx=\"2\"/></g></svg>", "enfoque": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#060a18\"/><stop offset=\".55\" stop-color=\"#0f1a36\"/><stop offset=\"1\" stop-color=\"#101c3c\"/></linearGradient><radialGradient id=\"$$c\" cx=\".5\" cy=\".5\" r=\".5\"><stop offset=\"0\" stop-color=\"#ffd27a\"/><stop offset=\".35\" stop-color=\"#f5b841\" stop-opacity=\".55\"/><stop offset=\"1\" stop-color=\"#f5b841\" stop-opacity=\"0\"/></radialGradient><filter id=\"$$b\"><feGaussianBlur stdDeviation=\"3\"/></filter></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><g filter=\"url(#$$b)\" opacity=\".55\"><circle cx=\"40\" cy=\"40\" r=\"14\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"360\" cy=\"50\" r=\"18\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"70\" cy=\"200\" r=\"20\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"340\" cy=\"190\" r=\"16\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"120\" cy=\"110\" r=\"9\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"290\" cy=\"120\" r=\"11\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"20\" cy=\"130\" r=\"10\" fill=\"#3fd0ff\" opacity=\".35\"/><circle cx=\"385\" cy=\"125\" r=\"9\" fill=\"#3fd0ff\" opacity=\".35\"/></g><circle cx=\"200\" cy=\"120\" r=\"100\" fill=\"url(#$$c)\" opacity=\".5\"/><circle cx=\"200\" cy=\"120\" r=\"92\" fill=\"none\" stroke=\"#3fd0ff\" stroke-opacity=\".25\" stroke-width=\"2\" stroke-dasharray=\"4 7\"/><circle cx=\"200\" cy=\"120\" r=\"70\" fill=\"none\" stroke=\"#3fd0ff\" stroke-opacity=\".5\" stroke-width=\"2\"/><circle cx=\"200\" cy=\"120\" r=\"48\" fill=\"none\" stroke=\"#f5b841\" stroke-width=\"3\"/><circle cx=\"200\" cy=\"120\" r=\"14\" fill=\"#ffd27a\"/><path d=\"M200 22v36M200 182v36M102 120h36M262 120h36\" stroke=\"#e9eef8\" stroke-opacity=\".7\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M168 88l-10-10M232 88l10-10M168 152l-10 10M232 152l10 10\" stroke=\"#f5b841\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>", "orden": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#0b1226\"/><stop offset=\".55\" stop-color=\"#111b35\"/><stop offset=\"1\" stop-color=\"#16223f\"/></linearGradient><linearGradient id=\"$$d\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#2a3a60\"/><stop offset=\"1\" stop-color=\"#1a2744\"/></linearGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><g stroke=\"#3fd0ff\" stroke-opacity=\".08\"><path d=\"M0 0V240\"/><path d=\"M20 0V240\"/><path d=\"M40 0V240\"/><path d=\"M60 0V240\"/><path d=\"M80 0V240\"/><path d=\"M100 0V240\"/><path d=\"M120 0V240\"/><path d=\"M140 0V240\"/><path d=\"M160 0V240\"/><path d=\"M180 0V240\"/><path d=\"M200 0V240\"/><path d=\"M220 0V240\"/><path d=\"M240 0V240\"/><path d=\"M260 0V240\"/><path d=\"M280 0V240\"/><path d=\"M300 0V240\"/><path d=\"M320 0V240\"/><path d=\"M340 0V240\"/><path d=\"M360 0V240\"/><path d=\"M380 0V240\"/><path d=\"M0 0H400\"/><path d=\"M0 20H400\"/><path d=\"M0 40H400\"/><path d=\"M0 60H400\"/><path d=\"M0 80H400\"/><path d=\"M0 100H400\"/><path d=\"M0 120H400\"/><path d=\"M0 140H400\"/><path d=\"M0 160H400\"/><path d=\"M0 180H400\"/><path d=\"M0 200H400\"/><path d=\"M0 220H400\"/></g><rect x=\"40\" y=\"30\" width=\"320\" height=\"180\" rx=\"14\" fill=\"url(#$$d)\" stroke=\"#3fd0ff\" stroke-opacity=\".25\"/><rect x=\"64\" y=\"54\" width=\"110\" height=\"132\" rx=\"6\" fill=\"#e9eef8\" opacity=\".92\"/><rect x=\"78\" y=\"72\" width=\"82\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><rect x=\"78\" y=\"86\" width=\"70\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><rect x=\"78\" y=\"100\" width=\"80\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><rect x=\"78\" y=\"114\" width=\"60\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><rect x=\"78\" y=\"128\" width=\"76\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><rect x=\"78\" y=\"142\" width=\"66\" height=\"5\" rx=\"2.5\" fill=\"#1b2a4a\" opacity=\".55\"/><path d=\"M80 164l8 8 16-18\" stroke=\"#35d49a\" stroke-width=\"5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"196\" y=\"54\" width=\"54\" height=\"96\" rx=\"9\" fill=\"#0a0f1d\" stroke=\"#f5b841\" stroke-width=\"2\"/><rect x=\"202\" y=\"62\" width=\"42\" height=\"74\" rx=\"3\" fill=\"#16223f\"/><path d=\"M208 124l9-12 8 6 13-20\" stroke=\"#f5b841\" stroke-width=\"3\" fill=\"none\" stroke-linecap=\"round\"/><rect x=\"270\" y=\"54\" width=\"8\" height=\"132\" rx=\"4\" fill=\"#f5b841\"/><rect x=\"286\" y=\"54\" width=\"8\" height=\"132\" rx=\"4\" fill=\"#3fd0ff\"/><rect x=\"306\" y=\"58\" width=\"36\" height=\"36\" rx=\"18\" fill=\"none\" stroke=\"#e9eef8\" stroke-opacity=\".7\" stroke-width=\"3\"/><rect x=\"306\" y=\"110\" width=\"36\" height=\"76\" rx=\"6\" fill=\"#0a0f1d\" stroke=\"#3fd0ff\" stroke-opacity=\".5\"/><rect x=\"196\" y=\"164\" width=\"54\" height=\"22\" rx=\"5\" fill=\"#e9eef8\" opacity=\".85\"/></svg>", "aseo": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#081024\"/><stop offset=\".55\" stop-color=\"#12204a\"/><stop offset=\"1\" stop-color=\"#1a2c57\"/></linearGradient><linearGradient id=\"$$m\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#3fd0ff\" stop-opacity=\".35\"/><stop offset=\".5\" stop-color=\"#9fe7ff\" stop-opacity=\".12\"/><stop offset=\"1\" stop-color=\"#3fd0ff\" stop-opacity=\".3\"/></linearGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><ellipse cx=\"200\" cy=\"118\" rx=\"78\" ry=\"98\" fill=\"#0a1226\" stroke=\"#f5b841\" stroke-width=\"5\"/><ellipse cx=\"200\" cy=\"118\" rx=\"70\" ry=\"90\" fill=\"url(#$$m)\"/><g fill=\"#e9eef8\" opacity=\".9\"><circle cx=\"200\" cy=\"96\" r=\"24\"/><path d=\"M150 190 Q152 140 200 132 Q248 140 250 190 Q226 206 200 206 Q174 206 150 190Z\"/></g><path d=\"M190 134 L200 176 L210 134\" fill=\"#1b2a4a\"/><path d=\"M196 136 L200 170 L204 136Z\" fill=\"#f5b841\"/><path d=\"M150 58 Q164 40 184 36\" stroke=\"#fff\" stroke-opacity=\".5\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\"/><path d=\"M304 47v18M295 56h18\" stroke=\"#ffd27a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M92 161v18M83 170h18\" stroke=\"#ffd27a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M322 161v18M313 170h18\" stroke=\"#ffd27a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M84 61v18M75 70h18\" stroke=\"#ffd27a\" stroke-width=\"2.5\" stroke-linecap=\"round\"/><path d=\"M60 110 q6 10 0 14 q-6 -4 0 -14Z\" fill=\"#3fd0ff\" opacity=\".7\"/><path d=\"M340 110 q6 10 0 14 q-6 -4 0 -14Z\" fill=\"#3fd0ff\" opacity=\".7\"/><path d=\"M318 206 q6 10 0 14 q-6 -4 0 -14Z\" fill=\"#3fd0ff\" opacity=\".7\"/><path d=\"M72 206 q6 10 0 14 q-6 -4 0 -14Z\" fill=\"#3fd0ff\" opacity=\".7\"/></svg>", "vestir": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#070b16\"/><stop offset=\".55\" stop-color=\"#0f1830\"/><stop offset=\"1\" stop-color=\"#162347\"/></linearGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><line x1=\"215.3\" y1=\"22.9\" x2=\"399.2\" y2=\"177.1\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"213.5\" y1=\"24.8\" x2=\"375.0\" y2=\"202.3\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"211.4\" y1=\"26.5\" x2=\"347.7\" y2=\"224.0\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"209.1\" y1=\"27.8\" x2=\"317.7\" y2=\"241.8\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"206.6\" y1=\"28.9\" x2=\"285.6\" y2=\"255.5\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"204.0\" y1=\"29.6\" x2=\"252.0\" y2=\"264.7\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"201.3\" y1=\"30.0\" x2=\"217.4\" y2=\"269.4\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"198.7\" y1=\"30.0\" x2=\"182.6\" y2=\"269.4\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"196.0\" y1=\"29.6\" x2=\"148.0\" y2=\"264.7\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"193.4\" y1=\"28.9\" x2=\"114.4\" y2=\"255.5\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"190.9\" y1=\"27.8\" x2=\"82.3\" y2=\"241.8\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"188.6\" y1=\"26.5\" x2=\"52.3\" y2=\"224.0\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"186.5\" y1=\"24.8\" x2=\"25.0\" y2=\"202.3\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><line x1=\"184.7\" y1=\"22.9\" x2=\"0.8\" y2=\"177.1\" stroke=\"#f5b841\" stroke-opacity=\"0.06\" stroke-width=\"10\" stroke-linecap=\"round\"/><path d=\"M80 240 L110 70 Q200 40 290 70 L320 240Z\" fill=\"#141e36\" stroke=\"#3fd0ff\" stroke-opacity=\".3\"/><path d=\"M150 58 Q200 44 250 58 L236 240 L164 240Z\" fill=\"#e9eef8\"/><path d=\"M160 56 L200 96 L178 118 Z M240 56 L200 96 L222 118Z\" fill=\"#fff\" stroke=\"#c9d3e6\"/><path d=\"M191 98 L209 98 L214 116 L200 126 L186 116Z\" fill=\"#c98f22\"/><path d=\"M188 124 L212 124 L222 214 L200 236 L178 214Z\" fill=\"#f5b841\"/><path d=\"M190 150 L218 170 M184 180 L220 200\" stroke=\"#c98f22\" stroke-width=\"3\"/><path d=\"M110 70 L160 56 L186 140 L150 240 L96 240Z\" fill=\"#0c1428\"/><path d=\"M290 70 L240 56 L214 140 L250 240 L304 240Z\" fill=\"#0c1428\"/><path d=\"M262 118 h22\" stroke=\"#e9eef8\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"236\" cy=\"196\" r=\"3\" fill=\"#3fd0ff\"/><circle cx=\"236\" cy=\"218\" r=\"3\" fill=\"#3fd0ff\"/></svg>", "circulo": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#060a17\"/><stop offset=\".55\" stop-color=\"#0d1732\"/><stop offset=\"1\" stop-color=\"#0f1b3b\"/></linearGradient><radialGradient id=\"$$h\" cx=\".5\" cy=\".5\" r=\".5\"><stop offset=\"0\" stop-color=\"#f5b841\" stop-opacity=\".25\"/><stop offset=\"1\" stop-color=\"#f5b841\" stop-opacity=\"0\"/></radialGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><circle cx=\"200\" cy=\"122\" r=\"130\" fill=\"url(#$$h)\"/><circle cx=\"34\" cy=\"34\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"34.0\" cy=\"29.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M24.2 44.5 Q34.0 33.3 43.8 44.5Z\" fill=\"#56627e\"/></g><circle cx=\"372\" cy=\"40\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"372.0\" cy=\"35.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M362.2 50.5 Q372.0 39.3 381.8 50.5Z\" fill=\"#56627e\"/></g><circle cx=\"28\" cy=\"206\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"28.0\" cy=\"201.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M18.2 216.5 Q28.0 205.3 37.8 216.5Z\" fill=\"#56627e\"/></g><circle cx=\"378\" cy=\"204\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"378.0\" cy=\"199.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M368.2 214.5 Q378.0 203.3 387.8 214.5Z\" fill=\"#56627e\"/></g><circle cx=\"120\" cy=\"18\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"120.0\" cy=\"13.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M110.2 28.5 Q120.0 17.3 129.8 28.5Z\" fill=\"#56627e\"/></g><circle cx=\"300\" cy=\"222\" r=\"15\" fill=\"none\" stroke=\"#56627e\" stroke-dasharray=\"3 4\"/><g opacity=\"0.6\"><circle cx=\"300.0\" cy=\"217.1\" r=\"5.9\" fill=\"#56627e\"/><path d=\"M290.2 232.5 Q300.0 221.3 309.8 232.5Z\" fill=\"#56627e\"/></g><line x1=\"200.0\" y1=\"50.0\" x2=\"274.5\" y2=\"86.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"274.5\" y1=\"86.0\" x2=\"274.5\" y2=\"158.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"274.5\" y1=\"158.0\" x2=\"200.0\" y2=\"194.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"200.0\" y1=\"194.0\" x2=\"125.5\" y2=\"158.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"125.5\" y1=\"158.0\" x2=\"125.5\" y2=\"86.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"125.5\" y1=\"86.0\" x2=\"200.0\" y2=\"50.0\" stroke=\"#3fd0ff\" stroke-opacity=\".45\" stroke-width=\"2\"/><line x1=\"200\" y1=\"122\" x2=\"200.0\" y2=\"50.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><line x1=\"200\" y1=\"122\" x2=\"274.5\" y2=\"86.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><line x1=\"200\" y1=\"122\" x2=\"274.5\" y2=\"158.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><line x1=\"200\" y1=\"122\" x2=\"200.0\" y2=\"194.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><line x1=\"200\" y1=\"122\" x2=\"125.5\" y2=\"158.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><line x1=\"200\" y1=\"122\" x2=\"125.5\" y2=\"86.0\" stroke=\"#f5b841\" stroke-opacity=\".6\" stroke-width=\"2.5\"/><circle cx=\"200.0\" cy=\"50.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"200.0\" cy=\"43.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M186.0 65.0 Q200.0 49.0 214.0 65.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"274.5\" cy=\"86.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"274.5\" cy=\"79.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M260.5 101.0 Q274.5 85.0 288.5 101.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"274.5\" cy=\"158.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"274.5\" cy=\"151.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M260.5 173.0 Q274.5 157.0 288.5 173.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"200.0\" cy=\"194.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"200.0\" cy=\"187.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M186.0 209.0 Q200.0 193.0 214.0 209.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"125.5\" cy=\"158.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"125.5\" cy=\"151.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M111.5 173.0 Q125.5 157.0 139.5 173.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"125.5\" cy=\"86.0\" r=\"21\" fill=\"#0d1a36\" stroke=\"#3fd0ff\" stroke-width=\"2\"/><g opacity=\"1\"><circle cx=\"125.5\" cy=\"79.0\" r=\"8.4\" fill=\"#3fd0ff\"/><path d=\"M111.5 101.0 Q125.5 85.0 139.5 101.0Z\" fill=\"#3fd0ff\"/></g><circle cx=\"200\" cy=\"122\" r=\"30\" fill=\"#1b1606\" stroke=\"#f5b841\" stroke-width=\"3\"/><g opacity=\"1\"><circle cx=\"200.0\" cy=\"112.2\" r=\"11.8\" fill=\"#f5b841\"/><path d=\"M180.4 143.0 Q200.0 120.6 219.6 143.0Z\" fill=\"#f5b841\"/></g></svg>", "apalancamiento": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#070b18\"/><stop offset=\".55\" stop-color=\"#111c3a\"/><stop offset=\"1\" stop-color=\"#1d2b52\"/></linearGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><circle cx=\"69.3\" cy=\"56.7\" r=\"1.13\" fill=\"#fff\" opacity=\"0.51\"/><circle cx=\"89.2\" cy=\"64.4\" r=\"1.31\" fill=\"#fff\" opacity=\"0.53\"/><circle cx=\"202.0\" cy=\"22.7\" r=\"0.50\" fill=\"#fff\" opacity=\"0.45\"/><circle cx=\"233.3\" cy=\"10.2\" r=\"1.29\" fill=\"#fff\" opacity=\"0.38\"/><circle cx=\"95.8\" cy=\"8.2\" r=\"1.50\" fill=\"#fff\" opacity=\"0.66\"/><circle cx=\"346.3\" cy=\"51.2\" r=\"0.53\" fill=\"#fff\" opacity=\"0.43\"/><circle cx=\"199.0\" cy=\"13.7\" r=\"1.45\" fill=\"#fff\" opacity=\"0.45\"/><circle cx=\"65.4\" cy=\"66.3\" r=\"0.62\" fill=\"#fff\" opacity=\"0.76\"/><circle cx=\"181.7\" cy=\"46.4\" r=\"0.84\" fill=\"#fff\" opacity=\"0.52\"/><circle cx=\"77.9\" cy=\"7.8\" r=\"1.37\" fill=\"#fff\" opacity=\"0.38\"/><circle cx=\"309.3\" cy=\"20.6\" r=\"1.47\" fill=\"#fff\" opacity=\"0.74\"/><circle cx=\"299.4\" cy=\"62.2\" r=\"1.08\" fill=\"#fff\" opacity=\"0.65\"/><circle cx=\"52.8\" cy=\"40.7\" r=\"1.33\" fill=\"#fff\" opacity=\"0.36\"/><circle cx=\"365.0\" cy=\"71.6\" r=\"0.91\" fill=\"#fff\" opacity=\"0.45\"/><circle cx=\"181.0\" cy=\"33.9\" r=\"1.49\" fill=\"#fff\" opacity=\"0.46\"/><circle cx=\"15.5\" cy=\"12.0\" r=\"1.22\" fill=\"#fff\" opacity=\"0.80\"/><circle cx=\"198.4\" cy=\"41.9\" r=\"1.05\" fill=\"#fff\" opacity=\"0.66\"/><circle cx=\"91.6\" cy=\"50.7\" r=\"1.06\" fill=\"#fff\" opacity=\"0.59\"/><path d=\"M0 206 H400 V240 H0Z\" fill=\"#0a1020\"/><path d=\"M150 206 L176 164 L202 206Z\" fill=\"#f5b841\"/><g transform=\"rotate(-13 176 162)\"><rect x=\"40\" y=\"156\" width=\"330\" height=\"10\" rx=\"5\" fill=\"#e9eef8\"/></g><g transform=\"rotate(-13 176 162)\"><rect x=\"46\" y=\"96\" width=\"78\" height=\"60\" rx=\"6\" fill=\"#16223f\" stroke=\"#3fd0ff\" stroke-width=\"2.5\"/><text x=\"85\" y=\"136\" text-anchor=\"middle\" font-family=\"system-ui,sans-serif\" font-weight=\"800\" font-size=\"26\" fill=\"#3fd0ff\">META</text></g><g transform=\"rotate(-13 176 162)\"><circle cx=\"352\" cy=\"140\" r=\"15\" fill=\"#f5b841\"/></g><path d=\"M334 58 v34 M324 82 l10 12 l10 -12\" stroke=\"#f5b841\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M72 70 v-30 M62 50 l10 -12 l10 12\" stroke=\"#35d49a\" stroke-width=\"4\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><text x=\"330\" y=\"222\" text-anchor=\"middle\" font-family=\"system-ui,sans-serif\" font-size=\"12\" fill=\"#8e9bb8\">poca fuerza</text><text x=\"86\" y=\"222\" text-anchor=\"middle\" font-family=\"system-ui,sans-serif\" font-size=\"12\" fill=\"#8e9bb8\">mucho peso</text></svg>", "periferica": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#050914\"/><stop offset=\".55\" stop-color=\"#0c1530\"/><stop offset=\"1\" stop-color=\"#111d40\"/></linearGradient><radialGradient id=\"$$i\" cx=\".5\" cy=\".5\" r=\".5\"><stop offset=\"0\" stop-color=\"#ffd27a\"/><stop offset=\".6\" stop-color=\"#f5b841\"/><stop offset=\"1\" stop-color=\"#8a5a0e\"/></radialGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><path d=\"M200 150 L10 20 A260 260 0 0 1 390 20 Z\" fill=\"#3fd0ff\" opacity=\".07\"/><line x1=\"134.2\" y1=\"126.1\" x2=\"12.1\" y2=\"81.6\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"142.0\" y1=\"110.9\" x2=\"34.2\" y2=\"38.2\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"153.2\" y1=\"98.0\" x2=\"66.2\" y2=\"1.4\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"167.1\" y1=\"88.2\" x2=\"106.1\" y2=\"-26.6\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"183.1\" y1=\"82.1\" x2=\"151.6\" y2=\"-44.1\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"200.0\" y1=\"80.0\" x2=\"200.0\" y2=\"-50.0\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"216.9\" y1=\"82.1\" x2=\"248.4\" y2=\"-44.1\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"232.9\" y1=\"88.2\" x2=\"293.9\" y2=\"-26.6\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"246.8\" y1=\"98.0\" x2=\"333.8\" y2=\"1.4\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"258.0\" y1=\"110.9\" x2=\"365.8\" y2=\"38.2\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><line x1=\"265.8\" y1=\"126.1\" x2=\"387.9\" y2=\"81.6\" stroke=\"#3fd0ff\" stroke-opacity=\"0.3\" stroke-width=\"2\" stroke-linecap=\"round\"/><path d=\"M110 150 Q200 70 290 150 Q200 230 110 150Z\" fill=\"#e9eef8\"/><circle cx=\"200\" cy=\"150\" r=\"34\" fill=\"url(#$$i)\"/><circle cx=\"200\" cy=\"150\" r=\"14\" fill=\"#05080f\"/><circle cx=\"209\" cy=\"141\" r=\"5\" fill=\"#fff\"/><g fill=\"none\" stroke=\"#f5b841\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M34 64 l10 -8 8 5 12 -12\"/><rect x=\"330\" y=\"44\" width=\"30\" height=\"22\" rx=\"3\"/><path d=\"M336 58 h18\"/><circle cx=\"94\" cy=\"34\" r=\"10\"/><path d=\"M94 28 v6 l4 3\"/><path d=\"M290 22 h24 M290 30 h16\"/></g><g fill=\"#3fd0ff\" opacity=\".9\"><rect x=\"18\" y=\"120\" width=\"6\" height=\"14\"/><rect x=\"27\" y=\"112\" width=\"6\" height=\"22\"/><rect x=\"36\" y=\"104\" width=\"6\" height=\"30\"/><rect x=\"362\" y=\"112\" width=\"6\" height=\"22\"/><rect x=\"371\" y=\"100\" width=\"6\" height=\"34\"/><rect x=\"380\" y=\"90\" width=\"6\" height=\"44\"/></g></svg>", "conocimiento": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#070b18\"/><stop offset=\".55\" stop-color=\"#101a37\"/><stop offset=\"1\" stop-color=\"#15214a\"/></linearGradient><radialGradient id=\"$$l\" cx=\".5\" cy=\"1\" r=\".8\"><stop offset=\"0\" stop-color=\"#ffd27a\" stop-opacity=\".5\"/><stop offset=\"1\" stop-color=\"#ffd27a\" stop-opacity=\"0\"/></radialGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><path d=\"M110 170 L200 10 L290 170Z\" fill=\"url(#$$l)\"/><circle cx=\"217.2\" cy=\"116.4\" r=\"2.6\" fill=\"#ffd27a\" opacity=\"0.87\"/><circle cx=\"233.6\" cy=\"139.9\" r=\"1.1\" fill=\"#ffd27a\" opacity=\"0.58\"/><circle cx=\"262.1\" cy=\"104.4\" r=\"2.8\" fill=\"#ffd27a\" opacity=\"0.37\"/><circle cx=\"195.7\" cy=\"52.1\" r=\"2.1\" fill=\"#ffd27a\" opacity=\"0.64\"/><circle cx=\"131.8\" cy=\"48.2\" r=\"1.6\" fill=\"#ffd27a\" opacity=\"0.85\"/><circle cx=\"237.2\" cy=\"40.7\" r=\"2.6\" fill=\"#ffd27a\" opacity=\"0.38\"/><circle cx=\"216.4\" cy=\"36.5\" r=\"1.0\" fill=\"#ffd27a\" opacity=\"0.82\"/><circle cx=\"159.3\" cy=\"48.0\" r=\"3.0\" fill=\"#ffd27a\" opacity=\"0.82\"/><circle cx=\"170.5\" cy=\"145.0\" r=\"2.1\" fill=\"#ffd27a\" opacity=\"0.71\"/><circle cx=\"158.7\" cy=\"142.3\" r=\"2.4\" fill=\"#ffd27a\" opacity=\"0.88\"/><circle cx=\"255.1\" cy=\"58.8\" r=\"1.7\" fill=\"#ffd27a\" opacity=\"0.40\"/><circle cx=\"150.4\" cy=\"28.5\" r=\"1.6\" fill=\"#ffd27a\" opacity=\"0.66\"/><circle cx=\"130.5\" cy=\"108.1\" r=\"1.7\" fill=\"#ffd27a\" opacity=\"0.49\"/><circle cx=\"244.6\" cy=\"82.5\" r=\"1.6\" fill=\"#ffd27a\" opacity=\"0.59\"/><circle cx=\"228.7\" cy=\"27.4\" r=\"3.0\" fill=\"#ffd27a\" opacity=\"0.31\"/><circle cx=\"235.0\" cy=\"129.8\" r=\"1.0\" fill=\"#ffd27a\" opacity=\"0.77\"/><circle cx=\"181.3\" cy=\"95.2\" r=\"1.0\" fill=\"#ffd27a\" opacity=\"0.33\"/><circle cx=\"155.3\" cy=\"144.2\" r=\"1.4\" fill=\"#ffd27a\" opacity=\"0.75\"/><circle cx=\"260.2\" cy=\"142.5\" r=\"1.7\" fill=\"#ffd27a\" opacity=\"0.51\"/><circle cx=\"203.5\" cy=\"120.8\" r=\"1.2\" fill=\"#ffd27a\" opacity=\"0.75\"/><circle cx=\"241.6\" cy=\"131.8\" r=\"1.1\" fill=\"#ffd27a\" opacity=\"0.87\"/><circle cx=\"142.8\" cy=\"64.3\" r=\"2.2\" fill=\"#ffd27a\" opacity=\"0.85\"/><circle cx=\"177.6\" cy=\"140.1\" r=\"2.1\" fill=\"#ffd27a\" opacity=\"0.49\"/><circle cx=\"174.4\" cy=\"43.1\" r=\"1.2\" fill=\"#ffd27a\" opacity=\"0.39\"/><circle cx=\"226.5\" cy=\"149.6\" r=\"1.3\" fill=\"#ffd27a\" opacity=\"0.33\"/><circle cx=\"268.1\" cy=\"89.4\" r=\"1.8\" fill=\"#ffd27a\" opacity=\"0.44\"/><circle cx=\"213.2\" cy=\"127.4\" r=\"1.9\" fill=\"#ffd27a\" opacity=\"0.55\"/><circle cx=\"137.8\" cy=\"139.1\" r=\"1.1\" fill=\"#ffd27a\" opacity=\"0.60\"/><circle cx=\"247.4\" cy=\"37.0\" r=\"2.5\" fill=\"#ffd27a\" opacity=\"0.87\"/><circle cx=\"218.3\" cy=\"122.4\" r=\"1.2\" fill=\"#ffd27a\" opacity=\"0.56\"/><circle cx=\"150.9\" cy=\"129.8\" r=\"1.6\" fill=\"#ffd27a\" opacity=\"0.57\"/><circle cx=\"269.9\" cy=\"130.8\" r=\"3.0\" fill=\"#ffd27a\" opacity=\"0.57\"/><circle cx=\"198.3\" cy=\"114.8\" r=\"2.0\" fill=\"#ffd27a\" opacity=\"0.47\"/><circle cx=\"186.5\" cy=\"39.0\" r=\"1.8\" fill=\"#ffd27a\" opacity=\"0.89\"/><circle cx=\"264.4\" cy=\"101.5\" r=\"2.0\" fill=\"#ffd27a\" opacity=\"0.50\"/><circle cx=\"142.5\" cy=\"55.4\" r=\"2.6\" fill=\"#ffd27a\" opacity=\"0.82\"/><circle cx=\"180.6\" cy=\"122.2\" r=\"2.5\" fill=\"#ffd27a\" opacity=\"0.72\"/><circle cx=\"223.0\" cy=\"118.8\" r=\"1.7\" fill=\"#ffd27a\" opacity=\"0.72\"/><circle cx=\"169.3\" cy=\"83.1\" r=\"2.5\" fill=\"#ffd27a\" opacity=\"0.71\"/><circle cx=\"171.1\" cy=\"142.9\" r=\"2.3\" fill=\"#ffd27a\" opacity=\"0.65\"/><rect x=\"150\" y=\"150\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.35\"/><rect x=\"172\" y=\"128\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.47\"/><rect x=\"194\" y=\"106\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.59\"/><rect x=\"216\" y=\"84\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.71\"/><rect x=\"238\" y=\"62\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.83\"/><rect x=\"260\" y=\"40\" width=\"22\" height=\"8\" rx=\"2\" fill=\"#3fd0ff\" opacity=\"0.95\"/><path d=\"M200 178 Q150 160 82 170 L82 224 Q150 214 200 232Z\" fill=\"#e9eef8\"/><path d=\"M200 178 Q250 160 318 170 L318 224 Q250 214 200 232Z\" fill=\"#cfd8ea\"/><path d=\"M96 182 Q150 174 188 186\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M96 191 Q150 183 188 195\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M96 200 Q150 192 188 204\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M96 209 Q150 201 188 213\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M212 186 Q250 174 304 182\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M212 195 Q250 183 304 191\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M212 204 Q250 192 304 200\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M212 213 Q250 201 304 209\" stroke=\"#1b2a4a\" stroke-opacity=\".35\" stroke-width=\"2\" fill=\"none\"/><path d=\"M200 178 V232\" stroke=\"#8e9bb8\" stroke-width=\"2\"/><circle cx=\"290\" cy=\"26\" r=\"9\" fill=\"#f5b841\"/><path d=\"M290 36 v14\" stroke=\"#f5b841\" stroke-width=\"3\"/></svg>", "cuerpo": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#0a1030\"/><stop offset=\".55\" stop-color=\"#3a3f78\"/><stop offset=\".8\" stop-color=\"#e0824a\"/><stop offset=\"1\" stop-color=\"#f5a64a\"/></linearGradient><radialGradient id=\"$$g\" cx=\".72\" cy=\".55\" r=\".45\"><stop offset=\"0\" stop-color=\"#ffe0a0\"/><stop offset=\"1\" stop-color=\"#ffe0a0\" stop-opacity=\"0\"/></radialGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><circle cx=\"185.6\" cy=\"25.5\" r=\"0.64\" fill=\"#fff\" opacity=\"0.73\"/><circle cx=\"7.5\" cy=\"32.7\" r=\"1.40\" fill=\"#fff\" opacity=\"0.29\"/><circle cx=\"221.2\" cy=\"38.9\" r=\"0.54\" fill=\"#fff\" opacity=\"0.46\"/><circle cx=\"279.4\" cy=\"29.9\" r=\"1.23\" fill=\"#fff\" opacity=\"0.34\"/><circle cx=\"97.8\" cy=\"11.1\" r=\"1.01\" fill=\"#fff\" opacity=\"0.76\"/><circle cx=\"235.3\" cy=\"47.6\" r=\"0.88\" fill=\"#fff\" opacity=\"0.66\"/><circle cx=\"44.7\" cy=\"21.0\" r=\"1.17\" fill=\"#fff\" opacity=\"0.65\"/><circle cx=\"169.5\" cy=\"9.8\" r=\"0.77\" fill=\"#fff\" opacity=\"0.37\"/><circle cx=\"114.7\" cy=\"49.5\" r=\"0.70\" fill=\"#fff\" opacity=\"0.74\"/><circle cx=\"348.0\" cy=\"8.0\" r=\"0.88\" fill=\"#fff\" opacity=\"0.52\"/><circle cx=\"14.2\" cy=\"28.4\" r=\"1.41\" fill=\"#fff\" opacity=\"0.31\"/><circle cx=\"237.8\" cy=\"11.7\" r=\"1.08\" fill=\"#fff\" opacity=\"0.74\"/><circle cx=\"290\" cy=\"130\" r=\"120\" fill=\"url(#$$g)\"/><circle cx=\"290\" cy=\"122\" r=\"30\" fill=\"#fff0c8\"/><path d=\"M0 200 Q120 170 220 150 T400 110 V240 H0Z\" fill=\"#141a3a\"/><path d=\"M0 222 Q140 200 260 190 T400 170 V240 H0Z\" fill=\"#070b16\"/><g transform=\"translate(168 102) scale(1.05)\"><circle cx=\"9\" cy=\"-13\" r=\"8\" fill=\"#070b16\"/><path stroke=\"#070b16\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" d=\"M5 0 L-4 30\"/><path stroke=\"#070b16\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" d=\"M3 6 L17 18 L28 8\"/><path stroke=\"#070b16\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" d=\"M3 6 L-10 18 L-22 13\"/><path stroke=\"#070b16\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" d=\"M-4 30 L12 42 L9 63\"/><path stroke=\"#070b16\" stroke-width=\"7\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" d=\"M-4 30 L-15 48 L-32 51\"/></g><path d=\"M100 150 h28 M92 162 h24 M106 138 h18\" stroke=\"#fff0c8\" stroke-opacity=\".55\" stroke-width=\"3\" stroke-linecap=\"round\"/></svg>", "disciplina": "<svg viewBox=\"0 0 400 240\" xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMidYMid slice\" aria-hidden=\"true\"><defs><linearGradient id=\"$$s\" x1=\"0\" y1=\"0\" x2=\"0\" y2=\"1\"><stop offset=\"0\" stop-color=\"#060a16\"/><stop offset=\".55\" stop-color=\"#0e1733\"/><stop offset=\"1\" stop-color=\"#132046\"/></linearGradient></defs><rect width=\"400\" height=\"240\" fill=\"url(#$$s)\"/><path d=\"M24 214 H384\" stroke=\"#8e9bb8\" stroke-opacity=\".4\"/><rect x=\"36\" y=\"202.0\" width=\"20\" height=\"12.0\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.35\"/><rect x=\"64\" y=\"198.8\" width=\"20\" height=\"15.2\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.40\"/><rect x=\"92\" y=\"194.6\" width=\"20\" height=\"19.4\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.45\"/><rect x=\"120\" y=\"189.4\" width=\"20\" height=\"24.6\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.50\"/><rect x=\"148\" y=\"182.8\" width=\"20\" height=\"31.2\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.55\"/><rect x=\"176\" y=\"174.4\" width=\"20\" height=\"39.6\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.60\"/><rect x=\"204\" y=\"163.6\" width=\"20\" height=\"50.4\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.65\"/><rect x=\"232\" y=\"150.1\" width=\"20\" height=\"63.9\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.70\"/><rect x=\"260\" y=\"132.8\" width=\"20\" height=\"81.2\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.75\"/><rect x=\"288\" y=\"110.9\" width=\"20\" height=\"103.1\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.80\"/><rect x=\"316\" y=\"83.0\" width=\"20\" height=\"131.0\" rx=\"4\" fill=\"#3fd0ff\" opacity=\"0.85\"/><rect x=\"344\" y=\"47.7\" width=\"20\" height=\"166.3\" rx=\"4\" fill=\"#f5b841\" opacity=\"0.90\"/><polyline points=\"46,202.0 74,198.8 102,194.6 130,189.4 158,182.8 186,174.4 214,163.6 242,150.1 270,132.8 298,110.9 326,83.0 354,47.7\" fill=\"none\" stroke=\"#ffd27a\" stroke-width=\"3.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"354\" cy=\"47.7\" r=\"7\" fill=\"#ffd27a\"/><g transform=\"translate(64 142) scale(0.6)\" fill=\"#e9eef8\"><circle cx=\"0\" cy=\"0\" r=\"8\"/><path d=\"M-4 7h8v5h-8z\"/><path d=\"M-16 16 Q0 8 16 16 L13 52 L-13 52 Z\"/><path d=\"M-16 16 L-19 44 L-14 45 L-11 22Z M16 16 L19 44 L14 45 L11 22Z\"/><rect x=\"-11\" y=\"50\" width=\"9\" height=\"34\" rx=\"2\"/><rect x=\"2\" y=\"50\" width=\"9\" height=\"34\" rx=\"2\"/></g></svg>"};
+// ===== Contenido: pilares, mensajes y reglas (textos originales inspirados en la idea de la película) =====
+const PILARES = [
+  { id:'enfoque', t:'ENFOQUE', art:'enfoque',
+    frase:'La claridad no viene en una pastilla: se construye apagando el ruido.',
+    idea:'Cuando quitas las distracciones, tu mente trabaja al máximo. Una tarea a la vez, completa, sin que el teléfono te robe la atención.',
+    acc:['Elige las 3 cosas más importantes del día antes de las 9 am','Trabaja 45 minutos seguidos sin redes ni notificaciones','Analiza la jugada con la cabeza fría, nunca con prisa'],
+    msj:['El que ve claro no es el más inteligente: es el que quitó el ruido.','Hoy una sola misión: seguir el plan sin desviarte.','Tu atención es tu capital más caro. No la regales.','La mente enfocada ve oportunidades donde otros ven caos.'] },
+  { id:'disciplina', t:'DISCIPLINA', art:'disciplina',
+    frase:'La motivación te arranca. La disciplina te lleva a la meta.',
+    idea:'No se trata de ganar un día grande, sino de repetir lo correcto todos los días. El interés compuesto premia al constante, no al impaciente.',
+    acc:['Registra tu día aunque no hayas apostado','Respeta el % del plan, ganes o pierdas','Acuéstate y levántate a la misma hora'],
+    msj:['Nadie ve tus días de disciplina, pero todos van a ver el resultado.','El % no se negocia. Ni cuando ganas, ni cuando pierdes.','Pequeño y constante le gana a grande y de vez en cuando.','El plan funciona si tú funcionas.'] },
+  { id:'aseo', t:'ASEO PERSONAL', art:'aseo',
+    frase:'Cuerpo limpio, mente clara. El primer triunfo del día es frente al espejo.',
+    idea:'El cambio empieza por lo que tienes más cerca: tu cuerpo. Bañarte temprano, arreglarte la barba y el cabello es decirte a ti mismo que te tomas en serio.',
+    acc:['Baño apenas te levantes, sin postergarlo','Barba, cabello y uñas en orden','Colonia o perfume: el detalle que te cambia el ánimo'],
+    msj:['Quien se cuida por fuera empieza a ordenarse por dentro.','Arréglate como si hoy fuera el día en que todo cambia. Puede serlo.','La higiene es respeto: por ti y por los que te rodean.'] },
+  { id:'orden', t:'ORDEN', art:'orden',
+    frase:'Espacio en orden, decisiones en orden.',
+    idea:'El desorden de afuera es ruido en la cabeza. Una cama tendida, un escritorio limpio y las cuentas al día te dejan energía para pensar en grande.',
+    acc:['Tiende la cama apenas te levantes','Deja limpio tu espacio de trabajo antes de dormir','Cuentas y registros al día, sin pendientes'],
+    msj:['Cuando ordenas tu cuarto, ordenas tu cabeza.','Un lugar para cada cosa y cada cosa en su lugar: también el dinero.','El orden es la disciplina que se ve.'] },
+  { id:'vestir', t:'APARIENCIA Y VESTIR', art:'vestir',
+    frase:'Vístete para el hombre en el que te estás convirtiendo.',
+    idea:'La ropa no te hace, pero sí te anuncia. Ropa limpia, planchada y que te quede bien cambia cómo te miran y cómo te miras tú.',
+    acc:['Deja lista esta noche la ropa de mañana','Zapatos limpios: es lo primero que se nota','Postura recta y mirada al frente'],
+    msj:['Primero te ves distinto, después actúas distinto, y al final vives distinto.','No necesitas ropa cara: necesitas ropa cuidada.','Tu postura habla antes que tú.'] },
+  { id:'circulo', t:'CÍRCULO DE AMISTADES', art:'circulo',
+    frase:'Tu nivel se parece al de la gente con la que pasas tu tiempo.',
+    idea:'Rodéate de personas que construyen, que saben más que tú y que te empujan hacia arriba. Aléjate con respeto de quien solo te resta.',
+    acc:['Habla hoy con alguien que admires o de quien aprendas','Reduce el tiempo con quien solo se queja','Aporta valor antes de pedirlo'],
+    msj:['Si eres el que más sabe de tu grupo, busca otro grupo.','Las conversaciones de hoy son las oportunidades de mañana.','Cuida tu círculo como cuidas tu capital: con criterio.'] },
+  { id:'apalancamiento', t:'APALANCAMIENTO', art:'apalancamiento',
+    frase:'Con la palanca correcta, poca fuerza mueve mucho peso.',
+    idea:'Tus mineros, tus negocios y tus contactos son palancas: trabajan aunque tú no estés. Cada ingreso extra que metes al plan acorta el camino a la meta.',
+    acc:['Mete al plan cada ingreso extra, no lo gastes','Busca una tarea que puedas automatizar o delegar','Pregúntate: ¿qué hago hoy que me siga pagando mañana?'],
+    msj:['El que trabaja solo con sus manos suma. El que usa palancas multiplica.','Cada dólar extra que entra al plan es un día menos de camino.','Tu tiempo es limitado; tus palancas no.'] },
+  { id:'periferica', t:'VISIÓN PERIFÉRICA', art:'periferica',
+    frase:'Mira el tablero completo, no solo la jugada.',
+    idea:'El partido de hoy es una pieza. La cuota, el historial, el mes y la meta: todo junto cuenta la historia. Quien ve más, decide mejor.',
+    acc:['Revisa tu historial antes de elegir la jugada','Compara la cuota con la probabilidad real','Piensa en el mes, no en el día'],
+    msj:['Un día malo es un punto. Tu gráfica es la línea.','Antes de actuar, levanta la vista: ¿qué más está pasando?','Los detalles que otros ignoran son tu ventaja.'] },
+  { id:'conocimiento', t:'CONOCIMIENTO', art:'conocimiento',
+    frase:'El conocimiento también da interés compuesto.',
+    idea:'Cada libro, cada curso y cada dato que analizas se suma al anterior. Con 20 minutos diarios, en un año eres otra persona.',
+    acc:['Lee 20 minutos hoy','Aprende un dato nuevo de tu negocio o de tu mercado','Enséñale a alguien lo que aprendiste'],
+    msj:['Tu cerebro no necesita una pastilla: necesita alimento todos los días.','Lo que aprendes hoy nadie te lo quita.','Invertir en tu cabeza es la apuesta con mejor cuota.'] },
+  { id:'cuerpo', t:'CUERPO Y ENERGÍA', art:'cuerpo',
+    frase:'Una mente rápida necesita un cuerpo que la acompañe.',
+    idea:'Moverte, dormir bien, tomar agua y comer a la hora te dan la energía y la claridad que ninguna pastilla te da.',
+    acc:['30 minutos de movimiento: caminar, trotar o entrenar','Dos litros de agua durante el día','Acuéstate a una hora fija'],
+    msj:['Suda hoy para pensar claro mañana.','La energía también se entrena.','El cuerpo es el primer negocio que administras.'] },
+];
+
+const MSJ_RES = {
+  ganan:['¡Día ganado! Pero ojo: el mérito no es ganar, es haber seguido el plan.','Suma limpia. Mañana, el mismo % sobre tu nuevo capital: así trabaja el interés compuesto.','Bien jugado. No subas el stake por emoción: disciplina es que nada cambie.','Otro ladrillo en la pared. Así se construye.'],
+  prot:['La protección hizo su trabajo: no perdiste. Eso también es ganar.','Día neutro, capital intacto. El plan te cuidó.','Sin ganancia y sin pérdida: la cobertura existe para días como hoy.'],
+  pierden:['Pérdida dentro del plan. Respira: estaba calculada.','Hoy tocó perder. Regla de oro: no dobles para recuperar. Mañana, el mismo %.','Un mal día no define el plan. Tu reacción sí.','La disciplina se prueba en los días malos. Sigue el método.'],
+  noaposte:['No apostar también es una decisión. Si no había jugada clara, hiciste bien.','Día de pausa registrado. La paciencia también suma.'],
+};
+
+const HITOS = [
+  {p:.25, t:'¡Un cuarto del camino!', m:'Lo que empezó como idea ya es hábito. Sigue igual.'},
+  {p:.50, t:'¡Mitad del camino!', m:'Aquí es donde muchos aflojan. Tú no.'},
+  {p:.75, t:'¡Tres cuartos!', m:'Ya ves la meta. No aceleres: la disciplina que te trajo hasta aquí es la que te lleva al final.'},
+  {p:1.0, t:'¡META CUMPLIDA!', m:'Lo lograste con método y sin atajos. Celebra, respalda tus datos y define tu próxima meta.'},
+];
+
+const REGLAS = [
+  ['El % del plan no se negocia','Ni cuando vienes ganando ni cuando vienes perdiendo.'],
+  ['Nunca dobles para recuperar','La pérdida de hoy ya estaba calculada. Perseguirla es lo que quiebra.'],
+  ['Registra cada día','Aunque no apuestes. Lo que no se mide no se mejora.'],
+  ['Dos pérdidas seguidas = pausa','Detente un día, revisa las cuotas y el historial, y vuelve con la cabeza fría.'],
+  ['Todo ingreso extra entra al plan','Las palancas aceleran el camino solo si no te las gastas.'],
+  ['Cero jugadas por impulso','Si no está en el plan, no se juega.'],
+  ['Respalda tus datos cada semana','Un respaldo toma 5 segundos. Perder el historial cuesta semanas.'],
+];
+
+const HABITOS = [
+  {id:'aseo',     t:'Aseo personal',                d:'Baño, barba, cabello y uñas'},
+  {id:'vestir',   t:'Me vestí bien',                d:'Ropa limpia y postura recta'},
+  {id:'orden',    t:'Espacio en orden',             d:'Cama tendida, escritorio limpio'},
+  {id:'cuerpo',   t:'Moví el cuerpo',               d:'30 min de ejercicio o caminata'},
+  {id:'aprender', t:'Aprendí algo',                 d:'20 min de lectura o estudio'},
+  {id:'circulo',  t:'Hablé con alguien que suma',   d:'Una conversación que te empuje'},
+  {id:'tablero',  t:'Revisé el tablero completo',   d:'Historial, cuotas y meta'},
+  {id:'plan',     t:'Seguí el plan al pie de la letra', d:'Cero apuestas fuera del plan'},
+];
+
+const MSJ_IMP = [
+  'Los imprevistos no rompen el plan: lo ponen a prueba. Ajusta y sigue.',
+  'La vida pasa. El método sigue: mañana, el mismo % sobre lo que queda.',
+  'Un tropiezo no borra el camino. Lo que cuenta es volver al plan mañana.',
+  'Primero resolver, después seguir. La disciplina también es saber adaptarse.',
+  'No aumentes el stake para reponer lo que salió. El plan se encarga, con paciencia.',
+];
+const MOTIVOS = { imp:['Salud','Casa','Familia','Deuda','Otro'], apo:['Mineros','Negocio','Ahorro','Otro'] };
+
+
+// ================= Utilidades =================
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+const r2 = x => Math.round((x + (x>=0?1:-1)*1e-9) * 100) / 100;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (x, d=2) => (x<0?'-':'') + Math.abs(x).toLocaleString('es-VE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const money = x => (x<0?'-$':'$') + fmt(Math.abs(x));
+const moneyS = x => (x>0?'+':'') + money(x);
+const pct = (x, d=0) => fmt(x*100, d) + '%';
+function parseNum(v){
+  if (v === null || v === undefined) return NaN;
+  let s = String(v).trim().replace(/\s|\$/g,'');
+  if (!s) return NaN;
+  if (s.includes('.') && s.includes(',')) s = s.replace(/\./g,'').replace(',', '.');
+  else s = s.replace(',', '.');
+  return Number(s);
+}
+const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const addDias = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0,10); };
+const fechaCorta = iso => { try { return new Date(iso + 'T12:00:00').toLocaleDateString('es-VE',{weekday:'short', day:'numeric', month:'short'}); } catch(e){ return iso; } };
+const fechaLarga = iso => { try { return new Date(iso + 'T12:00:00').toLocaleDateString('es-VE',{day:'numeric', month:'long', year:'numeric'}); } catch(e){ return iso; } };
+const diaNum = iso => Math.floor(new Date(iso + 'T12:00:00').getTime() / 864e5);
+let artSeq = 0;
+const art = name => { const u = 'a' + (++artSeq); return (ART[name] || ART.ciudad).replace(/\$\$/g, u); };
+const ICON_CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#1b1406" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const RES_TXT = {ganan:'Ganaron las 2', prot:'Ganó 1 (la B)', pierden:'Perdieron las 2', noaposte:'No aposté'};
+const RES_SUB = {ganan:'A y B ganaron', prot:'solo B · empate', pierden:'A y B perdieron'};
+const RES_IC = {
+  ganan:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>',
+  prot:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>',
+  pierden:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  noaposte:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 5v14M15 5v14"/></svg>',
+};
+const HAB_IC = {
+  aseo:'<path d="M12 3c3 4 6 7.5 6 11a6 6 0 0 1-12 0c0-3.5 3-7 6-11z"/>',
+  vestir:'<path d="M8 3l4 3 4-3 4 3-2 4h-2v11H8V10H6L4 6z"/>',
+  orden:'<rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/>',
+  cuerpo:'<circle cx="14" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v4M6 12l3-4 4 1 2 4 3 1M11 15l2-6"/>',
+  aprender:'<path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/>',
+  circulo:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M15 14.5c3 0 6 2 6 5"/>',
+  tablero:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  plan:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+};
+const habIcon = id => `<svg class="hi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${HAB_IC[id]||''}</svg>`;
+
+function toast(m, ms=2400){ const t = document.createElement('div'); t.className='toast'; t.textContent=m; document.body.appendChild(t); setTimeout(()=>t.remove(), ms); }
+function modal(html, onMount){
+  const ov = document.createElement('div'); ov.className='ov';
+  ov.innerHTML = `<div class="sheet">${html}</div>`;
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+  document.body.appendChild(ov);
+  if (onMount) onMount(ov);
+  return ov;
+}
+function confeti(){
+  const c = document.createElement('div'); c.className='confeti';
+  const cols = ['#f5b841','#3fd0ff','#35d49a','#ffd27a','#e9eef8'];
+  for (let i=0;i<70;i++){ const p=document.createElement('i'); p.style.left=Math.random()*100+'%'; p.style.background=cols[i%cols.length]; p.style.animationDelay=(Math.random()*.8)+'s'; p.style.animationDuration=(2+Math.random()*1.6)+'s'; c.appendChild(p); }
+  document.body.appendChild(c); setTimeout(()=>c.remove(), 4500);
+}
+
+// ================= Estado y guardado =================
+const KEY = 'sinlimites.v1';
+function blank(){ return { v:1, plan:null, dias:[], movs:[], borr:{}, hab:{}, ultResp:null, archivo:[], msgOff:0 }; }
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw){ const s = JSON.parse(raw); return Object.assign(blank(), s); } } catch(e){}
+  return blank();
+}
+let S = load();
+let persistPedido = false;
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast('⚠ No se pudo guardar en este teléfono'); }
+  if (!persistPedido && navigator.storage && navigator.storage.persist){ persistPedido = true; navigator.storage.persist().catch(()=>{}); }
+}
+
+// ================= Motor de cálculo (igual que el Excel) =================
+// Reparto: a la protección va stake/cuotaP y a la riesgosa el resto.
+// Así, si gana solo la protección, recuperas exactamente lo apostado (empate).
+function split(stake, cR, cP){
+  if (!(stake > 0) || !(cR > 1) || !(cP > 1)) return null;
+  // la protección se redondea hacia ARRIBA al céntimo: así "solo protección" nunca da -$0.01
+  const p = Math.min(stake, Math.ceil(stake / cP * 100 - 1e-9) / 100);
+  return { r: r2(stake - p), p };
+}
+function ganancia(res, stake, sp, cR, cP){
+  if (res === 'noaposte') return 0;
+  if (res === 'pierden') return -stake;
+  if (!sp) return 0;
+  if (res === 'ganan') return r2(sp.r * (cR - 1) + sp.p * (cP - 1));
+  if (res === 'prot') return r2(sp.p * (cP - 1) - sp.r);
+  return 0;
+}
+function recalc(){
+  if (!S.plan) return;
+  S.movs = S.movs || [];
+  const movsDe = anc => S.movs.filter(m => (m.tras || null) === anc);
+  let cap = S.plan.inicial;
+  const aplicar = m => { m.capAntes = r2(cap); cap = r2(Math.max(0, cap + m.monto)); m.capDesp = cap; };
+  movsDe(null).forEach(aplicar);
+  S.dias.forEach((d, i) => {
+    d.n = i + 1;
+    d.capIni = r2(cap);
+    d.stake = d.res === 'noaposte' ? 0 : r2(cap * d.pct);
+    const sp = split(d.stake, d.cR, d.cP);
+    d.apR = sp ? sp.r : 0; d.apP = sp ? sp.p : 0;
+    d.ganCalc = ganancia(d.res, d.stake, sp, d.cR, d.cP);
+    const g = (typeof d.ganReal === 'number' && isFinite(d.ganReal)) ? d.ganReal : d.ganCalc;
+    d.gan = g;
+    d.capFin = r2(cap + g + (d.extra || 0));
+    cap = d.capFin;
+    movsDe(d.id).forEach(aplicar);
+    d.capTras = cap;
+  });
+  S._cap = cap;
+}
+const capActual = () => { recalc(); return S._cap ?? S.plan.inicial; };
+const q5 = (cR, cP) => (cP - 1) * cR / cP;              // ganancia por $1 si ganan las 2
+function kelly(p, cR, cP){ const b = q5(cR, cP); if (!(b > 0)) return 0; return (p.pG * b - p.pL) / (b * (p.pG + p.pL)); }
+function multTipico(p, f, cR, cP){ if (f >= 1) return 0; return Math.exp(p.pG * Math.log(1 + f * q5(cR, cP)) + p.pL * Math.log(1 - f)); }
+const extraProm = () => S.dias.length ? S.dias.reduce((a, d) => a + (d.extra || 0), 0) / S.dias.length : 0;
+function simDias(C, M, m, e){ if (C >= M) return 0; let n = 0; while (C < M && n < 3650){ C = C * m + e; n++; } return C >= M ? n : null; }
+function proyeccion(){
+  const p = S.plan, C = capActual(), M = p.meta, n = S.dias.length;
+  let real = null, realMsg = '';
+  if (C >= M) real = 0;
+  else if (n === 0) realMsg = 'Registra tu día 1';
+  else {
+    const lg = S.dias.reduce((a, d) => a + (d.capIni > 0 && d.capFin > 0 ? Math.log(d.capFin / d.capIni) : 0), 0) / n;
+    if (!(lg > 0) || !(C > 0)) realMsg = 'Aún no creces';
+    else real = Math.ceil(Math.log(M / C) / lg - 1e-9);
+  }
+  const e = extraProm();
+  const m = multTipico(p, p.pct, p.cR, p.cP);
+  const esp = simDias(C, M, m, e);
+  const mejor = simDias(C, M, 1 + p.pct * q5(p.cR, p.cP), e);
+  return { real, realMsg, esp, mejor, e, m };
+}
+const recorrido = C => Math.max(0, Math.min(1, (C - S.plan.inicial) / (S.plan.meta - S.plan.inicial)));
+
+// ================= Mensajes =================
+function pilarDelDia(off=0){ const i = ((diaNum(hoyISO()) + off) % PILARES.length + PILARES.length) % PILARES.length; return PILARES[i]; }
+function msgDelDia(pil, off=0){ const all = [pil.frase, ...pil.msj]; return all[(diaNum(hoyISO()) + off) % all.length]; }
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+
+// ================= Navegación =================
+let vista = 'hoy';
+$$('nav.bot button').forEach(b => b.onclick = () => ir(b.dataset.v));
+function ir(v){
+  vista = v;
+  $$('nav.bot button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  $$('.view').forEach(s => { s.classList.toggle('on', s.id === 'v-' + v); if (s.id !== 'v-' + v) s.innerHTML = ''; });
+  render();
+  window.scrollTo({top:0});
+}
+function render(){
+  if (!S.plan){ wizard(); return; }
+  $('#topDia').textContent = 'DÍA ' + (S.dias.length + 1);
+  $('#topBar').style.width = (recorrido(capActual()) * 100) + '%';
+  if (vista === 'hoy') renderHoy();
+  if (vista === 'reg') renderReg();
+  if (vista === 'dis') renderDis();
+  if (vista === 'plan') renderPlan();
+}
+
+// ================= HOY =================
+function ringSVG(frac, size=108, stroke=9, col='url(#rg)'){
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, gid = 'rg' + (++artSeq);
+  if (col === 'url(#rg)') col = `url(#${gid})`;
+  return `<svg viewBox="0 0 ${size} ${size}"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3fd0ff"/><stop offset="1" stop-color="#f5b841"/></linearGradient></defs>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#152038" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${col}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(0, Math.min(1, frac)))}"/></svg>`;
+}
+function diasTxt(n){ return n === 1 ? '1 día' : n + ' días'; }
+
+function renderHoy(){
+  const p = S.plan, C = capActual(), n = S.dias.length, pr = proyeccion();
+  const pil = pilarDelDia(S.msgOff), msg = msgDelDia(pil, S.msgOff);
+  const fracMeta = C / p.meta, rec = recorrido(C);
+  const b = S.borr || {};
+  const cR = b.cR ?? (n ? S.dias[n-1].cR : p.cR) ?? p.cR;
+  const cP = b.cP ?? (n ? S.dias[n-1].cP : p.cP) ?? p.cP;
+  const hoy = hoyISO();
+  const habHoy = S.hab[hoy] || {}, nHab = HABITOS.filter(h => habHoy[h.id]).length;
+
+  // avisos
+  let avisos = '';
+  const ult = S.dias.slice(-2);
+  if (C >= p.meta) avisos += `<div class="aviso ok"><div><b class="t">¡Meta cumplida! ${money(C)}</b>Respaldo tus datos y define tu próxima meta en la pestaña Plan.</div></div>`;
+  if (ult.length === 2 && ult.every(d => d.res === 'pierden')) avisos += `<div class="aviso bad"><div><b class="t">Dos pérdidas seguidas</b>Regla de oro: pausa de un día, revisa las cuotas y el historial. No subas el stake para recuperar.</div></div>`;
+  if (p.piso > 0 && C < p.piso) avisos += `<div class="aviso bad"><div><b class="t">Tocaste tu piso de ${money(p.piso)}</b>Tu plan dice: detente y revisa antes de seguir apostando.</div></div>`;
+  const diasSinResp = S.ultResp ? Math.floor((Date.now() - S.ultResp) / 864e5) : null;
+  if (n >= 1 && (diasSinResp === null || diasSinResp >= 3)) avisos += `<div class="aviso warn"><div><b class="t">${diasSinResp === null ? 'Aún no has hecho un respaldo' : 'Llevas ' + diasSinResp + ' días sin respaldo'}</b>Si borras los datos de Chrome, se pierde todo. <button class="lnk" onclick="exportJSON()">Respaldar ahora →</button></div></div>`;
+
+  // días que faltan
+  const tileReal = pr.real === 0 ? '<b>✓</b><div class="f">¡llegaste!</div>' :
+    pr.real !== null ? `<b class="num">${pr.real}</b><div class="f">${fechaCorta(addDias(hoy, pr.real))}</div>` :
+    `<b>—</b><div class="f">${pr.realMsg}</div>`;
+  const tileEsp = pr.esp !== null ? `<b class="num">${pr.esp}</b><div class="f">${fechaCorta(addDias(hoy, pr.esp))}</div>` : `<b>—</b><div class="f">no llegas así</div>`;
+  const tileMej = pr.mejor !== null ? `<b class="num">${pr.mejor}</b><div class="f">${fechaCorta(addDias(hoy, pr.mejor))}</div>` : `<b>—</b><div class="f">—</div>`;
+  let frase;
+  if (C >= p.meta) frase = '🏆 Llegaste a la meta.';
+  else if (pr.real !== null) frase = `A este paso te quedan <b class="gold">${diasTxt(pr.real)}</b> para llegar a ${money(p.meta)}. Te faltan <b>${money(p.meta - C)}</b>.`;
+  else if (pr.esp !== null) frase = `Según tu plan te quedan unos <b class="gold">${diasTxt(pr.esp)}</b>. Te faltan <b>${money(p.meta - C)}</b>.`;
+  else frase = `Con estos números el plan no llega a la meta. Revisa cuotas y stake en <button class="lnk" onclick="ir('plan')">Plan</button>.`;
+
+  $('#v-hoy').innerHTML = `
+  <div class="hero" id="hero" title="Toca para otro mensaje">
+    <div class="art">${art(pil.art)}</div><div class="shade"></div>
+    <div class="tap">toca ↻</div>
+    <div class="txt"><span class="pil">${pil.t}</span><div class="msg">${esc(msg)}</div></div>
+  </div>
+  ${avisos}
+  <div class="card">
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div><div class="caps">Capital actual</div><div class="big num">${money(C)}</div></div>
+      <div style="text-align:right"><div class="caps">Meta</div><div class="num gold" style="font-size:22px;font-weight:900">${money(p.meta)}</div></div>
+    </div>
+    ${barraMeta(C)}
+  </div>
+
+  <div class="card">
+    <h2>¿Cuántos días me faltan?</h2>
+    <div class="grid3">
+      <div class="tile main"><div class="l">A tu ritmo real</div>${tileReal}</div>
+      <div class="tile"><div class="l">Según el plan</div>${tileEsp}</div>
+      <div class="tile"><div class="l">Mejor caso</div>${tileMej}</div>
+    </div>
+    <div class="faltan-frase">${frase}</div>
+    <details style="margin-top:8px"><summary>¿Qué significa cada número?</summary>
+      <div class="hint" style="font-size:12.5px;line-height:1.5">
+      <b>A tu ritmo real:</b> si sigues creciendo igual que hasta hoy (con los ingresos extra incluidos).<br>
+      <b>Según el plan:</b> el camino típico con tu stake, tus cuotas típicas y las probabilidades del plan (${pct(p.pG)} ganan las 2 · ${pct(p.pL)} pierden las 2), sumando cada día tu promedio de ingreso extra (${money(pr.e)}). Es lo esperado, no una garantía.<br>
+      <b>Mejor caso:</b> si ganan las 2 todos los días. Nunca vas a llegar antes que esto.</div>
+    </details>
+  </div>
+
+  <div class="card" id="jugada">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h2 style="margin:0">Tu jugada · día ${n+1}</h2>
+      <div class="muted" style="font-size:13px;margin-top:2px">Capital para apostar <b class="num" style="color:var(--text)">${money(C)}</b></div></div>
+      <div style="text-align:right"><div class="caps">Stake ${pct(p.pct)}</div><div class="big num gold" style="font-size:26px" id="jStake"></div></div>
+    </div>
+    <div class="grid2" style="margin-top:12px">
+      <div><label class="f">Cuota A · riesgo (U2.5)</label><input class="inp num" id="jCR" inputmode="decimal" value="${cR ?? ''}" placeholder="1.80"></div>
+      <div><label class="f">Cuota B · protección (U3.5)</label><input class="inp num" id="jCP" inputmode="decimal" value="${cP ?? ''}" placeholder="1.30"></div>
+    </div>
+    <div id="jSplit"></div>
+
+    <div class="sep"></div>
+    <label class="f">¿Cómo terminó? <span class="oblig">· obligatorio</span></label>
+    <div class="res tres" id="jRes">
+      ${['ganan','prot','pierden'].map(r => `<button class="rbtn ${r} ${b.res===r?'on':''}" data-r="${r}">${RES_IC[r]}${RES_TXT[r]}<small>${RES_SUB[r]}</small></button>`).join('')}
+    </div>
+    <div class="grid2" style="margin-top:12px">
+      <div><label class="f">Ingreso extra (mineros)</label><div class="pre"><input class="inp num" id="jExtra" inputmode="decimal" value="${b.extra ?? ''}" placeholder="0.00"></div></div>
+      <div><label class="f">Fecha</label><input class="inp num" type="date" id="jFecha" value="${b.fecha || hoy}"></div>
+    </div>
+    <div class="hint">Lo que tus mineros u otros negocios meten hoy a la bolsa de apuestas. Si retiras plata, escríbelo en negativo (ej. -5).</div>
+    <details style="margin-top:10px" ${typeof b.ganReal==='number'?'open':''}><summary>La casa me pagó distinto (ajustar ganancia real)</summary>
+      <div class="pre" style="margin-top:8px"><input class="inp num sm" id="jReal" inputmode="decimal" value="${typeof b.ganReal==='number'?b.ganReal:''}" placeholder="Déjalo vacío para usar la calculada"></div>
+    </details>
+    <div id="jPrev" style="margin:14px 0 10px"></div>
+    <button class="btn" id="jSave">Cerrar el día ${n+1}</button>
+  </div>
+
+  <div class="card">
+    <h2>¿Pasó algo con el capital?</h2>
+    <div class="grid2">
+      <button class="btn dang sm" onclick="movModal('imp')">− Imprevisto</button>
+      <button class="btn sec sm" onclick="movModal('apo')">+ Aporte extra</button>
+    </div>
+    <div class="hint">Imprevisto: te tocó sacar plata de la bolsa (salud, casa, familia…). Aporte: metes plata un día que no cerraste. Los dos cambian el stake de los días siguientes.</div>
+    ${movsRecientes()}
+  </div>
+
+  <div class="card" onclick="ir('dis')" style="cursor:pointer">
+    <div class="row">
+      <div class="ring" style="width:56px;height:56px">${ringSVG(nHab/HABITOS.length, 56, 6)}<div class="in"><b style="font-size:15px">${nHab}/${HABITOS.length}</b></div></div>
+      <div style="flex:1"><div style="font-weight:800">Disciplina de hoy</div><div class="muted" style="font-size:13px">${nHab===HABITOS.length?'Día completo. Así se construye.':'Aseo, orden, vestir, cuerpo, conocimiento, círculo… márcalos en Disciplina →'}</div></div>
+    </div>
+  </div>`;
+
+  $('#hero').onclick = () => { S.msgOff = (S.msgOff||0) + 1; save(); renderHoy(); };
+  const upd = () => updJugada();
+  ['jCR','jCP','jExtra','jReal','jFecha'].forEach(id => $('#'+id).addEventListener('input', upd));
+  $$('#jRes .rbtn').forEach(bt => bt.onclick = () => {
+    const r = bt.dataset.r; S.borr.res = S.borr.res === r ? null : r;
+    $$('#jRes .rbtn').forEach(x => x.classList.toggle('on', x.dataset.r === S.borr.res));
+    updJugada();
+  });
+  $('#jSave').onclick = cerrarDia;
+  updJugada();
+}
+
+function leerJugada(){
+  const n = (id) => parseNum($('#'+id).value);
+  const real = $('#jReal').value.trim() === '' ? null : n('jReal');
+  return { cR: n('jCR'), cP: n('jCP'), extra: $('#jExtra').value.trim()==='' ? 0 : n('jExtra'), ganReal: real, fecha: $('#jFecha').value || hoyISO(), res: S.borr.res || null };
+}
+function updJugada(){
+  const p = S.plan, C = capActual(), j = leerJugada();
+  S.borr = { cR: isFinite(j.cR) ? j.cR : undefined, cP: isFinite(j.cP) ? j.cP : undefined, extra: $('#jExtra').value.trim()===''?undefined:j.extra, ganReal: (j.ganReal!==null && isFinite(j.ganReal)) ? j.ganReal : undefined, fecha: j.fecha, res: j.res };
+  save();
+  const stake = j.res === 'noaposte' ? 0 : r2(C * p.pct);
+  $('#jStake').textContent = money(r2(C * p.pct));
+  const sp = split(r2(C * p.pct), j.cR, j.cP);
+  let h = '';
+  if (!sp){
+    h = `<div class="split">
+      <div class="leg r vacia"><div class="caps"><span class="tag">A</span>Riesgo</div><b class="num">$ —</b></div>
+      <div class="leg p vacia"><div class="caps"><span class="tag">B</span>Protección</div><b class="num">$ —</b></div>
+    </div><div class="aviso info" style="margin-bottom:0"><div>Escribe las 2 cuotas (mayores que 1) y te digo cuánto va en la <b class="cyan">Apuesta A</b> y cuánto en la <b class="gold">Apuesta B</b>.</div></div>`;
+  } else {
+    const S0 = r2(C * p.pct);
+    const gG = ganancia('ganan', S0, sp, j.cR, j.cP), gP = ganancia('prot', S0, sp, j.cR, j.cP);
+    const k = kelly(p, j.cR, j.cP);
+    let kv = '';
+    if (k <= 0) kv = `<div class="aviso bad"><div><b class="t">Estas cuotas no tienen ventaja</b>Con las probabilidades de tu plan, esta combinación pierde a la larga. Mejor no jugarla.</div></div>`;
+    else if (p.pct > k) kv = `<div class="aviso bad"><div><b class="t">Tu stake (${pct(p.pct)}) pasa el máximo de Kelly (${pct(k,1)})</b>Con estas cuotas es demasiado riesgo.</div></div>`;
+    else if (p.pct > k/2) kv = `<div class="aviso warn"><div><b class="t">Cuidado</b>Con estas cuotas tu stake está por encima del prudente (medio Kelly: ${pct(k/2,1)}).</div></div>`;
+    h = `<div class="aviso ok" style="margin:14px 0 0"><div>De tus <b class="gold">${money(S0)}</b> de hoy: <b class="cyan">${money(sp.r)} en la A</b> y <b class="gold">${money(sp.p)} en la B</b>.</div></div><div class="split">
+      <div class="leg r"><div class="caps"><span class="tag">A</span>Riesgo</div><b class="num">${money(sp.r)}</b><div class="dim" style="font-size:12px">U2.5 @ ${fmt(j.cR)}</div><div class="cobra">Si gana, cobras <b class="num" style="display:inline;font-size:13px;color:var(--text)">${money(r2(sp.r*j.cR))}</b></div></div>
+      <div class="leg p"><div class="caps"><span class="tag">B</span>Protección</div><b class="num">${money(sp.p)}</b><div class="dim" style="font-size:12px">U3.5 @ ${fmt(j.cP)}</div><div class="cobra">Si gana, cobras <b class="num" style="display:inline;font-size:13px;color:var(--text)">${money(r2(sp.p*j.cP))}</b> = recuperas los ${money(S0)}</div></div>
+    </div>
+    <div class="escen">
+      <div class="row"><span>${RES_IC.ganan.replace('class="ic"','class="ic" style="width:16px;height:16px;color:var(--win)"')} Ganaron las 2</span><b class="num win">${money(r2(C+gG))} <span class="dim" style="font-weight:600">(${moneyS(gG)})</span></b></div>
+      <div class="row"><span>${RES_IC.prot.replace('class="ic"','class="ic" style="width:16px;height:16px;color:var(--gold)"')} Ganó 1 (solo la B)</span><b class="num gold">${money(r2(C+gP))} <span class="dim" style="font-weight:600">(${moneyS(gP)})</span></b></div>
+      <div class="row"><span>${RES_IC.pierden.replace('class="ic"','class="ic" style="width:16px;height:16px;color:var(--loss)"')} Perdieron las 2</span><b class="num loss">${money(r2(C-S0))} <span class="dim" style="font-weight:600">(${moneyS(-S0)})</span></b></div>
+      <div class="dim" style="font-size:11.5px;margin-top:4px">Sin contar el ingreso extra.</div>
+    </div>${kv}`;
+  }
+  $('#jSplit').innerHTML = h;
+
+  // vista previa del cierre
+  let prev = '', ok = false;
+  if (!j.res) prev = `<div class="loss" style="font-size:13px;text-align:center;font-weight:700">Marca cómo terminó (ganaron las 2, ganó 1 o perdieron las 2) para cerrar el día.</div>`;
+  else if (j.res !== 'noaposte' && !sp) prev = `<div class="dim" style="font-size:13px;text-align:center">Faltan las cuotas.</div>`;
+  else if (!isFinite(j.extra)) prev = `<div class="loss" style="font-size:13px;text-align:center">El ingreso extra no es un número.</div>`;
+  else if (j.ganReal !== null && !isFinite(j.ganReal)) prev = `<div class="loss" style="font-size:13px;text-align:center">La ganancia real no es un número.</div>`;
+  else {
+    ok = true;
+    const g = j.ganReal !== null ? j.ganReal : ganancia(j.res, stake, sp, j.cR, j.cP);
+    const fin = r2(C + g + j.extra), prox = r2(fin * p.pct);
+    prev = `<div class="aviso info" style="margin:0"><div style="width:100%">
+      <div class="kv"><span>Resultado apuestas</span><b class="num ${g>0?'win':g<0?'loss':''}">${moneyS(g)}</b></div>
+      ${j.extra ? `<div class="kv"><span>Ingreso extra</span><b class="num cyan">${moneyS(j.extra)}</b></div>` : ''}
+      <div class="kv"><span>Terminas el día con</span><b class="num" style="font-size:17px">${money(fin)}</b></div>
+      <div class="kv"><span>Mañana apuestas (${pct(p.pct)})</span><b class="num gold">${money(prox)}</b></div></div></div>`;
+  }
+  $('#jPrev').innerHTML = prev;
+  $('#jSave').disabled = !ok;
+}
+
+function cerrarDia(){
+  const p = S.plan, j = leerJugada();
+  const antes = capActual();
+  const d = { id: Date.now().toString(36), fecha: j.fecha, pct: p.pct, cR: isFinite(j.cR)?j.cR:null, cP: isFinite(j.cP)?j.cP:null, res: j.res, extra: j.extra || 0, ganReal: j.ganReal };
+  S.dias.push(d);
+  recalc();
+  S.borr = { cR: d.cR ?? undefined, cP: d.cP ?? undefined };
+  save();
+  const ult = S.dias[S.dias.length - 1];
+  const hitosCruzados = HITOS.filter(h => recorrido(antes) < h.p && recorrido(ult.capFin) >= h.p);
+  const pil = PILARES.find(x => x.id === 'apalancamiento');
+  const col = {ganan:'win', prot:'gold', pierden:'loss', noaposte:'muted'}[ult.res];
+  const ov = modal(`
+    <div class="celebra">
+      <div class="caps">Día ${ult.n} cerrado</div>
+      <div style="margin:8px auto;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:var(--card2)" class="${col}">${RES_IC[ult.res].replace('class="ic"','style="width:30px;height:30px"')}</div>
+      <div class="big num">${money(ult.capFin)}</div>
+      <div class="num ${ult.capFin-antes>=0?'win':'loss'}" style="font-weight:800">${moneyS(r2(ult.capFin-antes))} hoy</div>
+      <p style="font-size:16px;font-weight:700;margin:14px 0 6px">${esc(pick(MSJ_RES[ult.res]))}</p>
+      ${ult.extra > 0 ? `<p class="cyan" style="font-size:14px;margin:4px 0">Tus palancas sumaron ${money(ult.extra)}. ${esc(pick(pil.msj))}</p>` : ''}
+      <div class="aviso info" style="text-align:left"><div>Mañana: <b class="gold">${money(r2(ult.capFin * p.pct))}</b> (${pct(p.pct)} de ${money(ult.capFin)}). El % no se negocia.</div></div>
+      ${hitosCruzados.length ? `<div class="aviso ok" style="text-align:left"><div><b class="t">${hitosCruzados[hitosCruzados.length-1].t}</b>${hitosCruzados[hitosCruzados.length-1].m}</div></div>` : ''}
+      <button class="btn" style="margin-top:12px" onclick="this.closest('.ov').remove()">Seguir con el plan</button>
+    </div>`);
+  if (ult.res === 'ganan' || hitosCruzados.length) confeti();
+  render();
+}
+
+
+// ================= Barra de avance e imprevistos =================
+function barraMeta(C){
+  const p = S.plan, rec = recorrido(C), falta = r2(Math.max(0, p.meta - C)), n = S.dias.length;
+  let pie;
+  if (C >= p.meta) pie = '<b class="win">¡Meta alcanzada!</b>';
+  else if (C < p.inicial) pie = `Estás <b class="loss">${money(r2(p.inicial - C))}</b> por debajo de donde empezaste. Te faltan <b style="color:var(--text)">${money(falta)}</b>.`;
+  else pie = `Te faltan <b style="color:var(--text)">${money(falta)}</b> · tienes el ${pct(C / p.meta)} del monto meta · ${n} ${n === 1 ? 'día jugado' : 'días jugados'}`;
+  return `<div class="mb">
+    <div class="mb-head"><span class="caps">Avance a la meta</span><b class="num">${pct(rec)}</b></div>
+    <div class="mb-track">${[25,50,75].map(t => `<i class="mb-tick" style="left:${t}%"></i>`).join('')}<div class="mb-fill" style="width:${rec*100}%"></div><div class="mb-dot" style="left:${Math.max(3, Math.min(97, rec*100))}%"></div></div>
+    <div class="mb-lab"><span>Inicio ${money(p.inicial)}</span><span class="gold">🏁 ${money(p.meta)}</span></div>
+    <div class="muted" style="font-size:13px;margin-top:8px">${pie}</div>
+  </div>`;
+}
+function movsRecientes(){
+  const ms = (S.movs || []).slice(-3).reverse();
+  if (!ms.length) return '';
+  return `<div class="sep"></div>` + ms.map(m => `<div class="kv" style="cursor:pointer" onclick="movModal(null,'${m.id}')"><span>${m.monto < 0 ? '<span class="loss">−</span> Imprevisto' : '<span class="cyan">+</span> Aporte'} · ${esc(m.motivo || '—')} <span class="dim">${fechaCorta(m.fecha)}</span></span><b class="num ${m.monto < 0 ? 'loss' : 'cyan'}">${moneyS(m.monto)}</b></div>`).join('');
+}
+function movModal(tipo, id){
+  const m = id ? S.movs.find(x => x.id === id) : null;
+  if (m) tipo = m.monto < 0 ? 'imp' : 'apo';
+  const p = S.plan, C = capActual(), esImp = tipo === 'imp';
+  let motivo = m ? m.motivo : '';
+  modal(`
+    <h3>${m ? 'Editar ' : ''}${esImp ? '<span class="loss">Imprevisto</span>' : '<span class="cyan">Aporte extra</span>'}</h3>
+    <p class="muted" style="margin:0 0 12px;font-size:14px">${esImp ? 'Plata que tuviste que sacar de la bolsa de apuestas. Se resta del capital y el stake de los días siguientes se recalcula solo.' : 'Plata que metes a la bolsa fuera del cierre del día (mineros, negocio, ahorro). Se suma al capital.'}</p>
+    <label class="f">Monto</label><div class="pre"><input class="inp num" id="mM" inputmode="decimal" value="${m ? Math.abs(m.monto) : ''}" placeholder="0.00"></div>
+    <label class="f" style="margin-top:12px">Motivo</label>
+    <div class="chips" id="mCh">${MOTIVOS[tipo].map(x => `<button class="chip ${motivo === x ? 'on' : ''}" data-m="${x}">${x}</button>`).join('')}</div>
+    <input class="inp sm" id="mT" style="margin-top:8px" placeholder="Detalle (opcional)" value="${esc(m ? m.nota || '' : '')}">
+    <label class="f" style="margin-top:12px">Fecha</label><input class="inp sm" type="date" id="mF" value="${m ? m.fecha : hoyISO()}">
+    <div id="mPrev" style="margin-top:12px"></div>
+    <div class="grid2" style="margin-top:14px">${m ? '<button class="btn dang sm" id="mDel">Borrar</button>' : '<button class="btn sec sm" id="mX">Cancelar</button>'}<button class="btn sm" id="mOk">Guardar</button></div>`, ov => {
+    const base = m ? m.capAntes : C;
+    const prev = () => {
+      const v = parseNum($('#mM', ov).value);
+      if (!(v > 0)) { $('#mPrev', ov).innerHTML = ''; return; }
+      if (esImp && v > base) { $('#mPrev', ov).innerHTML = `<div class="aviso bad" style="margin:0"><div>No puede ser mayor que el capital que había (${money(base)}).</div></div>`; return; }
+      const C2 = r2(base + (esImp ? -v : v));
+      const e = extraProm(), mt = multTipico(p, p.pct, p.cR, p.cP);
+      const d1 = simDias(base, p.meta, mt, e), d2 = simDias(C2, p.meta, mt, e);
+      $('#mPrev', ov).innerHTML = `<div class="aviso ${esImp ? 'warn' : 'info'}" style="margin:0"><div style="width:100%">
+        <div class="kv"><span>Capital</span><b class="num">${money(base)} → <span class="${esImp ? 'loss' : 'cyan'}">${money(C2)}</span></b></div>
+        <div class="kv"><span>Stake siguiente (${pct(p.pct)})</span><b class="num">${money(r2(base*p.pct))} → ${money(r2(C2*p.pct))}</b></div>
+        <div class="kv"><span>Días según el plan</span><b class="num">${d1 ?? '—'} → ${d2 ?? '—'}</b></div></div></div>`;
+    };
+    $('#mM', ov).addEventListener('input', prev); prev();
+    $$('#mCh .chip', ov).forEach(c => c.onclick = () => { motivo = c.dataset.m; $$('#mCh .chip', ov).forEach(x => x.classList.toggle('on', x === c)); });
+    if ($('#mX', ov)) $('#mX', ov).onclick = () => ov.remove();
+    if ($('#mDel', ov)) $('#mDel', ov).onclick = () => {
+      if (!confirm('¿Borrar este movimiento? El capital se recalcula.')) return;
+      S.movs = S.movs.filter(x => x.id !== m.id); recalc(); save(); ov.remove(); toast('Movimiento borrado'); render();
+    };
+    $('#mOk', ov).onclick = () => {
+      const v = parseNum($('#mM', ov).value);
+      if (!(v > 0)) return toast('Escribe un monto mayor que 0');
+      if (esImp && v > base) return toast('No puede ser mayor que el capital');
+      if (!motivo) return toast('Elige un motivo');
+      const datos = { monto: esImp ? -r2(v) : r2(v), motivo, nota: $('#mT', ov).value.trim(), fecha: $('#mF', ov).value || hoyISO() };
+      if (m) Object.assign(m, datos);
+      else S.movs.push(Object.assign({ id: 'm' + Date.now().toString(36), tras: S.dias.length ? S.dias[S.dias.length-1].id : null }, datos));
+      recalc(); save(); ov.remove(); render();
+      if (m) return toast('Movimiento corregido');
+      const Cn = capActual();
+      modal(`<div class="celebra">
+        <div class="caps">${esImp ? 'Imprevisto registrado' : 'Aporte registrado'}</div>
+        <div class="big num" style="margin:8px 0">${money(Cn)}</div>
+        <div class="num ${esImp ? 'loss' : 'win'}" style="font-weight:800">${moneyS(datos.monto)} · ${esc(motivo)}</div>
+        <p style="font-size:16px;font-weight:700;margin:14px 0 6px">${esc(esImp ? pick(MSJ_IMP) : pick(PILARES.find(x => x.id === 'apalancamiento').msj))}</p>
+        <div class="aviso info" style="text-align:left"><div>Tu próxima apuesta: <b class="gold">${money(r2(Cn * p.pct))}</b> (${pct(p.pct)} de ${money(Cn)}).</div></div>
+        <button class="btn" style="margin-top:12px" onclick="this.closest('.ov').remove()">Seguir con el plan</button></div>`);
+    };
+  });
+}
+
+// ================= REGISTRO =================
+function chartSVG(){
+  const p = S.plan, W = 360, H = 190, padL = 38, padR = 10, padT = 12, padB = 24;
+  const reales = [p.inicial, ...S.dias.map(d => d.capTras ?? d.capFin)];
+  const n = S.dias.length;
+  const pr = proyeccion();
+  const falta = pr.esp !== null ? Math.min(pr.esp, 120) : 0;
+  const proj = [capActual()];
+  for (let i = 0; i < falta; i++) proj.push(proj[proj.length-1] * pr.m + pr.e);
+  const X = Math.max(n + falta, 5);
+  const ymax = Math.max(p.meta * 1.08, ...reales, ...proj), ymin = Math.min(0, ...reales);
+  const sx = i => padL + (W - padL - padR) * i / X, sy = v => padT + (H - padT - padB) * (1 - (v - ymin) / (ymax - ymin));
+  const path = (arr, off=0) => arr.map((v, i) => (i ? 'L' : 'M') + sx(i + off).toFixed(1) + ' ' + sy(v).toFixed(1)).join(' ');
+  const ticks = [0, p.meta/2, p.meta].map(v => `<line x1="${padL}" x2="${W-padR}" y1="${sy(v)}" y2="${sy(v)}" stroke="#22304f" stroke-dasharray="${v===p.meta?'0':'3 4'}"/><text x="${padL-6}" y="${sy(v)+4}" text-anchor="end" font-size="10" fill="#8e9bb8">$${Math.round(v)}</text>`).join('');
+  const pts = reales.map((v, i) => `<circle cx="${sx(i).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="${n>40?1.5:3}" fill="#f5b841"/>`).join('');
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}">
+    ${ticks}
+    <line x1="${padL}" x2="${W-padR}" y1="${sy(p.meta)}" y2="${sy(p.meta)}" stroke="#35d49a" stroke-width="1.5"/>
+    <text x="${W-padR}" y="${sy(p.meta)-5}" text-anchor="end" font-size="10" font-weight="700" fill="#35d49a">META</text>
+    ${falta ? `<path d="${path(proj, n)}" fill="none" stroke="#3fd0ff" stroke-width="2" stroke-dasharray="5 5" opacity=".8"/>` : ''}
+    <path d="${path(reales)}" fill="none" stroke="#f5b841" stroke-width="2.5" stroke-linejoin="round"/>${pts}
+    <text x="${padL}" y="${H-6}" font-size="10" fill="#8e9bb8">Día 0</text>
+    <text x="${W-padR}" y="${H-6}" text-anchor="end" font-size="10" fill="#8e9bb8">Día ${X}</text>
+  </svg>
+  <div class="row" style="gap:14px;font-size:12px;margin-top:4px"><span><b class="gold">━</b> tu capital</span>${falta?'<span><b class="cyan">┅</b> lo esperado de aquí a la meta</span>':''}</div>`;
+}
+function renderReg(){
+  const p = S.plan, D = S.dias, n = D.length;
+  const c = r => D.filter(d => d.res === r).length;
+  const jugados = D.filter(d => d.res !== 'noaposte').length;
+  const ganApu = r2(D.reduce((a, d) => a + d.gan, 0)), ext = r2(D.reduce((a, d) => a + (d.extra||0), 0));
+  let racha = 0, best = 0; D.forEach(d => { if (d.res === 'ganan' || d.res === 'prot'){ racha++; best = Math.max(best, racha); } else if (d.res === 'pierden') racha = 0; });
+  $('#v-reg').innerHTML = `
+  <div class="card"><h2>Tu curva</h2>${chartSVG()}</div>
+  <div class="card">
+    <h2>Números del plan</h2>
+    <div class="grid3">
+      <div class="stat"><b class="win">${c('ganan')}</b><span>Ganaron las 2</span></div>
+      <div class="stat"><b class="gold">${c('prot')}</b><span>Ganó 1</span></div>
+      <div class="stat"><b class="loss">${c('pierden')}</b><span>Perdieron las 2</span></div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="kv"><span>Ganancia de las apuestas</span><b class="num ${ganApu>=0?'win':'loss'}">${moneyS(ganApu)}</b></div>
+      <div class="kv"><span>Ingresos extra (mineros)</span><b class="num cyan">${moneyS(ext)}</b></div>
+      ${S.movs.length ? `<div class="kv"><span>Imprevistos</span><b class="num loss">${moneyS(r2(S.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0)))}</b></div>
+      ${S.movs.some(m=>m.monto>0) ? `<div class="kv"><span>Aportes fuera del cierre</span><b class="num cyan">${moneyS(r2(S.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0)))}</b></div>` : ''}` : ''}
+      <div class="kv"><span>"Ganaron las 2" real vs plan</span><b class="num">${jugados ? pct(c('ganan')/jugados) : '—'} <span class="dim">vs ${pct(p.pG)}</span></b></div>
+      <div class="kv"><span>"Perdieron las 2" real vs plan</span><b class="num">${jugados ? pct(c('pierden')/jugados) : '—'} <span class="dim">vs ${pct(p.pL)}</span></b></div>
+      <div class="kv"><span>Mejor racha sin perder</span><b class="num">${best} ${best===1?'día':'días'}</b></div>
+    </div>
+    ${jugados >= 10 ? `<div class="hint">Con ${jugados} días jugados ya puedes ajustar las probabilidades del plan a tu realidad en la pestaña Plan.</div>` : ''}
+  </div>
+  <div class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Día por día</h2><button class="lnk" onclick="exportXLSX()">Exportar a Excel ↓</button></div>
+    <div style="margin-top:6px">
+    ${(n || S.movs.length) ? lineaTiempo().reverse().map(x => x.m ? filaMov(x.m) : filaDia(x.d)).join('') : '<div class="muted" style="padding:10px 0">Aún no hay días registrados. Tu día 1 se cierra en la pestaña Hoy.</div>'}
+    </div>
+    ${n ? '<div class="hint">Toca un día o un imprevisto para corregirlo. Si cambias algo, todo lo siguiente se recalcula solo.</div>' : ''}
+  </div>`;
+  $$('#v-reg .dia-it').forEach(el => el.onclick = () => el.dataset.mov ? movModal(null, el.dataset.mov) : editarDia(el.dataset.id));
+}
+function lineaTiempo(){
+  const tl = []; S.movs.filter(m => !m.tras).forEach(m => tl.push({m}));
+  S.dias.forEach(d => { tl.push({d}); S.movs.filter(m => m.tras === d.id).forEach(m => tl.push({m})); });
+  return tl;
+}
+function filaMov(m){
+  const c = m.monto < 0 ? 'imp' : 'apo';
+  return `<div class="dia-it mov-it" data-mov="${m.id}"><div class="dn ${c}">${m.monto < 0 ? '−' : '+'}</div>
+    <div style="min-width:0"><div><span class="badge ${c}">${m.monto < 0 ? 'Imprevisto' : 'Aporte'}</span> <span class="dim" style="font-size:12px">${fechaCorta(m.fecha)}</span></div>
+    <div class="muted" style="font-size:12.5px;margin-top:3px">${esc(m.motivo)}${m.nota ? ' · ' + esc(m.nota) : ''}</div></div>
+    <div style="text-align:right"><div class="num" style="font-weight:800">${money(m.capDesp)}</div><div class="num ${m.monto < 0 ? 'loss' : 'cyan'}" style="font-size:12px;font-weight:700">${moneyS(m.monto)}</div></div></div>`;
+}
+function filaDia(d){
+  return `
+      <div class="dia-it" data-id="${d.id}">
+        <div class="dn">${d.n}</div>
+        <div style="min-width:0">
+          <div><span class="badge ${d.res}">${RES_TXT[d.res]}</span> <span class="dim" style="font-size:12px">${fechaCorta(d.fecha)}</span></div>
+          <div class="muted num" style="font-size:12.5px;margin-top:3px">${d.res==='noaposte' ? 'Sin apuesta' : `A ${money(d.apR)} @${fmt(d.cR)} · B ${money(d.apP)} @${fmt(d.cP)}`}${d.extra ? ` · <span class="cyan">extra ${moneyS(d.extra)}</span>` : ''}${typeof d.ganReal==='number' ? ' · ajustado' : ''}</div>
+        </div>
+        <div style="text-align:right"><div class="num" style="font-weight:800">${money(d.capFin)}</div><div class="num ${d.capFin-d.capIni>=0?'win':'loss'}" style="font-size:12px;font-weight:700">${moneyS(r2(d.capFin-d.capIni))}</div></div>
+      </div>`;
+}
+function editarDia(id){
+  const d = S.dias.find(x => x.id === id); if (!d) return;
+  let res = d.res;
+  const ov = modal(`
+    <h3>Corregir día ${d.n}</h3>
+    <div class="grid2">
+      <div><label class="f">Fecha</label><input class="inp sm" type="date" id="eF" value="${d.fecha}"></div>
+      <div><label class="f">Stake (%)</label><input class="inp sm num" id="eP" inputmode="decimal" value="${r2(d.pct*100)}"></div>
+      <div><label class="f">Cuota A (riesgo)</label><input class="inp sm num" id="eR" inputmode="decimal" value="${d.cR ?? ''}"></div>
+      <div><label class="f">Cuota B (protección)</label><input class="inp sm num" id="eC" inputmode="decimal" value="${d.cP ?? ''}"></div>
+      <div><label class="f">Ingreso extra</label><div class="pre"><input class="inp sm num" id="eX" inputmode="decimal" value="${d.extra || ''}"></div></div>
+      <div><label class="f">Ganancia real (opcional)</label><div class="pre"><input class="inp sm num" id="eG" inputmode="decimal" value="${typeof d.ganReal==='number'?d.ganReal:''}"></div></div>
+    </div>
+    <label class="f" style="margin-top:12px">Resultado</label>
+    <div class="res tres" id="eRes">${(d.res === 'noaposte' ? ['ganan','prot','pierden','noaposte'] : ['ganan','prot','pierden']).map(r => `<button class="rbtn ${r} ${res===r?'on':''}" data-r="${r}">${RES_IC[r]}${RES_TXT[r]}</button>`).join('')}</div>
+    <div class="grid2" style="margin-top:16px">
+      <button class="btn dang sm" id="eDel">Borrar día</button>
+      <button class="btn sm" id="eOk">Guardar</button>
+    </div>`, ov => {
+      $$('#eRes .rbtn', ov).forEach(b => b.onclick = () => { res = b.dataset.r; $$('#eRes .rbtn', ov).forEach(x => x.classList.toggle('on', x.dataset.r === res)); });
+      $('#eOk', ov).onclick = () => {
+        const pc = parseNum($('#eP', ov).value) / 100, cR = parseNum($('#eR', ov).value), cP = parseNum($('#eC', ov).value);
+        const ex = $('#eX', ov).value.trim() === '' ? 0 : parseNum($('#eX', ov).value);
+        const g = $('#eG', ov).value.trim() === '' ? null : parseNum($('#eG', ov).value);
+        if (!(pc > 0 && pc <= .9)) return toast('El stake debe estar entre 1 y 90%');
+        if (res !== 'noaposte' && !(cR > 1 && cP > 1)) return toast('Las cuotas deben ser mayores que 1');
+        if (!isFinite(ex) || (g !== null && !isFinite(g))) return toast('Revisa los montos');
+        Object.assign(d, { fecha: $('#eF', ov).value || d.fecha, pct: pc, cR: isFinite(cR)?cR:null, cP: isFinite(cP)?cP:null, extra: ex, ganReal: g, res });
+        recalc(); save(); ov.remove(); toast('Día corregido. Todo recalculado.'); render();
+      };
+      $('#eDel', ov).onclick = () => {
+        if (!confirm(`¿Borrar el día ${d.n}? Los días siguientes se recalculan.`)) return;
+        const ix = S.dias.findIndex(x => x.id === id), prevId = ix > 0 ? S.dias[ix-1].id : null;
+        S.movs.forEach(m => { if (m.tras === id) m.tras = prevId; });
+        S.dias = S.dias.filter(x => x.id !== id); recalc(); save(); ov.remove(); toast('Día borrado'); render();
+      };
+    });
+}
+
+// ================= DISCIPLINA =================
+function racha(){
+  let n = 0, f = hoyISO();
+  const okDia = iso => HABITOS.filter(h => (S.hab[iso]||{})[h.id]).length >= 6;
+  if (!okDia(f)) f = addDias(f, -1);
+  while (okDia(f)){ n++; f = addDias(f, -1); }
+  return n;
+}
+function renderDis(){
+  const hoy = hoyISO(), hh = S.hab[hoy] || {}, nHab = HABITOS.filter(h => hh[h.id]).length;
+  const pilHoy = pilarDelDia(S.msgOff);
+  const orden = [pilHoy, ...PILARES.filter(p => p !== pilHoy)];
+  const rc = racha();
+  $('#v-dis').innerHTML = `
+  <div class="card">
+    <div class="row">
+      <div class="ring" style="width:84px;height:84px">${ringSVG(nHab/HABITOS.length, 84, 8)}<div class="in"><div><b style="font-size:20px">${nHab}/${HABITOS.length}</b><span>HOY</span></div></div></div>
+      <div style="flex:1">
+        <div class="caps">Índice de enfoque</div>
+        <div style="font-size:17px;font-weight:800;margin-top:2px">${nHab===HABITOS.length?'Día completo 🔥':nHab>=6?'Día sólido':nHab>=3?'Vas bien, sigue':'Empieza por lo básico'}</div>
+        <div class="muted" style="font-size:13px">Racha: <b class="gold">${rc} ${rc===1?'día':'días'}</b> con 6 o más hábitos</div>
+      </div>
+    </div>
+    <div class="sep"></div>
+    ${HABITOS.map(h => `<div class="hab ${hh[h.id]?'on':''}" data-h="${h.id}"><div class="ck">${ICON_CHECK}</div><div><div class="ti">${h.t}</div><small>${h.d}</small></div>${habIcon(h.id)}</div>`).join('')}
+    <div class="hint" style="margin-top:8px">No hay pastilla: hay hábitos. El cambio de afuera empieza por lo que haces cada mañana.</div>
+  </div>
+
+  <div class="card"><h2>Reglas de oro del plan</h2>
+    ${REGLAS.map((r, i) => `<div class="regla"><div class="n">${i+1}</div><div><b>${r[0]}</b><div class="muted" style="font-size:13px">${r[1]}</div></div></div>`).join('')}
+  </div>
+
+  <div class="caps" style="margin:18px 2px 0">Los pilares del cambio · hoy toca <span class="gold">${pilHoy.t}</span></div>
+  ${orden.map(p => `
+    <div class="pilar">
+      <div class="img">${art(p.art)}</div>
+      <div class="bd"><h3>${p.t}</h3><div class="fr">${esc(p.frase)}</div><div class="muted" style="font-size:14px">${esc(p.idea)}</div>
+      <ul>${p.acc.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>
+    </div>`).join('')}`;
+  $$('#v-dis .hab').forEach(el => el.onclick = () => {
+    const d = S.hab[hoy] = S.hab[hoy] || {}; d[el.dataset.h] = !d[el.dataset.h];
+    const k = HABITOS.filter(h => d[h.id]).length;
+    save(); renderDis();
+    if (k === HABITOS.length && d[el.dataset.h]) { confeti(); toast('¡Día completo! Así se construye.'); }
+  });
+}
+
+// ================= PLAN / AJUSTES =================
+function renderPlan(){
+  const p = S.plan, k = kelly(p, p.cR, p.cP), pE = Math.max(0, 1 - p.pG - p.pL);
+  const n = S.dias.filter(d => d.res !== 'noaposte');
+  const avg = key => n.length ? n.reduce((a, d) => a + (d[key]||0), 0) / n.length : null;
+  const aR = avg('cR'), aP = avg('cP');
+  let kMsg, kCls;
+  if (k <= 0){ kMsg = 'Con esas cuotas y probabilidades la apuesta no tiene ventaja.'; kCls = 'bad'; }
+  else if (p.pct > k){ kMsg = 'Tu stake pasa el máximo (Kelly): demasiado riesgo.'; kCls = 'bad'; }
+  else if (p.pct > k/2){ kMsg = 'Cuidado: tu stake está por encima del prudente (medio Kelly).'; kCls = 'warn'; }
+  else { kMsg = 'Tu stake está dentro de lo prudente.'; kCls = 'ok'; }
+  const resp = S.ultResp ? new Date(S.ultResp).toLocaleString('es-VE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'nunca';
+  $('#v-plan').innerHTML = `
+  <div class="card"><h2>Tus datos</h2>
+    <div class="grid2">
+      <div><label class="f">Monto inicial</label><div class="pre"><input class="inp num" id="pI" inputmode="decimal" value="${p.inicial}"></div></div>
+      <div><label class="f">Meta</label><div class="pre"><input class="inp num" id="pM" inputmode="decimal" value="${p.meta}"></div></div>
+    </div>
+    <label class="f" style="margin-top:14px">Stake diario: <b class="gold" id="pSv">${pct(p.pct)}</b> del capital</label>
+    <input type="range" id="pS" min="1" max="60" step="1" value="${Math.round(p.pct*100)}">
+    <div class="chips" style="margin-top:6px">${[10,15,20,25,30].map(v => `<button class="chip ${Math.round(p.pct*100)===v?'on':''}" data-s="${v}">${v}%</button>`).join('')}</div>
+    <div class="hint">El cambio de stake aplica desde el próximo día. Los días ya cerrados guardan el % con que se jugaron.</div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label class="f">Cuota A típica (riesgo)</label><input class="inp num" id="pR" inputmode="decimal" value="${p.cR}"></div>
+      <div><label class="f">Cuota B típica (protección)</label><input class="inp num" id="pP" inputmode="decimal" value="${p.cP}"></div>
+    </div>
+    ${aR ? `<div class="hint">Tus cuotas promedio reales: ${fmt(aR)} / ${fmt(aP)}. <button class="lnk" id="pAvg">Usarlas como típicas</button></div>` : ''}
+    <div style="margin-top:14px"><label class="f">Piso de capital (opcional)</label><div class="pre"><input class="inp num" id="pF" inputmode="decimal" value="${p.piso || ''}" placeholder="0 = sin piso"></div>
+    <div class="hint">Si el capital baja de este monto, la app te pide detenerte y revisar.</div></div>
+  </div>
+
+  <div class="card"><h2>Probabilidades del plan</h2>
+    <div class="grid2">
+      <div><label class="f">Ganan las 2 (%)</label><input class="inp num" id="pG" inputmode="decimal" value="${r2(p.pG*100)}"></div>
+      <div><label class="f">Pierden las 2 (%)</label><input class="inp num" id="pL" inputmode="decimal" value="${r2(p.pL*100)}"></div>
+    </div>
+    <div class="kv" style="margin-top:8px"><span>Empate técnico (solo protección)</span><b class="num">${pct(pE)}</b></div>
+    <div class="hint">Tu Excel traía 63% y 11% (historial Top 3, #1 y #2 del Under 2.5, del 21-ago al 24-sep). Ajústalas cuando tengas más días propios.</div>
+    <div class="sep"></div>
+    <div class="kv"><span>Ganancia por $1 si ganan las 2</span><b class="num">${fmt(q5(p.cR,p.cP),3)}</b></div>
+    <div class="kv"><span>Kelly completo</span><b class="num">${pct(k,1)}</b></div>
+    <div class="kv"><span>Stake máximo prudente (medio Kelly)</span><b class="num gold">${pct(Math.max(0,k/2),1)}</b></div>
+    <div class="kv"><span>Multiplicador típico por día</span><b class="num">×${fmt(multTipico(p,p.pct,p.cR,p.cP),4)}</b></div>
+    <div class="aviso ${kCls}"><div>${kMsg}</div></div>
+  </div>
+
+  <div class="card"><h2>Cómo funciona la cobertura</h2>
+    <div style="font-size:14px" class="muted">
+      Cada día apuestas el <b style="color:var(--text)">${pct(p.pct)}</b> de tu capital. Ese stake se divide en dos:
+      a la <b class="gold">protección (U3.5)</b> va <i>stake ÷ cuota protección</i>, y el resto a la <b class="cyan">riesgosa (U2.5)</b>.
+      <br><br>• Si <b class="win">ganan las 2</b>: cobras las dos y el capital sube.
+      <br>• Si gana <b class="gold">solo la protección</b> (partido de 3 goles): recuperas exactamente lo apostado. Día neutro.
+      <br>• Si <b class="loss">pierden las 2</b> (4 goles o más): pierdes el stake del día.
+      <br><br>Al cerrar el día, la ganancia y el <b class="cyan">ingreso extra de tus mineros</b> se suman al capital, y el stake de mañana se calcula sobre ese nuevo total.
+    </div>
+  </div>
+
+  <div class="card"><h2>Tus datos a salvo</h2>
+    <div class="muted" style="font-size:13px;margin-bottom:10px">Todo se guarda en este teléfono. Último respaldo: <b style="color:var(--text)">${resp}</b></div>
+    <div class="grid2">
+      <button class="btn sm" onclick="exportJSON()">Respaldar</button>
+      <button class="btn sec sm" onclick="$('#fileImp').click()">Restaurar</button>
+      <button class="btn sec sm" onclick="exportXLSX()">Excel ↓</button>
+      <button class="btn sec sm" onclick="compartirResp()">Compartir respaldo</button>
+    </div>
+    <div class="hint">El respaldo es un archivo .json. Guárdalo en Drive o mándatelo por WhatsApp. Para volver a cargarlo usa Restaurar.</div>
+  </div>
+
+  <div class="card"><h2>Empezar de nuevo</h2>
+    <div class="grid2">
+      <button class="btn sec sm" id="pNew">Nuevo plan</button>
+      <button class="btn dang sm" id="pDel">Borrar todo</button>
+    </div>
+    <div class="hint">"Nuevo plan" guarda el plan actual en el archivo y te deja arrancar con otro monto y otra meta.${S.archivo.length ? ` Planes archivados: ${S.archivo.length}.` : ''}</div>
+  </div>
+  <div class="dim" style="text-align:center;font-size:11px;margin:18px 0 8px">Sin Límites v1.1 · uso personal</div>`;
+
+  const setNum = (id, key, f = x => x, ok = x => x > 0) => $('#'+id).addEventListener('change', e => {
+    const v = parseNum(e.target.value);
+    if (!ok(v)) { toast('Valor no válido'); e.target.value = key === 'pG' || key === 'pL' ? r2(p[key]*100) : p[key]; return; }
+    p[key] = f(v); recalc(); save(); renderPlan(); toast('Plan actualizado');
+  });
+  setNum('pI', 'inicial');
+  setNum('pM', 'meta', x => x, x => x > p.inicial);
+  setNum('pR', 'cR', x => x, x => x > 1);
+  setNum('pP', 'cP', x => x, x => x > 1);
+  setNum('pF', 'piso', x => x || 0, x => x >= 0 || isNaN(x));
+  setNum('pG', 'pG', x => x/100, x => x >= 0 && x <= 100 && x/100 + p.pL <= 1);
+  setNum('pL', 'pL', x => x/100, x => x >= 0 && x <= 100 && x/100 + p.pG <= 1);
+  $('#pS').oninput = e => { $('#pSv').textContent = e.target.value + '%'; };
+  $('#pS').onchange = e => { p.pct = Number(e.target.value)/100; save(); renderPlan(); toast('Stake: ' + e.target.value + '% desde el próximo día'); };
+  $$('#v-plan .chip').forEach(c => c.onclick = () => { p.pct = Number(c.dataset.s)/100; save(); renderPlan(); toast('Stake: ' + c.dataset.s + '% desde el próximo día'); });
+  if ($('#pAvg')) $('#pAvg').onclick = () => { p.cR = r2(aR); p.cP = r2(aP); save(); renderPlan(); toast('Cuotas típicas actualizadas'); };
+  $('#pNew').onclick = () => {
+    if (!confirm('¿Archivar este plan y empezar uno nuevo? Tus días quedan guardados en el archivo y en el respaldo.')) return;
+    S.archivo.push({ plan: p, dias: S.dias, movs: S.movs, cerrado: hoyISO() });
+    S.plan = null; S.dias = []; S.movs = []; S.borr = {}; save(); wizard();
+  };
+  $('#pDel').onclick = () => {
+    const t = prompt('Esto borra TODO de este teléfono. Escribe BORRAR para confirmar.');
+    if (t !== 'BORRAR') return;
+    S = blank(); save(); wizard();
+  };
+}
+
+// ================= Respaldo / Excel =================
+function descargar(blob, nombre){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+function respaldoBlob(){ return new Blob([JSON.stringify({app:'sinlimites', exportado:new Date().toISOString(), datos:S}, null, 1)], {type:'application/json'}); }
+function exportJSON(){ descargar(respaldoBlob(), `sinlimites-respaldo-${hoyISO()}.json`); S.ultResp = Date.now(); save(); toast('Respaldo descargado ✓'); render(); }
+async function compartirResp(){
+  const f = new File([respaldoBlob()], `sinlimites-respaldo-${hoyISO()}.json`, {type:'application/json'});
+  if (navigator.canShare && navigator.canShare({files:[f]})){
+    try { await navigator.share({files:[f], title:'Respaldo Sin Límites'}); S.ultResp = Date.now(); save(); render(); } catch(e){}
+  } else exportJSON();
+}
+$('#fileImp').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const j = JSON.parse(rd.result); const d = j.datos || j;
+      if (!d.plan || !Array.isArray(d.dias)) throw 0;
+      if (!confirm(`Restaurar respaldo con ${d.dias.length} días (meta ${money(d.plan.meta)}). Reemplaza lo que hay en este teléfono. ¿Seguir?`)) return;
+      S = Object.assign(blank(), d); recalc(); S.ultResp = Date.now(); save(); const wz = $('.wiz'); if (wz) wz.remove(); toast('Respaldo restaurado ✓'); ir('hoy');
+    } catch(err){ toast('Ese archivo no es un respaldo válido'); }
+    e.target.value = '';
+  };
+  rd.readAsText(f);
+};
+
+// --- Generador .xlsx propio (sin librerías) ---
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b){ let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC_T[(c ^ b[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipBytes(files){
+  const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+  for (const f of files){
+    const nm = enc.encode(f.name), data = typeof f.data === 'string' ? enc.encode(f.data) : f.data, crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true);
+    lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), nm, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    off += 30 + nm.length + data.length;
+  }
+  const cds = central.reduce((a, b) => a + b.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cds, true); end.setUint32(16, off, true);
+  const all = [...parts, ...central, new Uint8Array(end.buffer)];
+  const out = new Uint8Array(all.reduce((a, b) => a + b.length, 0)); let p = 0; all.forEach(b => { out.set(b, p); p += b.length; });
+  return out;
+}
+const colL = i => { let s = ''; i++; while (i){ const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+const xesc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// estilos: 0 normal, 1 encabezado, 2 dinero, 3 porcentaje, 4 número 0.00, 5 título
+function sheetXML(rows, widths){
+  const cols = widths ? `<cols>${widths.map((w, i) => `<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
+  const body = rows.map((r, ri) => `<row r="${ri+1}">${r.map((c, ci) => {
+    if (c === null || c === undefined || c === '') return '';
+    const ref = colL(ci) + (ri + 1), v = typeof c === 'object' ? c : { v: c }, s = v.s ? ` s="${v.s}"` : '';
+    return typeof v.v === 'number' ? `<c r="${ref}"${s}><v>${v.v}</v></c>` : `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${xesc(v.v)}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${body}</sheetData></worksheet>`;
+}
+function xlsxBytes(){
+  const p = S.plan, H = s => ({v:s, s:1}), M = v => ({v:r2(v), s:2}), P = v => ({v, s:3}), N = v => (v===null||v===undefined) ? '' : ({v, s:4});
+  const reg = [[H('Día'),H('Fecha'),H('Capital al empezar'),H('Stake %'),H('Stake del día'),H('Cuota A (U2.5)'),H('Cuota B (U3.5)'),H('Apuesta A (riesgo)'),H('Apuesta B (protección)'),H('Resultado'),H('Ganancia calculada'),H('Ganancia real'),H('Ingreso extra (mineros)'),H('Capital al terminar'),H('Progreso a la meta')]];
+  S.dias.forEach(d => reg.push([d.n, d.fecha, M(d.capIni), P(d.pct), M(d.stake), N(d.cR), N(d.cP), M(d.apR), M(d.apP), RES_TXT[d.res], M(d.ganCalc), typeof d.ganReal==='number' ? M(d.ganReal) : '', M(d.extra||0), M(d.capFin), P(r2(d.capFin/p.meta*10000)/10000)]));
+  const imp = [[H('Fecha'),H('Tipo'),H('Motivo'),H('Detalle'),H('Monto'),H('Capital antes'),H('Capital después'),H('Después del día')]];
+  lineaTiempo().filter(x => x.m).forEach(({m}) => { const d = S.dias.find(x => x.id === m.tras); imp.push([m.fecha, m.monto < 0 ? 'Imprevisto' : 'Aporte', m.motivo, m.nota || '', M(m.monto), M(m.capAntes), M(m.capDesp), d ? d.n : 0]); });
+  const pr = proyeccion(), C = capActual(), k = kelly(p, p.cR, p.cP);
+  const c = r => S.dias.filter(d => d.res === r).length;
+  const res = [
+    [{v:'SIN LÍMITES — Plan de capital con cobertura', s:5}], [`Exportado ${fechaLarga(hoyISO())}`], [],
+    [H('Tus datos'), H('')], ['Monto inicial', M(p.inicial)], ['Meta', M(p.meta)], ['Stake diario', P(p.pct)],
+    ['Cuota riesgosa típica', N(p.cR)], ['Cuota protección típica', N(p.cP)], ['Prob. ganan las 2', P(p.pG)], ['Prob. pierden las 2', P(p.pL)], [],
+    [H('Cómo vas'), H('')], ['Capital actual', M(C)], ['Días jugados', S.dias.length], ['Progreso a la meta', P(r2(C/p.meta*10000)/10000)],
+    ['Ganancia de las apuestas', M(S.dias.reduce((a,d)=>a+d.gan,0))], ['Ingresos extra (mineros)', M(S.dias.reduce((a,d)=>a+(d.extra||0),0))], ['Imprevistos (total)', M(S.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0))], ['Aportes fuera del cierre', M(S.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0))],
+    ['Ganan 2 · solo prot. · pierden 2', `${c('ganan')} · ${c('prot')} · ${c('pierden')}`],
+    ['Días que faltan a tu ritmo real', pr.real !== null ? pr.real : pr.realMsg], ['Días que faltan según el plan', pr.esp !== null ? pr.esp : 'No llega'],
+    ['Llegarías más o menos el', pr.esp !== null ? fechaLarga(addDias(hoyISO(), pr.esp)) : ''],
+    ['Kelly completo', P(r2(k*10000)/10000)], ['Stake máximo prudente (medio Kelly)', P(r2(Math.max(0,k/2)*10000)/10000)],
+  ];
+  const files = [
+    {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+    {name:'_rels/.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+    {name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Resumen" sheetId="1" r:id="rId1"/><sheet name="Registro" sheetId="2" r:id="rId2"/><sheet name="Imprevistos" sheetId="3" r:id="rId4"/></sheets></workbook>'},
+    {name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/></Relationships>'},
+    {name:'xl/styles.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/><numFmt numFmtId="165" formatCode="0.0%"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF1B2A4A"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1B2A4A"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'},
+    {name:'xl/worksheets/sheet1.xml', data:sheetXML(res, [38, 22])},
+    {name:'xl/worksheets/sheet2.xml', data:sheetXML(reg, [6,12,14,9,12,12,13,13,13,16,14,13,14,14,12])},
+    {name:'xl/worksheets/sheet3.xml', data:sheetXML(imp, [12,12,12,24,12,14,14,14])},
+  ];
+  return zipBytes(files);
+}
+function exportXLSX(){
+  descargar(new Blob([xlsxBytes()], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), `sinlimites-plan-${hoyISO()}.xlsx`);
+  toast('Excel descargado ✓');
+}
+
+// ================= Asistente inicial =================
+function wizard(){
+  const prev = $('.wiz'); if (prev) prev.remove();
+  const t = { inicial: 30, meta: 100, pct: .25, cR: 1.8, cP: 1.3 };
+  let paso = 0;
+  const w = document.createElement('div'); w.className = 'wiz'; document.body.appendChild(w);
+  const pasos = [
+    () => `<div class="hero"><div class="art">${art('ciudad')}</div><div class="shade"></div></div>
+      <h1>Sin pastilla.<br><span class="gold">Con método.</span></h1>
+      <p>Esta es tu app personal para llevar el plan de capital con cobertura día a día, y para construir la disciplina que lo hace funcionar: enfoque, orden, aseo, apariencia, círculo, apalancamiento y conocimiento.</p>
+      <p>Te voy a pedir 4 datos. Toma 30 segundos.</p>
+      <p style="font-size:13px">¿Cambiaste de teléfono? <button class="lnk" onclick="$('#fileImp').click()">Restaurar un respaldo</button></p>`,
+    () => `<div class="hero"><div class="art">${art('disciplina')}</div><div class="shade"></div></div>
+      <h1>¿Con cuánto <span class="gold">empiezas</span>?</h1><p>El capital que hoy tienes en la bolsa de apuestas.</p>
+      <div class="pre"><input class="inp num" id="wv" inputmode="decimal" value="${t.inicial}" style="font-size:28px"></div>`,
+    () => `<div class="hero"><div class="art">${art('enfoque')}</div><div class="shade"></div></div>
+      <h1>¿A qué monto <span class="gold">quieres llegar</span>?</h1><p>Tu meta. Una meta clara es la mitad del enfoque.</p>
+      <div class="pre"><input class="inp num" id="wv" inputmode="decimal" value="${t.meta}" style="font-size:28px"></div>`,
+    () => { const k = kelly({pG:.63,pL:.11}, t.cR, t.cP); return `<div class="hero"><div class="art">${art('apalancamiento')}</div><div class="shade"></div></div>
+      <h1>Tu <span class="gold">stake diario</span></h1><p>El % de tu capital que vas a usar cada día. Día 1: ese % de ${money(t.inicial)}; día 2: ese % de lo que tengas al cerrar el día 1 (con ganancias y mineros), y así.</p>
+      <div class="chips" id="wch">${[10,15,20,25,30].map(v => `<button class="chip ${Math.round(t.pct*100)===v?'on':''}" data-s="${v}">${v}%</button>`).join('')}</div>
+      <div style="margin-top:12px"><label class="f">U otro %</label><input class="inp num" id="wv" inputmode="decimal" value="${Math.round(t.pct*100)}"></div>
+      <div class="aviso info"><div>Día 1 apuestas <b class="gold" id="wd1">${money(r2(t.inicial*t.pct))}</b>. Con cuotas 1.80 / 1.30 el máximo prudente (medio Kelly) es ${pct(k/2,1)}.</div></div>`; },
+    () => `<div class="hero"><div class="art">${art('periferica')}</div><div class="shade"></div></div>
+      <h1>Tus <span class="gold">cuotas típicas</span></h1><p>Las usas para calcular cuántos días te faltan. Cada día igual vas a escribir las cuotas reales.</p>
+      <div class="grid2"><div><label class="f">Cuota A · riesgo (U2.5)</label><input class="inp num" id="wr" inputmode="decimal" value="${t.cR}"></div>
+      <div><label class="f">Cuota B · protección (U3.5)</label><input class="inp num" id="wp" inputmode="decimal" value="${t.cP}"></div></div>`,
+  ];
+  const leer = () => {
+    if (paso === 1){ const v = parseNum($('#wv', w).value); if (!(v > 0)) return 'Escribe un monto mayor que 0'; t.inicial = v; }
+    if (paso === 2){ const v = parseNum($('#wv', w).value); if (!(v > t.inicial)) return 'La meta tiene que ser mayor que el monto inicial'; t.meta = v; }
+    if (paso === 3){ const v = parseNum($('#wv', w).value); if (!(v >= 1 && v <= 90)) return 'El stake debe estar entre 1% y 90%'; t.pct = v/100; }
+    if (paso === 4){ const a = parseNum($('#wr', w).value), b = parseNum($('#wp', w).value); if (!(a > 1 && b > 1)) return 'Las cuotas deben ser mayores que 1'; t.cR = a; t.cP = b; }
+    return null;
+  };
+  const pintar = () => {
+    w.innerHTML = `<div class="wrap">${pasos[paso]()}
+      <div class="dots">${pasos.map((_, i) => `<i class="${i===paso?'on':''}"></i>`).join('')}</div>
+      <div class="grid2">${paso ? '<button class="btn sec" id="wb">Atrás</button>' : '<div></div>'}<button class="btn" id="wn">${paso === pasos.length-1 ? 'Empezar' : 'Siguiente'}</button></div></div>`;
+    $('#wn', w).onclick = () => {
+      const err = leer(); if (err) return toast(err);
+      if (paso < pasos.length - 1){ paso++; pintar(); return; }
+      S.plan = { inicial: t.inicial, meta: t.meta, pct: t.pct, cR: t.cR, cP: t.cP, pG: .63, pL: .11, piso: 0, inicio: hoyISO() };
+      S.borr = { cR: t.cR, cP: t.cP };
+      save(); w.remove(); vista = 'hoy'; ir('hoy');
+      modal(`<div class="celebra"><div class="caps">Plan creado</div><div class="big num" style="margin:8px 0">${money(t.inicial)} → <span class="gold">${money(t.meta)}</span></div>
+        <p style="font-weight:700">Día 1: apuestas ${money(r2(t.inicial*t.pct))} (${pct(t.pct)}).</p>
+        <p class="muted">Escribe las cuotas del día, mira cuánto va a cada apuesta y, cuando termine el partido, cierra el día. La app hace el resto.</p>
+        <button class="btn" onclick="this.closest('.ov').remove()">Vamos</button></div>`);
+    };
+    if ($('#wb', w)) $('#wb', w).onclick = () => { leer(); paso--; pintar(); };
+    const wv = $('#wv', w);
+    if (paso === 3){
+      $$('#wch .chip', w).forEach(c => c.onclick = () => { wv.value = c.dataset.s; wv.dispatchEvent(new Event('input')); });
+      wv.oninput = () => { const v = parseNum(wv.value); $$('#wch .chip', w).forEach(c => c.classList.toggle('on', Number(c.dataset.s) === v)); if (v > 0) $('#wd1', w).textContent = money(r2(t.inicial * v / 100)); };
+    }
+    const first = $('input', w); if (first) setTimeout(() => first.focus(), 350);
+  };
+  pintar();
+}
+
+// ================= Arranque =================
+if (S.plan) recalc();
+render();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
