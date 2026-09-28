@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>Mis Mineros</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+<style>
+:root{
+  --bg:#0b0f14; --card:#121a23; --card2:#17212c; --line:#223040; --txt:#e8eef5; --mut:#8fa1b6;
+  --acc:#f7931a; --ok:#22c55e; --warn:#f5a524; --bad:#ef4444; --info:#3b9eff;
+  --c1:#f7931a; --c2:#22d3ee; --c3:#a78bfa; --c4:#4ade80; --c5:#f472b6;
+  --r:16px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:calc(76px + env(safe-area-inset-bottom))}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit;color:var(--txt);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:11px 12px;width:100%}
+input:focus{outline:2px solid var(--acc);border-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+header{position:sticky;top:0;z-index:5;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;gap:10px;height:56px}
+header h1{font-size:17px;margin:0;letter-spacing:.3px;flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0}
+header h1 .logo{flex:none;width:26px;height:26px;border-radius:7px;background:var(--acc);display:grid;place-items:center;color:#111;font-weight:900;font-size:15px}
+.ico-btn{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);font-size:17px}
+.ico-btn.on{background:var(--acc);color:#111;border-color:var(--acc)}
+.upd{font-size:12px;color:var(--mut);text-align:right;line-height:1.2}
+.upd b{color:var(--txt);font-weight:600}
+
+.hero{margin:14px 0;border-radius:var(--r);padding:16px;background:linear-gradient(135deg,#15202b,#101820);border:1px solid var(--line);position:relative;overflow:hidden}
+.hero.ok{border-color:#1f5134}
+.hero.bad{border-color:#7a2323;background:linear-gradient(135deg,#2a1215,#160e10)}
+.hero.warn{border-color:#6b4a12}
+.hero.stale{border-color:#5a4a1f}
+.hero .lbl{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.hero .big{font-size:44px;font-weight:800;letter-spacing:-1px;line-height:1.05;margin-top:2px}
+.hero .big small{font-size:18px;font-weight:600;color:var(--mut);margin-left:4px}
+.hero .msg{margin-top:8px;font-weight:600;display:flex;gap:8px;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--mut)}
+.dot.ok{background:var(--ok);box-shadow:0 0 0 4px rgba(34,197,94,.18);animation:lat 2s infinite}
+.dot.bad{background:var(--bad);box-shadow:0 0 0 4px rgba(239,68,68,.2)}
+.dot.warn{background:var(--warn)}
+.dot.info{background:var(--info)}
+@keyframes lat{50%{box-shadow:0 0 0 7px rgba(34,197,94,0)}}
+.hero .sub{font-size:13px;color:var(--mut);margin-top:6px}
+
+.banner{border-radius:12px;padding:12px 14px;margin:10px 0;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.banner.bad{background:#2a1215;border:1px solid #7a2323}
+.banner.warn{background:#2a2110;border:1px solid #6b4a12}
+.banner.gray{background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.banner b{display:block}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0}
+.miner .top{display:flex;align-items:flex-start;gap:10px}
+.miner .name{font-weight:700;font-size:16px}
+.miner .model{font-size:12px;color:var(--mut)}
+.chip{margin-left:auto;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.chip.ok{background:rgba(34,197,94,.14);color:#6ee79a}
+.chip.bad{background:rgba(239,68,68,.18);color:#ff8a8a}
+.chip.warn{background:rgba(245,165,36,.16);color:#ffc766}
+.chip.info{background:rgba(59,158,255,.16);color:#8cc4ff}
+.chip.gray{background:var(--card2);color:var(--mut)}
+.miner .hr{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 8px;margin:10px 0 4px}
+.miner .hr .v{font-size:38px;font-weight:800;letter-spacing:-1px}
+.miner .hr .u{color:var(--mut);font-weight:600}
+.miner .hr .pct{margin-left:auto;font-size:13px;color:var(--mut);white-space:nowrap}
+.coin{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#3a2808,#221806);border:1px solid #7a5310;color:#ffd27a;border-radius:999px;padding:3px 10px 3px 4px;font-size:14px;font-weight:700;white-space:nowrap;align-self:center}
+.coin i{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe29a,#f7931a 60%,#b8660a);display:grid;place-items:center;font-style:normal;font-size:11px;color:#5a3000;font-weight:900;box-shadow:inset 0 -1px 0 #0003}
+.coin small{font-weight:600;color:#c9a35c;font-size:11px}
+.hero .coin{font-size:16px;margin-top:10px}
+.bar{height:8px;background:var(--card2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .6s}
+.spark{margin-top:10px;height:44px;width:100%}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--card2);border-radius:10px;padding:8px 9px;min-width:0}
+.stat .k{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .v{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat .v.hot{color:var(--warn)}
+.more{margin-top:10px;font-size:13px;color:var(--mut)}
+.more summary{cursor:pointer;color:var(--acc);font-weight:600;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.boards{display:grid;gap:6px;margin-top:8px}
+.board{display:grid;grid-template-columns:62px 1fr 70px;gap:8px;align-items:center;font-size:12px}
+.board .bar{height:6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-top:10px;font-size:13px}
+.kv span:nth-child(odd){color:var(--mut)}
+.kv span:nth-child(even){word-break:break-all}
+.since{font-size:12px;color:var(--mut);margin-top:8px}
+.stale-card{opacity:.55}
+.acciones{display:flex;gap:8px;align-items:center;margin-top:10px}
+.btn.sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.pend{font-size:13px;color:var(--info);display:flex;gap:6px;align-items:center}
+.spin{width:14px;height:14px;border:2px solid var(--info);border-top-color:transparent;border-radius:50%;animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:rgba(14,20,27,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .wrap{display:grid;grid-template-columns:repeat(5,1fr);padding:0 4px}
+nav button{padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--mut);position:relative}
+nav button .i{font-size:20px;line-height:1.1}
+nav button.act{color:var(--acc)}
+nav button .badge{position:absolute;top:6px;left:56%;min-width:8px;height:8px;border-radius:9px;background:var(--bad)}
+.tab{display:none}.tab.act{display:block}
+h2{font-size:18px;margin:18px 0 8px}
+h3{font-size:15px;margin:14px 0 6px}
+p{margin:6px 0}
+.mut{color:var(--mut)}
+.seg{display:inline-flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px}
+.seg button{padding:6px 12px;border-radius:8px;font-size:13px;color:var(--mut)}
+.seg button.act{background:var(--acc);color:#111;font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin-top:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:3px;border-radius:2px;display:inline-block}
+.chartbox{position:relative}
+.tip{position:absolute;pointer-events:none;background:#0b0f14ee;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;display:none;white-space:nowrap}
+
+.ev{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border:0}
+.ev .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none;font-size:15px}
+.ev .ic.bad{background:rgba(239,68,68,.16)} .ev .ic.ok{background:rgba(34,197,94,.14)} .ev .ic.warn{background:rgba(245,165,36,.14)} .ev .ic.info{background:rgba(59,158,255,.14)}
+.ev .t{font-size:12px;color:var(--mut)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:600}
+.btn.pri{background:var(--acc);color:#111;border-color:var(--acc)}
+.btn.bad{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.full{width:100%}
+.row{display:flex;gap:10px;align-items:center}
+.field{margin:10px 0}
+.field label{display:block;font-size:12px;color:var(--mut);margin-bottom:4px}
+.switch{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+.switch:last-child{border:0}
+.tog{width:48px;height:28px;border-radius:99px;background:var(--card2);border:1px solid var(--line);position:relative;flex:none}
+.tog::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--mut);transition:.2s}
+.tog.on{background:var(--acc);border-color:var(--acc)} .tog.on::after{left:23px;background:#111}
+
+/* aprende */
+.learn p{color:#cfd9e4}
+.hash{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;background:var(--card2);padding:10px;border-radius:10px;line-height:1.5}
+.hash .z{color:var(--ok);font-weight:800}
+.bigstat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bigstat .stat .v{font-size:18px;white-space:normal;line-height:1.2}
+.wow{background:linear-gradient(135deg,#2a1d08,#141a22);border:1px solid #6b4a12;border-radius:12px;padding:12px;margin-top:10px}
+.gl dt{font-weight:700;margin-top:10px;color:var(--acc)}
+.gl dd{margin:2px 0 0;color:#cfd9e4}
+
+/* alarma */
+#alarma{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:#7f1010;animation:parp 1s infinite}
+#alarma.on{display:flex}
+@keyframes parp{50%{background:#3a0707}}
+#alarma .ic{font-size:72px;line-height:1}
+#alarma h2{font-size:28px;margin:10px 0 6px;letter-spacing:.5px}
+#alarma ul{list-style:none;padding:0;margin:8px 0 18px;max-width:420px}
+#alarma li{background:rgba(0,0,0,.28);border-radius:12px;padding:10px 12px;margin:8px 0;font-size:15px;text-align:left}
+#alarma .hint{font-size:13px;opacity:.85;margin-bottom:14px}
+#alarma .btn{background:#fff;color:#7f1010;border:0;font-size:17px;padding:15px 26px}
+.toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;background:#10281a;border:1px solid #1f5134;color:#bff5d2;padding:10px 14px;border-radius:12px;font-size:14px;max-width:92vw;box-shadow:0 8px 30px #0008;display:none}
+.toast.warn{background:#2a2110;border-color:#6b4a12;color:#ffe2a8}
+.empty{text-align:center;padding:40px 10px;color:var(--mut)}
+.pill-demo{font-size:11px;background:var(--info);color:#fff;border-radius:99px;padding:2px 8px;font-weight:700}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <h1><span class="logo">⛏</span><span>Mis Mineros</span><span id="pillDemo" class="pill-demo" hidden>DEMO</span></h1>
+  <div class="upd" id="upd"></div>
+  <button class="ico-btn" id="btnVigia" title="Modo vigilancia: pantalla siempre encendida">👁</button>
+</div></header>
+
+<main class="wrap">
+  <!-- MINEROS -->
+  <section class="tab act" id="t-mineros">
+    <div id="hero"></div>
+    <div id="banners"></div>
+    <div id="lista"></div>
+  </section>
+
+  <!-- GRAFICA -->
+  <section class="tab" id="t-grafica">
+    <h2>¿Cuánto han trabajado?</h2>
+    <div class="row" style="justify-content:space-between">
+      <div class="seg" id="segRango"><button data-r="d" class="act">24 horas</button><button data-r="h">7 días</button></div>
+      <span class="mut num" id="promTxt" style="font-size:13px"></span>
+    </div>
+    <div class="card chartbox" id="chartBox"><svg id="chart" width="100%" height="240"></svg><div class="tip" id="tip"></div><div class="legend" id="legend"></div></div>
+    <p class="mut" style="font-size:13px">Cada punto es el promedio de 5 minutos (24 h) o de 1 hora (7 días). Cuando una línea cae a cero, ese minero no estaba trabajando.</p>
+  </section>
+
+  <!-- BITACORA -->
+  <section class="tab" id="t-bitacora">
+    <h2>Bitácora</h2>
+    <p class="mut" style="font-size:13px">Todo lo que ha pasado: cuándo se detuvo un minero, cuándo volvió, cuándo arrancó la PC.</p>
+    <div class="card" id="eventos"></div>
+  </section>
+
+  <!-- APRENDE -->
+  <section class="tab learn" id="t-aprende">
+    <h2>Aprende a minar 🧠</h2>
+    <div class="card">
+      <h3>¿Qué hace un minero?</h3>
+      <p>Bitcoin es como un gran cuaderno público donde se anotan todos los pagos. Cada ~10 minutos se agrega una página nueva, llamada <b>bloque</b>.</p>
+      <p>Para ganarse el derecho de escribir esa página, las máquinas del mundo compiten resolviendo un acertijo: buscar un número (el <b>nonce</b>) que, mezclado con la página, dé una “huella” (<b>hash</b>) que empiece con muchos ceros.</p>
+      <p>No hay truco: solo probar y probar, millones de millones de veces por segundo. Eso es el <b>hashrate</b>. Quien encuentra primero la huella gana bitcoins nuevos.</p>
+    </div>
+
+    <div class="card">
+      <h3>⛏ Mina con este teléfono</h3>
+      <p class="mut" style="font-size:13px">Escribe lo que quieras en la página del bloque, elige cuántos ceros exiges, y deja que el teléfono busque el nonce.</p>
+      <div class="field"><label>Página del bloque</label><input id="minTxt" value="Hoy papá nos enseñó a minar"></div>
+      <div class="field"><label>Ceros al inicio de la huella (dificultad)</label>
+        <div class="seg" id="segCeros"><button data-z="2">2</button><button data-z="3">3</button><button data-z="4" class="act">4</button><button data-z="5">5</button><button data-z="6">6</button><button data-z="7">7</button></div>
+      </div>
+      <button class="btn pri full" id="btnMinar">¡Minar!</button>
+      <div id="minOut" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h3>🌍 La red Bitcoin ahora mismo</h3>
+      <div id="red"><p class="mut">Cargando…</p></div>
+    </div>
+
+    <div class="card">
+      <h3>📖 Palabras de minero</h3>
+      <dl class="gl">
+        <dt>Hashrate (TH/s)</dt><dd>Intentos por segundo. 1 TH/s = un billón (1.000.000.000.000) de intentos cada segundo.</dd>
+        <dt>Hash o huella</dt><dd>Un código que sale de mezclar datos con la fórmula SHA-256. Si cambias una sola letra, sale una huella totalmente distinta.</dd>
+        <dt>Nonce</dt><dd>El número que el minero va cambiando (0, 1, 2, 3…) hasta que la huella sale con suficientes ceros.</dd>
+        <dt>Dificultad</dt><dd>Cuántos ceros exige la red. Cada cero de más hace el trabajo 16 veces más difícil.</dd>
+        <dt>Pool</dt><dd>Un equipo de mineros de todo el mundo que suman fuerzas y se reparten el premio según cuánto trabajó cada uno.</dd>
+        <dt>Share (acción)</dt><dd>Una “casi solución” que el minero manda al pool para demostrar que está trabajando. Así el pool sabe cuánto pagarle.</dd>
+        <dt>Consumo (W) y eficiencia (J/TH)</dt><dd>Cuánta electricidad gasta. La eficiencia dice cuánta energía cuesta cada TH: menos es mejor.</dd>
+        <dt>Temperatura</dt><dd>Los chips se calientan mucho. Los ventiladores los enfrían; si se calientan de más, el minero baja la velocidad o se apaga para protegerse.</dd>
+      </dl>
+    </div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="tab" id="t-ajustes">
+    <h2>Ajustes</h2>
+    <div class="card" id="cardCuenta"></div>
+    <div class="card">
+      <div class="switch"><div><b>Sirena de alarma</b><div class="mut" style="font-size:12px">Suena si un minero se detiene o la casa deja de reportar</div></div><button class="tog" id="tgSonido"></button></div>
+      <div class="switch"><div><b>Vibrar</b></div><button class="tog" id="tgVibrar"></button></div>
+      <div class="switch"><div><b>Avisos del sistema</b><div class="mut" style="font-size:12px">Notificación si la app está abierta pero en segundo plano</div></div><button class="tog" id="tgNotif"></button></div>
+      <div class="switch"><div><b>Modo demo</b><div class="mut" style="font-size:12px">Mineros inventados, para practicar o enseñar</div></div><button class="tog" id="tgDemo"></button></div>
+      <div class="field"><label>Revisar cada (segundos)</label><select id="selRefresco"><option>10</option><option>20</option><option>30</option><option>60</option></select></div>
+      <div class="row" style="margin-top:12px;flex-wrap:wrap">
+        <button class="btn" id="btnProbarAlarma">🔔 Probar alarma</button>
+        <button class="btn" id="btnSimular" hidden>💥 Simular falla (demo)</button>
+      </div>
+    </div>
+    <p class="mut" style="font-size:12px;text-align:center" id="verTxt"></p>
+  </section>
+</main>
+
+<nav><div class="wrap">
+  <button data-t="mineros" class="act"><span class="i">⛏️</span>Mineros<span class="badge" id="navBadge" hidden></span></button>
+  <button data-t="grafica"><span class="i">📈</span>Gráfica</button>
+  <button data-t="bitacora"><span class="i">📋</span>Bitácora</button>
+  <button data-t="aprende"><span class="i">🧠</span>Aprende</button>
+  <button data-t="ajustes"><span class="i">⚙️</span>Ajustes</button>
+</div></nav>
+
+<div id="alarma" role="alertdialog" aria-live="assertive">
+  <div class="ic">🚨</div>
+  <h2 id="alTit">¡ALARMA!</h2>
+  <ul id="alLista"></ul>
+  <div class="hint" id="alHint"></div>
+  <button class="btn" id="btnEnterado">ENTERADO</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const VERSION = '1.0';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const cfg = Object.assign({
+  apiKey: '', projectId: 'cava-licoreria', correo: 'principalanth@gmail.com', coleccion: 'mineria',
+  refrescoSeg: 20, sonido: true, vibrar: true, notif: false, demo: false
+}, LS.get('mm_cfg', {}));
+const guardarCfg = () => LS.set('mm_cfg', cfg);
+const URLS = Object.assign({ auth: 'https://identitytoolkit.googleapis.com', token: 'https://securetoken.googleapis.com', fs: 'https://firestore.googleapis.com' }, LS.get('mm_urls', {}));
+let sesion = LS.get('mm_sesion', null);
+
+const COLORES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)'];
+const EST = {
+  OK:            { t: 'Trabajando',  c: 'ok',   i: '⛏️' },
+  ARRANCANDO:    { t: 'Arrancando',  c: 'info', i: '🔄' },
+  BAJO:          { t: 'Rinde poco',  c: 'warn', i: '⚠️' },
+  DETENIDO:      { t: 'DETENIDO',    c: 'bad',  i: '⛔' },
+  SIN_RESPUESTA: { t: 'NO RESPONDE', c: 'bad',  i: '🔌' },
+  INICIO:        { t: 'PC encendida',c: 'info', i: '💻' },
+  REINICIANDO:   { t: 'Reiniciando', c: 'info', i: '🔁' },
+  REINICIO:      { t: 'Reinicio ordenado', c: 'info', i: '🔁' },
+  ERROR_ORDEN:   { t: 'No se pudo reiniciar', c: 'bad', i: '⚠️' },
+  SIN_DATOS:     { t: 'Sin datos',   c: 'gray', i: '·' }
+};
+
+// ------------------------------------------------------------------ formato
+const f1 = n => (n == null || isNaN(n)) ? '—' : Number(n).toLocaleString('es-VE', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+const f0 = n => (n == null || isNaN(n)) ? '—' : Math.round(n).toLocaleString('es-VE');
+function fDur(ms) {
+  const s = Math.max(0, Math.round(ms / 1000));
+  if (s < 60) return s + ' s';
+  const m = Math.floor(s / 60); if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60); if (h < 48) return h + ' h ' + (m % 60) + ' min';
+  const d = Math.floor(h / 24); return d + ' d ' + (h % 24) + ' h';
+}
+function fDurCorta(ms) {
+  const m = Math.floor(Math.max(0, ms) / 60000), h = Math.floor(m / 60), d = Math.floor(h / 24);
+  if (d > 0) return d + 'd ' + (h % 24) + 'h'; if (h > 0) return h + 'h ' + (m % 60) + 'm'; return m + 'm';
+}
+function fHora(t) { const d = new Date(t); return d.toLocaleTimeString('es-VE', { hour: 'numeric', minute: '2-digit' }); }
+function fFechaHora(t) {
+  const d = new Date(t), hoy = new Date(); const ay = new Date(); ay.setDate(hoy.getDate() - 1);
+  const dia = d.toDateString() === hoy.toDateString() ? 'Hoy' : d.toDateString() === ay.toDateString() ? 'Ayer' : d.toLocaleDateString('es-VE', { day: 'numeric', month: 'short' });
+  return dia + ', ' + fHora(t);
+}
+function fGrande(n) {
+  if (n >= 1e12) return f1(n / 1e12) + ' billones';
+  if (n >= 1e9) return f1(n / 1e9) + ' mil millones';
+  if (n >= 1e6) return f1(n / 1e6) + ' millones';
+  if (n >= 1e3) return f1(n / 1e3) + ' mil';
+  return f0(n);
+}
+function host(url) { if (!url) return '—'; return String(url).replace(/^[a-z+]+:\/\//i, '').replace(/\/.*$/, ''); }
+
+// ------------------------------------------------------------------ Firebase REST
+function errTxt(m) {
+  m = String(m || '');
+  if (/INVALID_LOGIN|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(m)) return 'Correo o clave incorrectos';
+  if (/API_KEY|API key/i.test(m)) return 'La apiKey no es válida';
+  if (/TOO_MANY/.test(m)) return 'Demasiados intentos; espera unos minutos';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Sin conexión a internet';
+  return m;
+}
+async function login(correo, clave) {
+  const r = await fetch(URLS.auth + '/v1/accounts:signInWithPassword?key=' + encodeURIComponent(cfg.apiKey), {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: correo, password: clave, returnSecureToken: true })
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(errTxt(j.error && j.error.message));
+  sesion = { idToken: j.idToken, refreshToken: j.refreshToken, exp: Date.now() + (parseInt(j.expiresIn || '3600', 10) - 300) * 1000, correo };
+  LS.set('mm_sesion', sesion);
+}
+async function tokenVigente() {
+  if (!sesion) throw new Error('NO_SESION');
+  if (Date.now() < sesion.exp) return sesion.idToken;
+  const r = await fetch(URLS.token + '/v1/token?key=' + encodeURIComponent(cfg.apiKey), {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(sesion.refreshToken)
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 400) { sesion = null; LS.del('mm_sesion'); throw new Error('NO_SESION'); }
+    throw new Error(errTxt(j.error && j.error.message) || ('HTTP ' + r.status));
+  }
+  sesion.idToken = j.id_token; sesion.refreshToken = j.refresh_token;
+  sesion.exp = Date.now() + (parseInt(j.expires_in || '3600', 10) - 300) * 1000;
+  LS.set('mm_sesion', sesion);
+  return sesion.idToken;
+}
+function tFirestore(s) { return Date.parse(String(s).replace(/(\.\d{3})\d+/, '$1')); }
+async function leerDoc(nombre, reintento) {
+  const url = URLS.fs + '/v1/projects/' + encodeURIComponent(cfg.projectId) + '/databases/(default)/documents/' + encodeURIComponent(cfg.coleccion) + '/' + nombre;
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + await tokenVigente() }, cache: 'no-store' });
+  if ((r.status === 401 || r.status === 403) && !reintento && sesion) { sesion.exp = 0; return leerDoc(nombre, true); }
+  if (r.status === 404) return null;
+  if (r.status === 403) throw new Error('Sin permiso: revisa las reglas de Firestore');
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  const s = j.fields && j.fields.json && j.fields.json.stringValue;
+  if (!s) return null;
+  return { datos: JSON.parse(s), actualizado: tFirestore(j.updateTime) };
+}
+
+async function escribirDoc(nombre, obj, reintento) {
+  const url = URLS.fs + '/v1/projects/' + encodeURIComponent(cfg.projectId) + '/databases/(default)/documents/' + encodeURIComponent(cfg.coleccion) + '/' + nombre;
+  const r = await fetch(url, { method: 'PATCH', headers: { Authorization: 'Bearer ' + await tokenVigente(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { json: { stringValue: JSON.stringify(obj) }, ts: { integerValue: String(Date.now()) } } }) });
+  if ((r.status === 401 || r.status === 403) && !reintento && sesion) { sesion.exp = 0; return escribirDoc(nombre, obj, true); }
+  if (r.status === 403) throw new Error('Sin permiso de escritura: revisa las reglas de Firestore');
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+}
+
+// ------------------------------------------------------------------ orden: reiniciar
+let ordenPend = null;   // { id, minero, t }
+async function reiniciar(mid) {
+  const m = doc && doc.datos.mineros.find(x => x.id === mid); if (!m) return;
+  if (ordenPend) { mostrarToast('Ya hay una orden en camino, espera un momento', 'warn'); return; }
+  if (!confirm('¿Reiniciar ' + m.nombre + '?\n\nDejará de minar unos 3 a 5 minutos mientras arranca de nuevo. La alarma no sonará durante el reinicio.')) return;
+  if (cfg.demo) {
+    ordenPend = { id: 'demo', minero: mid, t: Date.now() }; pintarMineros();
+    setTimeout(() => { ordenPend = null; DEMO.reinicio = { id: mid, t: Date.now() }; mostrarToast('🔁 ' + m.nombre + ' se está reiniciando (demo)'); refrescar(); }, 2500);
+    return;
+  }
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  try {
+    await escribirDoc('orden', { id, minero: mid, accion: 'reiniciar', t: Date.now(), quien: (sesion && sesion.correo) || cfg.correo });
+  } catch (e) { mostrarToast('❌ No se pudo enviar la orden: ' + errTxt(e.message), 'warn'); return; }
+  ordenPend = { id, minero: mid, t: Date.now() };
+  mostrarToast('📨 Orden enviada. La PC de la casa la ejecuta en unos segundos.');
+  pintarMineros(); seguirOrden();
+}
+async function seguirOrden() {
+  if (!ordenPend) return;
+  const o = ordenPend;
+  try {
+    const r = await leerDoc('orden');
+    if (r && r.datos && r.datos.id === o.id && r.datos.resultado) {
+      ordenPend = null;
+      const m = doc && doc.datos.mineros.find(x => x.id === o.minero);
+      if (r.datos.resultado === 'ok') { mostrarToast('🔁 ' + (m ? m.nombre : 'El minero') + ' se está reiniciando. Vuelve en 3 a 5 minutos.'); tono([520, 660]); }
+      else mostrarToast('❌ No se pudo reiniciar: ' + (r.datos.detalle || 'error'), 'warn');
+      refrescar(); return;
+    }
+  } catch (e) {}
+  if (Date.now() - o.t > 90000) { ordenPend = null; mostrarToast('⌛ La PC de la casa no respondió la orden. ¿Está encendida y con internet?', 'warn'); pintarMineros(); return; }
+  setTimeout(seguirOrden, 3000);
+}
+window.reiniciar = reiniciar;
+
+// ------------------------------------------------------------------ datos de demo
+const DEMO = { falla: false, t0: Date.now() };
+function demoLectura() {
+  const now = Date.now();
+  const w = (a) => a + Math.sin(now / 50000 + a) * 1.2 + Math.random() * 0.6;
+  const m1 = { id: 'm1', nombre: 'Minero 1', modelo: 'M30S+', ip: '192.168.1.50', ok: true, api: 'v1', th: w(100), th5m: 100.2, thProm: 99.8, thNominal: 100, temp: 71 + Math.random() * 2, tempChipMax: 86, potencia: 3400, ventEntrada: 5520, ventSalida: 5490, segundosEncendido: 3 * 86400 + 5 * 3600, aceptados: 48211, rechazados: 23, pool: 'stratum+tcp://btc.viabtc.io:3333', poolUsuario: 'familia.m1', poolEstado: 'Alive', placas: [{ n: 0, th: 33.4, temp: 70 }, { n: 1, th: 33.1, temp: 72 }, { n: 2, th: 33.6, temp: 71 }], estado: 'OK', estadoDesde: DEMO.t0 - 3 * 86400000, avisos: [] };
+  const m2 = { id: 'm2', nombre: 'Minero 2', modelo: 'M31S', ip: '192.168.1.51', ok: true, api: 'v1', th: w(76), th5m: 75.9, thProm: 75.5, thNominal: 76, temp: 69 + Math.random() * 2, tempChipMax: 83, potencia: 3220, ventEntrada: 5100, ventSalida: 5080, segundosEncendido: 1 * 86400 + 2 * 3600, aceptados: 20113, rechazados: 9, pool: 'stratum+tcp://btc.viabtc.io:3333', poolUsuario: 'familia.m2', poolEstado: 'Alive', placas: [{ n: 0, th: 25.3, temp: 68 }, { n: 1, th: 25.4, temp: 70 }, { n: 2, th: 25.2, temp: 69 }], estado: 'OK', estadoDesde: DEMO.t0 - 86400000, avisos: [] };
+  if (DEMO.reinicio && now - DEMO.reinicio.t < 20000) Object.assign(DEMO.reinicio.id === 'm1' ? m1 : m2, { ok: false, th: null, estado: 'REINICIANDO', estadoDesde: DEMO.reinicio.t, placas: [] });
+  if (DEMO.falla) Object.assign(m2, { th: 0, th5m: 12, placas: m2.placas.map(p => ({ ...p, th: 0 })), estado: 'DETENIDO', estadoDesde: DEMO.fallaT, potencia: 180 });
+  const ev = [];
+  if (DEMO.falla) ev.push({ t: DEMO.fallaT, id: 'm2', nombre: 'Minero 2', de: 'OK', a: 'DETENIDO', texto: '0 TH/s' });
+  ev.push({ t: now - 26 * 3600000, id: 'm2', nombre: 'Minero 2', de: 'SIN_RESPUESTA', a: 'OK', texto: '75.8 TH/s' });
+  ev.push({ t: now - 26.4 * 3600000, id: 'm2', nombre: 'Minero 2', de: 'OK', a: 'SIN_RESPUESTA', texto: 'no contesta' });
+  ev.push({ t: now - 74 * 3600000, id: '', nombre: 'PC', de: '', a: 'INICIO', texto: 'Agente iniciado en PC-CASA' });
+  return { datos: { v: 1, ts: now, agente: { pc: 'PC-CASA', intervaloSeg: 30, version: '1.0' }, mineros: [m1, m2], eventos: ev }, actualizado: now - 4000 };
+}
+function demoHist() {
+  const now = Date.now(); const d = [], h = [];
+  for (let t = now - 24 * 3600000; t < now; t += 300000) {
+    const a = 100 + Math.sin(t / 3.6e6) * 1.5, b = 76 + Math.cos(t / 4e6) * 1.2;
+    d.push([t, [+a.toFixed(2), (t > now - 3 * 3600000 && t < now - 2.6 * 3600000) ? 0 : +b.toFixed(2)]]);
+  }
+  for (let t = now - 7 * 86400000; t < now; t += 3600000) {
+    h.push([t, [+(100 + Math.sin(t / 3e7) * 1.5).toFixed(2), (t > now - 27 * 3600000 && t < now - 26 * 3600000) ? 35 : +(76 + Math.cos(t / 3e7)).toFixed(2)]]);
+  }
+  return { ids: ['m1', 'm2'], d, h };
+}
+
+// ------------------------------------------------------------------ estado de la app
+let doc = null;          // { datos, actualizado }
+let hist = null; let histAt = 0;
+let errRed = null; let cargando = false;
+let ultimoIntento = 0;
+
+function limiteViejoMs() {
+  const iv = (doc && doc.datos.agente && doc.datos.agente.intervaloSeg) || 30;
+  return Math.max(150000, iv * 4000 + 30000);
+}
+function edadMs() { return doc ? Math.max(0, Date.now() - doc.actualizado) : Infinity; }
+function esViejo() { return doc ? edadMs() > limiteViejoMs() : false; }
+
+async function refrescar() {
+  if (cargando) return; cargando = true; ultimoIntento = Date.now();
+  try {
+    if (cfg.demo) { doc = demoLectura(); if (!hist || Date.now() - histAt > 60000) { hist = demoHist(); histAt = Date.now(); } errRed = null; }
+    else if (!sesion || !cfg.apiKey) { doc = null; }
+    else {
+      const d = await leerDoc('estado');
+      if (d) doc = d; else errRed = 'Todavía no hay datos: ¿ya instalaste el agente en la PC?';
+      if (d) errRed = null;
+      if (!hist || Date.now() - histAt > 4 * 60000 || tabActual === 'grafica') {
+        try { const h = await leerDoc('historial'); if (h) { hist = h.datos; histAt = Date.now(); } } catch (e) {}
+      }
+    }
+  } catch (e) {
+    if (e.message === 'NO_SESION') { sesion = null; errRed = null; }
+    else errRed = errTxt(e.message);
+  } finally { cargando = false; }
+  pintar(); evaluarAlarmas();
+}
+
+// ------------------------------------------------------------------ ganancia del dia (estimado)
+// satoshis por cada hash = premio de los ultimos 144 bloques / (hashes de toda la red en un dia)
+function satsPorHash() { return (redInfo && redInfo.hash && redInfo.premio144) ? redInfo.premio144 / (redInfo.hash * 86400) : null; }
+function thSegundosHoy(m) {
+  // suma del trabajo hecho desde la medianoche: puntos de 5 min del historial + el tramo que va en curso
+  if (!hist || !hist.d || !hist.ids) return null;
+  const idx = hist.ids.indexOf(m.id); if (idx < 0) return null;
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const t0 = hoy.getTime(), ahora = Date.now();
+  let ths = 0, ultimo = null;
+  hist.d.forEach(p => {
+    if (p[0] + 300000 <= t0) return;
+    const v = p[1] ? p[1][idx] : null; ultimo = Math.max(ultimo || 0, p[0] + 300000);
+    if (v == null) return;
+    ths += v * (Math.min(p[0] + 300000, ahora) - Math.max(p[0], t0)) / 1000;
+  });
+  const desde = Math.max(t0, ultimo || t0);
+  if (m.ok && m.th && !esViejo()) ths += m.th * Math.max(0, ahora - desde) / 1000;
+  return ths;
+}
+function gananciaHoy(m) {
+  const sph = satsPorHash(), ths = thSegundosHoy(m);
+  if (sph == null || ths == null) return null;
+  const sats = ths * 1e12 * sph;
+  return { sats, usd: redInfo.usd ? sats / 1e8 * redInfo.usd : null };
+}
+function monedita(g, grande) {
+  if (!g) return '';
+  const monto = g.usd != null ? '$' + g.usd.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : f0(g.sats) + ' sats';
+  return `<span class="coin" title="Estimado de lo minado hoy desde la medianoche, al precio del BTC en vivo"><i>₿</i>${monto}<small>${grande ? 'ganados hoy' : 'hoy'}</small></span>`;
+}
+
+// ------------------------------------------------------------------ pintar
+let tabActual = 'mineros';
+function pintar() {
+  $('#pillDemo').hidden = !cfg.demo;
+  pintarCabecera(); pintarMineros();
+  if (tabActual === 'grafica') pintarGrafica();
+  if (tabActual === 'bitacora') pintarEventos();
+  if (tabActual === 'ajustes') pintarAjustes();
+}
+function pintarCabecera() {
+  let h = '';
+  if (doc) {
+    const pc = (doc.datos.agente && doc.datos.agente.pc) || 'PC';
+    h = 'Dato de hace <b class="num">' + fDur(edadMs()) + '</b><br>' + esc(pc);
+  } else if (!cfg.demo && (!sesion || !cfg.apiKey)) h = 'Sin configurar';
+  $('#upd').innerHTML = h;
+}
+
+function claseEstado(m, viejo) { if (viejo) return 'gray'; return (EST[m.estado] || EST.SIN_DATOS).c; }
+
+function pintarMineros() {
+  const hero = $('#hero'), lista = $('#lista'), ban = $('#banners');
+  if (!cfg.demo && (!sesion || !cfg.apiKey)) {
+    hero.innerHTML = '';
+    ban.innerHTML = '';
+    lista.innerHTML = `<div class="card" style="text-align:center;padding:26px 16px">
+      <div style="font-size:48px">⛏️</div><h2 style="margin:8px 0">Bienvenido</h2>
+      <p class="mut">Para ver tus mineros, conecta la app con tu Firebase (los mismos datos de CAVA).</p>
+      <div class="row" style="justify-content:center;margin-top:14px;flex-wrap:wrap">
+        <button class="btn pri" onclick="irTab('ajustes')">Conectar</button>
+        <button class="btn" onclick="activarDemo(true)">Ver demo</button></div></div>`;
+    return;
+  }
+  if (!doc) {
+    hero.innerHTML = ''; lista.innerHTML = `<div class="empty">${errRed ? '⚠️ ' + esc(errRed) : 'Cargando…'}</div>`; ban.innerHTML = ''; return;
+  }
+  const viejo = esViejo();
+  const ms = doc.datos.mineros || [];
+  const total = ms.reduce((a, m) => a + (m.ok && m.th ? m.th : 0), 0);
+  const trabajando = ms.filter(m => m.estado === 'OK' || m.estado === 'ARRANCANDO').length;
+  const malos = ms.filter(m => m.estado === 'DETENIDO' || m.estado === 'SIN_RESPUESTA');
+  let cls = 'ok', dot = 'ok', msg = trabajando === ms.length ? 'Todos trabajando' : trabajando + ' de ' + ms.length + ' trabajando';
+  if (viejo) { cls = 'stale'; dot = 'warn'; msg = 'La casa no reporta desde hace ' + fDur(edadMs()); }
+  else if (malos.length) { cls = 'bad'; dot = 'bad'; msg = malos.map(m => m.nombre).join(' y ') + (malos.length > 1 ? ' no están' : ' no está') + ' trabajando'; }
+  else if (ms.some(m => m.estado === 'BAJO' || (m.avisos && m.avisos.length))) { cls = 'warn'; dot = 'warn'; }
+  const pot = ms.reduce((a, m) => a + (m.ok && m.potencia ? m.potencia : 0), 0);
+  hero.innerHTML = `<div class="hero ${cls}">
+    <div class="lbl">Fuerza total de minado</div>
+    <div class="big num">${f1(viejo ? null : total)}<small>TH/s</small></div>
+    <div class="msg"><span class="dot ${dot}"></span>${esc(msg)}</div>
+    <div class="sub num">${viejo ? 'Últimos datos de ' + fFechaHora(doc.actualizado) : fGrande(total * 1e12) + ' de intentos por segundo · ' + f1(pot / 1000) + ' kW'}</div>
+    ${(() => { const gs = ms.map(gananciaHoy).filter(Boolean); if (!gs.length) return ''; return monedita({ sats: gs.reduce((a, g) => a + g.sats, 0), usd: gs.every(g => g.usd != null) ? gs.reduce((a, g) => a + g.usd, 0) : null }, true) + (redInfo && redInfo.usd ? `<div class="sub num" style="margin-top:6px">1 BTC = $${f0(redInfo.usd)} · estimado antes de la comisión del pool</div>` : ''); })()}
+  </div>`;
+
+  let b = '';
+  if (viejo) b += `<div class="banner bad"><span>🏠</span><div><b>La PC de la casa no manda datos</b>Puede ser un apagón, falta de internet en la casa o la PC apagada. Lo que ves abajo es lo último que se supo.</div></div>`;
+  if (errRed) b += `<div class="banner gray"><span>📶</span><div><b>${esc(errRed)}</b>Se muestran los últimos datos que llegaron.</div></div>`;
+  ban.innerHTML = b;
+
+  lista.innerHTML = ms.map((m, i) => tarjeta(m, i, viejo)).join('') || '<div class="empty">El agente no tiene mineros configurados.</div>';
+  $('#navBadge').hidden = !(viejo || malos.length);
+}
+
+function sparkSvg(idx, color) {
+  if (!hist || !hist.d || !hist.d.length) return '';
+  const seg = hist.d.slice(-144);
+  const pts = seg.map(p => (p[1] && p[1][idx] != null) ? +p[1][idx] : null);
+  if (pts.filter(v => v != null).length < 2) return '';
+  const max = Math.max(1, ...pts.filter(v => v != null)) * 1.1, W = 300, H = 44, n = pts.length;
+  let d = '', pen = false;
+  pts.forEach((v, i) => { if (v == null) { pen = false; return; } const x = (i / (n - 1)) * W, y = H - (v / max) * (H - 4) - 2; d += (pen ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1); pen = true; });
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>
+  <div class="mut" style="font-size:11px;display:flex;justify-content:space-between"><span>${fHora(seg[0][0])}</span><span>ahora</span></div>`;
+}
+
+function tarjeta(m, i, viejo) {
+  const e = EST[m.estado] || EST.SIN_DATOS; const c = claseEstado(m, viejo);
+  const nom = m.thNominal || null;
+  const pct = nom && m.th != null ? Math.min(130, (m.th / nom) * 100) : null;
+  const colBar = { ok: 'var(--ok)', warn: 'var(--warn)', bad: 'var(--bad)', info: 'var(--info)', gray: 'var(--mut)' }[c];
+  const idxHist = hist && hist.ids ? hist.ids.indexOf(m.id) : -1;
+  const efic = m.potencia && m.th ? m.potencia / m.th : null;
+  const hot = m.temp != null && m.temp >= 85;
+  const placas = (m.placas || []).filter(p => p);
+  const maxPl = Math.max(1, ...placas.map(p => p.th || 0));
+  return `<div class="card miner ${viejo ? 'stale-card' : ''}">
+    <div class="top"><div><div class="name">${esc(m.nombre)}</div><div class="model">${esc(m.modelo || 'Whatsminer')}${m.ip ? ' · ' + esc(m.ip) : ''}</div></div>
+      <span class="chip ${c}">${viejo ? '⏸ Dato viejo' : e.i + ' ' + e.t}</span></div>
+    <div class="hr"><span class="v num">${m.ok ? f1(m.th) : '—'}</span><span class="u">TH/s</span>${monedita(gananciaHoy(m))}
+      <span class="pct num">${pct != null && m.ok ? f0(pct) + '% de ' + f0(nom) : ''}</span></div>
+    <div class="bar"><i style="width:${pct != null && m.ok ? Math.min(100, pct) : 0}%;background:${colBar}"></i></div>
+    ${idxHist >= 0 ? sparkSvg(idxHist, COLORES[i % COLORES.length]) : ''}
+    ${m.ok ? `<div class="grid">
+      <div class="stat"><div class="k">🌡 Temperatura</div><div class="v num ${hot ? 'hot' : ''}">${f0(m.temp)} °C</div></div>
+      <div class="stat"><div class="k">⚡ Consumo</div><div class="v num">${f0(m.potencia)} W</div></div>
+      <div class="stat"><div class="k">🌀 Ventiladores</div><div class="v num">${f0(m.ventEntrada)}</div></div>
+      <div class="stat"><div class="k">⏱ Encendido</div><div class="v num">${m.segundosEncendido != null ? fDurCorta(m.segundosEncendido * 1000) : '—'}</div></div>
+      <div class="stat"><div class="k">🔋 Eficiencia</div><div class="v num">${efic ? f1(efic) + ' J/TH' : '—'}</div></div>
+      <div class="stat"><div class="k">✅ Shares</div><div class="v num">${f0(m.aceptados)}</div></div>
+    </div>` : m.estado === 'REINICIANDO' ? '' : `<div class="banner bad" style="margin-top:12px"><span>🔌</span><div><b>No contesta en la red</b>Puede estar apagado, sin cable de red, o se le cambió la IP.${m.error ? '<div class="mut" style="font-size:11px;margin-top:4px">' + esc(m.error) + '</div>' : ''}</div></div>`}
+    ${(m.avisos || []).map(a => `<div class="banner warn" style="margin:10px 0 0"><span>⚠️</span><div>${esc(a)}</div></div>`).join('')}
+    ${m.estado === 'BAJO' && !viejo ? `<div class="banner warn" style="margin:10px 0 0"><span>🐢</span><div>Está minando menos de lo normal. Revisa temperatura, polvo en los ventiladores o una placa caída.</div></div>` : ''}
+    ${m.estado === 'ARRANCANDO' && !viejo ? `<div class="banner gray" style="margin:10px 0 0"><span>🔄</span><div>Acaba de encender y está subiendo la velocidad. En unos minutos llega a su fuerza normal.</div></div>` : ''}
+    <div class="since">${e.t} desde ${m.estadoDesde ? fFechaHora(m.estadoDesde) : '—'}</div>
+    ${m.estado === 'REINICIANDO' && !viejo ? `<div class="banner gray" style="margin:10px 0 0"><span>🔁</span><div>Se está reiniciando por orden de la app. En 3 a 5 minutos vuelve a minar. La alarma queda en pausa mientras tanto.</div></div>` : ''}
+    ${viejo ? '' : ordenPend && ordenPend.minero === m.id ? `<div class="acciones"><span class="pend"><span class="spin"></span>Orden enviada, esperando a la PC…</span></div>`
+      : (m.ok && m.estado !== 'REINICIANDO') ? `<div class="acciones"><button class="btn sm" onclick="reiniciar('${esc(m.id)}')">🔁 Reiniciar</button></div>` : ''}
+    ${m.ok ? `<details class="more"><summary>Ver más detalles</summary>
+      ${placas.length ? `<div class="boards">${placas.map(p => `<div class="board"><span>Placa ${f0(p.n != null ? p.n + 1 : '')}</span><div class="bar"><i style="width:${((p.th || 0) / maxPl) * 100}%;background:${(p.th || 0) < 0.1 ? 'var(--bad)' : 'var(--ok)'}"></i></div><span class="num" style="text-align:right">${f1(p.th)} TH · ${f0(p.temp)}°</span></div>`).join('')}</div>` : ''}
+      <div class="kv">
+        <span>Pool</span><span>${esc(host(m.pool))}</span>
+        <span>Trabajador</span><span>${esc(m.poolUsuario || '—')}</span>
+        <span>Estado pool</span><span>${esc(m.poolEstado || '—')}</span>
+        <span>Promedio 5 min</span><span class="num">${f1(m.th5m)} TH/s</span>
+        <span>Promedio total</span><span class="num">${f1(m.thProm)} TH/s</span>
+        <span>Chip más caliente</span><span class="num">${f0(m.tempChipMax)} °C</span>
+        <span>Temperatura del cuarto</span><span class="num">${f0(m.tempAmbiente)} °C</span>
+        <span>Ventilador salida</span><span class="num">${f0(m.ventSalida)} RPM</span>
+        <span>Shares rechazados</span><span class="num">${f0(m.rechazados)}</span>
+      </div></details>` : ''}
+  </div>`;
+}
+
+// ------------------------------------------------------------------ grafica
+let rango = 'd';
+function pintarGrafica() {
+  const svg = $('#chart'), box = $('#chartBox');
+  const W = Math.max(280, box.clientWidth - 28), H = 240, pl = 38, pr = 8, pt = 12, pb = 26;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('height', H);
+  const serie = hist && hist[rango] ? hist[rango] : [];
+  if (!serie.length) { svg.innerHTML = `<text x="${W / 2}" y="${H / 2}" fill="#8fa1b6" text-anchor="middle" font-size="13">Aún no hay historial (se llena cada 5 minutos)</text>`; $('#legend').innerHTML = ''; $('#promTxt').textContent = ''; return; }
+  const ids = hist.ids || [];
+  const nombres = ids.map(id => { const m = doc && doc.datos.mineros.find(x => x.id === id); return m ? m.nombre : id; });
+  const t0 = serie[0][0], t1 = serie[serie.length - 1][0];
+  const span = rango === 'd' ? 24 * 3600000 : 7 * 86400000;
+  let tMin = Math.max(t0, t1 - span); if (t1 - tMin < 3600000) tMin = t1 - 3600000;
+  const corto = (t1 - tMin) < 6 * 3600000;
+  let max = 1; serie.forEach(p => (p[1] || []).forEach(v => { if (v != null && v > max) max = v; }));
+  max = Math.ceil(max * 1.15 / 10) * 10;
+  const X = t => pl + ((t - tMin) / Math.max(1, t1 - tMin)) * (W - pl - pr);
+  const Y = v => pt + (1 - v / max) * (H - pt - pb);
+  let g = '';
+  for (let k = 0; k <= 4; k++) { const v = max * k / 4, y = Y(v); g += `<line x1="${pl}" x2="${W - pr}" y1="${y}" y2="${y}" stroke="#223040" stroke-width="1"/><text x="${pl - 6}" y="${y + 4}" fill="#8fa1b6" font-size="10" text-anchor="end">${f0(v)}</text>`; }
+  const pasos = corto ? 4 : (rango === 'd' ? 6 : 7);
+  for (let k = 0; k <= pasos; k++) {
+    const t = tMin + (t1 - tMin) * k / pasos; const x = X(t);
+    const lab = corto ? fHora(t).replace(/\s?[ap]\.?\s?m\.?/i, '') : ((t1 - tMin) <= 26 * 3600000 ? new Date(t).toLocaleTimeString('es-VE', { hour: 'numeric' }) : new Date(t).toLocaleDateString('es-VE', { weekday: 'short' }));
+    g += `<text x="${x}" y="${H - 8}" fill="#8fa1b6" font-size="10" text-anchor="${k === 0 ? 'start' : k === pasos ? 'end' : 'middle'}">${lab}</text>`;
+  }
+  const salto = rango === 'd' ? 11 * 60000 : 2.2 * 3600000;
+  ids.forEach((id, i) => {
+    let d = '', prev = null;
+    serie.forEach(p => { const v = p[1] ? p[1][i] : null; if (v == null) { prev = null; return; } const x = X(p[0]), y = Y(v); d += (prev != null && p[0] - prev < salto ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1); prev = p[0]; });
+    g += `<path d="${d}" fill="none" stroke="${COLORES[i % COLORES.length]}" stroke-width="2" stroke-linejoin="round"/>`;
+  });
+  g += `<line id="cur" x1="0" x2="0" y1="${pt}" y2="${H - pb}" stroke="#e8eef5" stroke-opacity=".35" stroke-width="1" visibility="hidden"/>`;
+  svg.innerHTML = g;
+  $('#legend').innerHTML = nombres.map((n, i) => `<span><i style="background:${COLORES[i % COLORES.length]}"></i>${esc(n)}</span>`).join('');
+  const proms = ids.map((_, i) => { const v = serie.map(p => p[1] && p[1][i]).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0; });
+  $('#promTxt').textContent = 'Promedio: ' + f1(proms.reduce((a, b) => a + b, 0)) + ' TH/s';
+  const tip = $('#tip'), cur = svg.querySelector('#cur');
+  const mover = ev => {
+    const r = svg.getBoundingClientRect(); const px = (ev.clientX - r.left) * (W / r.width);
+    const t = tMin + ((px - pl) / (W - pl - pr)) * (t1 - tMin);
+    let best = serie[0]; serie.forEach(p => { if (Math.abs(p[0] - t) < Math.abs(best[0] - t)) best = p; });
+    const x = X(best[0]); cur.setAttribute('x1', x); cur.setAttribute('x2', x); cur.setAttribute('visibility', 'visible');
+    tip.style.display = 'block';
+    tip.innerHTML = `<b>${fFechaHora(best[0])}</b><br>` + ids.map((_, i) => `<span style="color:${COLORES[i % COLORES.length]}">●</span> ${esc(nombres[i])}: ${f1(best[1] && best[1][i])} TH/s`).join('<br>');
+    const left = Math.min(r.width - tip.offsetWidth - 4, Math.max(4, (x / W) * r.width + 10));
+    tip.style.left = left + 'px'; tip.style.top = '10px';
+  };
+  svg.onpointermove = mover; svg.onpointerdown = mover;
+  svg.onpointerleave = () => { tip.style.display = 'none'; cur.setAttribute('visibility', 'hidden'); };
+}
+
+// ------------------------------------------------------------------ bitacora
+function pintarEventos() {
+  const ev = (doc && doc.datos.eventos) || [];
+  if (!ev.length) { $('#eventos').innerHTML = '<div class="empty">Sin eventos todavía.</div>'; return; }
+  const loc = t => String(t || '').replace(/\d+\.\d+/g, n => f1(+n));
+  $('#eventos').innerHTML = ev.map(e => {
+    const a = EST[e.a] || EST.SIN_DATOS;
+    let txt;
+    if (e.a === 'INICIO') txt = `<b>${esc(e.texto || 'Agente iniciado')}</b>`;
+    else if (e.a === 'REINICIO') txt = `<b>${esc(e.nombre)}</b>: reinicio ordenado desde la app`;
+    else if (e.a === 'ERROR_ORDEN') txt = `<b>${esc(e.nombre)}</b>: ${esc(e.texto || 'no se pudo reiniciar')}`;
+    else if (e.a === 'OK' && (e.de === 'DETENIDO' || e.de === 'SIN_RESPUESTA' || e.de === 'BAJO' || e.de === 'REINICIANDO')) txt = `<b>${esc(e.nombre)}</b> volvió a trabajar${e.texto ? ' · ' + esc(loc(e.texto)) : ''}`;
+    else txt = `<b>${esc(e.nombre)}</b>: ${esc(a.t.toLowerCase())}${e.texto && e.a !== 'SIN_RESPUESTA' ? ' · ' + esc(loc(e.texto)) : ''}`;
+    const ic = e.a === 'OK' ? 'ok' : a.c;
+    return `<div class="ev"><div class="ic ${ic}">${e.a === 'OK' ? '✅' : a.i}</div><div><div>${txt}</div><div class="t">${fFechaHora(e.t)}</div></div></div>`;
+  }).join('');
+}
+
+// ------------------------------------------------------------------ alarmas
+let audio = null; let sirena = null; let alarmaAbierta = false;
+function asegurarAudio() {
+  try { if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) {}
+}
+document.addEventListener('pointerdown', () => { asegurarAudio(); if (alarmaAbierta && cfg.sonido && !sirena) sonarSirena(); }, { capture: true });
+
+function sonarSirena() {
+  if (!audio || audio.state !== 'running' || sirena) return;
+  const o = audio.createOscillator(), g = audio.createGain(), lfo = audio.createOscillator(), lg = audio.createGain();
+  o.type = 'sawtooth'; o.frequency.value = 850; lfo.frequency.value = 1.6; lg.gain.value = 380;
+  lfo.connect(lg); lg.connect(o.frequency); o.connect(g); g.connect(audio.destination); g.gain.value = 0.16;
+  o.start(); lfo.start(); sirena = { o, lfo, g };
+}
+function callarSirena() { if (sirena) { try { sirena.o.stop(); sirena.lfo.stop(); } catch (e) {} sirena = null; } }
+function tono(frecs) {
+  if (!audio || audio.state !== 'running' || !cfg.sonido) return;
+  let t = audio.currentTime;
+  frecs.forEach(f => { const o = audio.createOscillator(), g = audio.createGain(); o.frequency.value = f; o.connect(g); g.connect(audio.destination); g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25); o.start(t); o.stop(t + 0.26); t += 0.16; });
+}
+function vibrar(p) { if (cfg.vibrar && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} }
+
+function calcularAlarmas() {
+  const crit = [], avis = [];
+  if (!doc) return { crit, avis };
+  if (esViejo()) {
+    crit.push({ k: 'CASA', txt: '🏠 La PC de la casa no manda datos desde hace ' + fDur(edadMs()) + '. Puede ser un apagón, falta de internet o la PC apagada.' });
+    return { crit, avis };
+  }
+  (doc.datos.mineros || []).forEach(m => {
+    if (m.estado === 'DETENIDO') crit.push({ k: m.id + ':DET', txt: '⛔ ' + m.nombre + ' está DETENIDO (0 TH/s) desde las ' + fHora(m.estadoDesde) });
+    else if (m.estado === 'SIN_RESPUESTA') crit.push({ k: m.id + ':SR', txt: '🔌 ' + m.nombre + ' NO RESPONDE desde las ' + fHora(m.estadoDesde) + ' ¿Apagado o sin cable?' });
+    else if (m.estado === 'BAJO') avis.push({ k: m.id + ':BAJO', txt: m.nombre + ' rinde poco: ' + f1(m.th) + ' TH/s' });
+    (m.avisos || []).forEach(a => avis.push({ k: m.id + ':' + a.split(':')[0], txt: m.nombre + ': ' + a }));
+  });
+  return { crit, avis };
+}
+
+let critPrev = null, avisPrev = null;
+function evaluarAlarmas(prueba) {
+  if (prueba) { abrirAlarma([{ txt: '🔔 Esto es una prueba. Así sonará si un minero se detiene.' }], true); return; }
+  const { crit, avis } = calcularAlarmas();
+  const clave = crit.map(c => c.k).sort().join('|');
+  const ack = LS.get('mm_ack', '');
+  if (!clave) {
+    if (alarmaAbierta && !$('#alarma').dataset.prueba) cerrarAlarma();
+    if (critPrev && critPrev.length) { mostrarToast('✅ Todo volvió a la normalidad', 'ok'); tono([660, 880, 1100]); notificar('✅ Mineros trabajando', 'Todo volvió a la normalidad.'); }
+    if (ack) LS.del('mm_ack');
+  } else if (clave !== ack) {
+    abrirAlarma(crit, false, clave);
+    if (!critPrev || critPrev.map(c => c.k).sort().join('|') !== clave) notificar('🚨 ALARMA DE MINEROS', crit.map(c => c.txt).join('\n'));
+  } else if (alarmaAbierta && !$('#alarma').dataset.prueba) {
+    $('#alLista').innerHTML = crit.map(c => '<li>' + esc(c.txt) + '</li>').join('');
+  }
+  const avClave = avis.map(a => a.k).sort().join('|');
+  if (avClave && avisPrev !== null && avClave !== avisPrev && !clave) { mostrarToast('⚠️ ' + avis[0].txt, 'warn'); tono([520, 520]); }
+  critPrev = crit; avisPrev = avClave;
+}
+function abrirAlarma(lista, prueba, clave) {
+  const el = $('#alarma');
+  $('#alTit').textContent = prueba ? 'PRUEBA DE ALARMA' : '¡ALARMA!';
+  $('#alLista').innerHTML = lista.map(c => '<li>' + esc(c.txt) + '</li>').join('');
+  el.dataset.prueba = prueba ? '1' : ''; el.dataset.clave = clave || '';
+  el.classList.add('on'); alarmaAbierta = true;
+  asegurarAudio();
+  if (cfg.sonido) sonarSirena();
+  $('#alHint').textContent = cfg.sonido && (!audio || audio.state !== 'running') ? 'Toca la pantalla para escuchar la sirena' : '';
+  vibrar([600, 300, 600, 300, 600]);
+}
+function cerrarAlarma() {
+  const el = $('#alarma'); el.classList.remove('on'); alarmaAbierta = false; callarSirena(); vibrar(0);
+}
+$('#btnEnterado').onclick = () => {
+  const el = $('#alarma');
+  if (!el.dataset.prueba && el.dataset.clave) LS.set('mm_ack', el.dataset.clave);
+  cerrarAlarma(); irTab('mineros');
+};
+async function notificar(titulo, cuerpo) {
+  if (!cfg.notif || !('Notification' in window) || Notification.permission !== 'granted' || !document.hidden) return;
+  try { const reg = await navigator.serviceWorker.ready; reg.showNotification(titulo, { body: cuerpo, tag: 'mineros', renotify: true, requireInteraction: true, icon: 'icono-192.png', badge: 'icono-192.png', vibrate: [500, 200, 500] }); } catch (e) {}
+}
+let toastT = null;
+function mostrarToast(txt, tipo) {
+  const t = $('#toast'); t.textContent = txt; t.className = 'toast ' + (tipo === 'warn' ? 'warn' : ''); t.style.display = 'block';
+  clearTimeout(toastT); toastT = setTimeout(() => { t.style.display = 'none'; }, 5000);
+}
+
+// ------------------------------------------------------------------ modo vigilancia (pantalla encendida)
+let wake = null; let vigia = false;
+async function pedirWake() { try { if (vigia && 'wakeLock' in navigator && document.visibilityState === 'visible') { wake = await navigator.wakeLock.request('screen'); } } catch (e) {} }
+$('#btnVigia').onclick = async () => {
+  vigia = !vigia; $('#btnVigia').classList.toggle('on', vigia); asegurarAudio();
+  if (vigia) { await pedirWake(); mostrarToast(wake ? '👁 Modo vigilancia: la pantalla se queda encendida y la sirena sonará si algo falla. Deja el teléfono cargando.' : '👁 Modo vigilancia activo (este teléfono no permite dejar la pantalla fija).'); }
+  else { try { wake && wake.release(); } catch (e) {} wake = null; mostrarToast('Modo vigilancia apagado'); }
+};
+
+// ------------------------------------------------------------------ ajustes
+function tog(id, val) { $(id).classList.toggle('on', !!val); }
+function pintarAjustes() {
+  const c = $('#cardCuenta');
+  if (sesion && cfg.apiKey) {
+    c.innerHTML = `<h3 style="margin-top:0">☁️ Conectado a la nube</h3>
+      <div class="kv"><span>Correo</span><span>${esc(sesion.correo || cfg.correo)}</span><span>Proyecto</span><span>${esc(cfg.projectId)}</span><span>Colección</span><span>${esc(cfg.coleccion)}</span></div>
+      <button class="btn full" style="margin-top:12px" id="btnSalir">Cerrar sesión</button>`;
+    $('#btnSalir').onclick = () => { if (!confirm('¿Cerrar la sesión en este teléfono?')) return; sesion = null; LS.del('mm_sesion'); doc = null; hist = null; pintar(); };
+  } else {
+    c.innerHTML = `<h3 style="margin-top:0">☁️ Conectar con la nube</h3>
+      <p class="mut" style="font-size:13px">Son los mismos datos que usaste en CAVA. La clave no se guarda en el teléfono.</p>
+      <div class="field"><label>apiKey</label><input id="inKey" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(cfg.apiKey)}"></div>
+      <div class="field"><label>projectId</label><input id="inPid" autocapitalize="off" value="${esc(cfg.projectId)}"></div>
+      <div class="field"><label>Correo</label><input id="inMail" type="email" autocapitalize="off" value="${esc(cfg.correo)}"></div>
+      <div class="field"><label>Clave</label><input id="inPass" type="password"></div>
+      <details class="more"><summary>Opciones avanzadas</summary><div class="field"><label>Colección (debe ser igual a la del agente)</label><input id="inCol" value="${esc(cfg.coleccion)}"></div></details>
+      <button class="btn pri full" style="margin-top:12px" id="btnConectar">Conectar</button>
+      <div id="conMsg" class="mut" style="margin-top:8px;font-size:13px"></div>`;
+    $('#btnConectar').onclick = async () => {
+      cfg.apiKey = $('#inKey').value.trim(); cfg.projectId = $('#inPid').value.trim(); cfg.correo = $('#inMail').value.trim();
+      cfg.coleccion = ($('#inCol').value.trim() || 'mineria'); guardarCfg();
+      $('#conMsg').textContent = 'Conectando…';
+      try { await login(cfg.correo, $('#inPass').value); cfg.demo = false; guardarCfg(); $('#conMsg').textContent = ''; doc = null; hist = null; await refrescar(); irTab('mineros'); }
+      catch (e) { $('#conMsg').innerHTML = '<span style="color:var(--bad)">❌ ' + esc(e.message) + '</span>'; }
+    };
+  }
+  tog('#tgSonido', cfg.sonido); tog('#tgVibrar', cfg.vibrar); tog('#tgDemo', cfg.demo);
+  tog('#tgNotif', cfg.notif && 'Notification' in window && Notification.permission === 'granted');
+  $('#selRefresco').value = String(cfg.refrescoSeg);
+  $('#btnSimular').hidden = !cfg.demo;
+  $('#btnSimular').textContent = DEMO.falla ? '🔧 Reparar minero (demo)' : '💥 Simular falla (demo)';
+  $('#verTxt').textContent = 'Mis Mineros v' + VERSION + (doc && doc.datos.agente ? ' · agente v' + doc.datos.agente.version : '');
+}
+$('#tgSonido').onclick = () => { cfg.sonido = !cfg.sonido; guardarCfg(); asegurarAudio(); if (!cfg.sonido) callarSirena(); pintarAjustes(); };
+$('#tgVibrar').onclick = () => { cfg.vibrar = !cfg.vibrar; guardarCfg(); pintarAjustes(); };
+$('#tgDemo').onclick = () => activarDemo(!cfg.demo);
+$('#tgNotif').onclick = async () => {
+  if (!('Notification' in window)) { mostrarToast('Este navegador no permite avisos', 'warn'); return; }
+  if (cfg.notif && Notification.permission === 'granted') { cfg.notif = false; }
+  else { const p = await Notification.requestPermission(); cfg.notif = p === 'granted'; if (!cfg.notif) mostrarToast('Permiso de avisos negado', 'warn'); }
+  guardarCfg(); pintarAjustes();
+};
+$('#selRefresco').onchange = e => { cfg.refrescoSeg = +e.target.value; guardarCfg(); programar(); };
+$('#btnProbarAlarma').onclick = () => { asegurarAudio(); evaluarAlarmas(true); };
+$('#btnSimular').onclick = () => { DEMO.falla = !DEMO.falla; DEMO.fallaT = Date.now(); LS.del('mm_ack'); refrescar(); pintarAjustes(); };
+function activarDemo(on) { cfg.demo = on; guardarCfg(); doc = null; hist = null; DEMO.falla = false; LS.del('mm_ack'); critPrev = null; refrescar(); if (on) irTab('mineros'); else pintarAjustes(); }
+
+// ------------------------------------------------------------------ navegacion
+function irTab(t) {
+  tabActual = t;
+  $$('nav button').forEach(b => b.classList.toggle('act', b.dataset.t === t));
+  $$('.tab').forEach(s => s.classList.toggle('act', s.id === 't-' + t));
+  window.scrollTo(0, 0);
+  if (t === 'grafica') { pintarGrafica(); if (!cfg.demo && sesion && Date.now() - histAt > 60000) refrescar(); }
+  if (t === 'bitacora') pintarEventos();
+  if (t === 'ajustes') pintarAjustes();
+  if (t === 'aprende') cargarRed();
+}
+window.irTab = irTab; window.activarDemo = activarDemo;
+$$('nav button').forEach(b => b.onclick = () => irTab(b.dataset.t));
+$$('#segRango button').forEach(b => b.onclick = () => { rango = b.dataset.r; $$('#segRango button').forEach(x => x.classList.toggle('act', x === b)); pintarGrafica(); });
+window.addEventListener('resize', () => { if (tabActual === 'grafica') pintarGrafica(); });
+
+// ------------------------------------------------------------------ APRENDE: mini minero
+const SHA_WORKER = `
+const K=new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+const W=new Uint32Array(64),H=new Uint32Array(8);
+function sha(m,len){
+  const nb=((len+9+63)>>6)<<6;
+  for(let i=len;i<nb;i++)m[i]=0; m[len]=0x80;
+  const bits=len*8; m[nb-4]=bits>>>24;m[nb-3]=(bits>>>16)&255;m[nb-2]=(bits>>>8)&255;m[nb-1]=bits&255;
+  H[0]=0x6a09e667;H[1]=0xbb67ae85;H[2]=0x3c6ef372;H[3]=0xa54ff53a;H[4]=0x510e527f;H[5]=0x9b05688c;H[6]=0x1f83d9ab;H[7]=0x5be0cd19;
+  for(let o=0;o<nb;o+=64){
+    for(let t=0;t<16;t++){const j=o+t*4;W[t]=(m[j]<<24)|(m[j+1]<<16)|(m[j+2]<<8)|m[j+3];}
+    for(let t=16;t<64;t++){const a=W[t-15],b=W[t-2];
+      const s0=((a>>>7)|(a<<25))^((a>>>18)|(a<<14))^(a>>>3);
+      const s1=((b>>>17)|(b<<15))^((b>>>19)|(b<<13))^(b>>>10);
+      W[t]=(W[t-16]+s0+W[t-7]+s1)|0;}
+    let a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for(let t=0;t<64;t++){
+      const S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7));
+      const t1=(h+S1+((e&f)^(~e&g))+K[t]+W[t])|0;
+      const S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));
+      const t2=(S0+((a&b)^(a&c)^(b&c)))|0;
+      h=g;g=f;f=e;e=(d+t1)|0;d=c;c=b;b=a;a=(t1+t2)|0;}
+    H[0]+=a;H[1]+=b;H[2]+=c;H[3]+=d;H[4]+=e;H[5]+=f;H[6]+=g;H[7]+=h;
+  }
+  return H;
+}
+const hex=h=>Array.from(h).map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+let parar=false;
+onmessage=ev=>{
+  const q=ev.data; if(q.stop){parar=true;return;}
+  if(q.test){const b=new TextEncoder().encode(q.test);const m=new Uint8Array(b.length+80);m.set(b);postMessage({test:hex(sha(m,b.length))});return;}
+  parar=false;
+  const pre=new TextEncoder().encode(q.texto+' #');
+  const m=new Uint8Array(pre.length+100); m.set(pre);
+  const bitsZ=q.ceros*4, lim=Math.pow(2,32-bitsZ);
+  let n=0; const t0=performance.now();
+  const lote=()=>{
+    const fin=n+60000;
+    for(;n<fin;n++){
+      let s=String(n),L=pre.length; for(let i=0;i<s.length;i++)m[L+i]=s.charCodeAt(i); L+=s.length;
+      const h=sha(m,L);
+      if((h[0]>>>0)<lim){postMessage({ok:true,nonce:n,hash:hex(h),intentos:n+1,ms:performance.now()-t0});return;}
+      if(parar)return;
+    }
+    postMessage({prog:true,intentos:n,ms:performance.now()-t0});
+    setTimeout(lote,0);
+  };
+  lote();
+};`;
+let worker = null, minando = false;
+function nuevoWorker() { try { worker = new Worker(URL.createObjectURL(new Blob([SHA_WORKER], { type: 'text/javascript' }))); } catch (e) { worker = null; } return worker; }
+let ceros = 4;
+$$('#segCeros button').forEach(b => b.onclick = () => { ceros = +b.dataset.z; $$('#segCeros button').forEach(x => x.classList.toggle('act', x === b)); });
+function totalTH() { return doc ? (doc.datos.mineros || []).reduce((a, m) => a + (m.ok && m.th ? m.th : 0), 0) : 0; }
+function fTiempoLargo(seg) {
+  if (seg < 60) return f0(seg) + ' segundos';
+  if (seg < 3600) return f0(seg / 60) + ' minutos';
+  if (seg < 86400) return f1(seg / 3600) + ' horas';
+  if (seg < 31557600) return f0(seg / 86400) + ' días';
+  return fGrande(seg / 31557600) + ' años';
+}
+$('#btnMinar').onclick = () => {
+  const out = $('#minOut');
+  if (minando) { worker && worker.postMessage({ stop: true }); try { worker.terminate(); } catch (e) {} worker = null; minando = false; $('#btnMinar').textContent = '¡Minar!'; out.innerHTML += '<p class="mut">Detenido.</p>'; return; }
+  if (!worker && !nuevoWorker()) { out.innerHTML = '<p>Este teléfono no permite el mini-minero.</p>'; return; }
+  minando = true; $('#btnMinar').textContent = 'Parar';
+  const texto = $('#minTxt').value || 'bloque';
+  const esperado = Math.pow(16, ceros);
+  out.innerHTML = `<p class="mut">Buscando una huella que empiece con <b>${ceros}</b> ceros… (en promedio hacen falta ~${fGrande(esperado)} intentos)</p><div class="bigstat"><div class="stat"><div class="k">Intentos</div><div class="v num" id="mInt">0</div></div><div class="stat"><div class="k">Velocidad del teléfono</div><div class="v num" id="mVel">—</div></div></div>`;
+  worker.onmessage = ev => {
+    const r = ev.data; const hps = r.intentos / Math.max(0.001, r.ms / 1000);
+    if (r.prog) { $('#mInt').textContent = f0(r.intentos); $('#mVel').textContent = fGrande(hps) + ' H/s'; return; }
+    if (!r.ok) return;
+    minando = false; $('#btnMinar').textContent = '¡Minar otra vez!';
+    const th = totalTH();
+    const veces = th > 0 && hps > 0 ? th * 1e12 / hps : null;
+    const hashHtml = '<span class="z">' + r.hash.slice(0, ceros) + '</span>' + r.hash.slice(ceros);
+    out.innerHTML = `<p>🎉 <b>¡Bloque encontrado!</b> El nonce ganador es <b class="num">${f0(r.nonce)}</b>.</p>
+      <div class="hash">${esc(texto)} #${r.nonce}<br>↓ SHA-256<br>${hashHtml}</div>
+      <div class="bigstat"><div class="stat"><div class="k">Intentos</div><div class="v num">${f0(r.intentos)}</div></div>
+      <div class="stat"><div class="k">Tiempo</div><div class="v num">${r.ms < 10000 ? (r.ms / 1000).toFixed(2).replace('.', ',') : f1(r.ms / 1000)} s</div></div>
+      <div class="stat"><div class="k">Velocidad del teléfono</div><div class="v num">${fGrande(hps)} H/s</div></div>
+      <div class="stat"><div class="k">Tus mineros</div><div class="v num">${th ? f1(th) + ' TH/s' : '—'}</div></div></div>
+      ${veces ? `<div class="wow">⚡ Tus mineros son <b>${fGrande(veces)}</b> de veces más rápidos que este teléfono.<br>Lo que ellos hacen en <b>1 segundo</b>, este teléfono tardaría <b>${fTiempoLargo(veces)}</b> en hacerlo.</div>` : ''}
+      <p class="mut" style="font-size:13px;margin-top:10px">Prueba con un cero más: cada cero hace el acertijo 16 veces más difícil. Bitcoin de verdad exige ${redInfo && redInfo.ceros ? '<b>' + redInfo.ceros + '</b>' : 'unos 19'} ceros… ¡por eso se necesitan máquinas como las tuyas!</p>`;
+  };
+  worker.postMessage({ texto, ceros });
+};
+
+// ------------------------------------------------------------------ APRENDE: red bitcoin (mempool.space)
+let redInfo = null, redAt = 0;
+async function cargarRed() {
+  const box = $('#red');
+  if (redInfo && Date.now() - redAt < 10 * 60000) { pintarRed(); return; }
+  try {
+    const get = u => fetch('https://mempool.space/api' + u, { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+    const [hr, rw, pr, alt] = await Promise.all([get('/v1/mining/hashrate/3d'), get('/v1/mining/reward-stats/144'), get('/v1/prices').catch(() => null), get('/blocks/tip/height').catch(() => null)]);
+    const dif = +hr.currentDifficulty;
+    redInfo = { hash: +hr.currentHashrate, dif, premio144: +rw.totalReward, fees144: +rw.totalFee, usd: pr && +pr.USD, altura: alt,
+      ceros: dif ? Math.round((32 + Math.log2(dif)) / 4) : null };
+    redAt = Date.now(); pintarRed(); pintarMineros();
+  } catch (e) { if (!redInfo) box.innerHTML = '<p class="mut">No se pudo consultar la red Bitcoin ahora (hace falta internet). Intenta más tarde.</p>'; }
+}
+function pintarRed() {
+  const r = redInfo; if (!r) return;
+  const th = totalTH(); const miosH = th * 1e12;
+  const frac = r.hash ? miosH / r.hash : 0;
+  const satsDia = frac * r.premio144;
+  const usdDia = r.usd ? satsDia / 1e8 * r.usd : null;
+  const segBloque = frac > 0 ? 600 / frac : null;
+  const kwh = doc ? (doc.datos.mineros || []).reduce((a, m) => a + (m.ok && m.potencia ? m.potencia : 0), 0) * 24 / 1000 : 0;
+  $('#red').innerHTML = `<div class="bigstat">
+    <div class="stat"><div class="k">Bloque actual</div><div class="v num">${r.altura ? f0(r.altura) : '—'}</div></div>
+    <div class="stat"><div class="k">Fuerza de toda la red</div><div class="v num">${f0(r.hash / 1e18)} EH/s</div></div>
+    <div class="stat"><div class="k">Precio de 1 BTC</div><div class="v num">${r.usd ? '$' + f0(r.usd) : '—'}</div></div>
+    <div class="stat"><div class="k">Premio por bloque</div><div class="v num">${(r.premio144 / 144 / 1e8).toFixed(3)} BTC</div></div></div>
+    ${th ? `<div class="wow">
+      🧮 Tus mineros son <b>${frac ? (frac * 100).toPrecision(2) : 0}%</b> de la fuerza de todo el mundo… una gotita en el océano.<br><br>
+      💰 En un pool, eso ganaría unos <b>${f0(satsDia)} satoshis al día</b>${usdDia != null ? ' (≈ $' + usdDia.toFixed(2) + ')' : ''}. Un satoshi es la parte más pequeña de un bitcoin: 1 BTC = 100 millones de satoshis.<br><br>
+      🎲 Si minaran solos, encontrarían un bloque cada <b>${segBloque ? fTiempoLargo(segBloque) : '—'}</b> en promedio. Por eso los mineros se unen en pools.<br><br>
+      ⚡ Consumen unos <b>${f1(kwh)} kWh al día</b>, como ${f0(kwh / 1.5)} aires acondicionados pequeños encendidos una hora.</div>` : ''}
+    <p class="mut" style="font-size:12px;margin-top:8px">Datos de mempool.space. Las ganancias son un estimado del promedio, antes de la comisión del pool.</p>`;
+}
+
+// ------------------------------------------------------------------ ciclo
+let timer = null;
+function programar() { clearInterval(timer); timer = setInterval(() => { refrescar(); }, Math.max(5, cfg.refrescoSeg) * 1000); }
+setInterval(() => { pintarCabecera(); if (doc && esViejo() !== (doc._viejo || false)) { doc._viejo = esViejo(); pintarMineros(); evaluarAlarmas(); } }, 5000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refrescar(); pedirWake(); } });
+window.addEventListener('online', refrescar);
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+pintar(); refrescar(); programar(); cargarRed();
+setInterval(() => { redAt = 0; cargarRed(); }, 10 * 60000);
+</script>
+</body>
+</html>
