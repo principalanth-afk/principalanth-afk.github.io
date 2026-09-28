@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#070b16">
 <title>Sin Límites</title>
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="sl-manifest.webmanifest">
+<link rel="icon" href="sl-icon-192.png">
+<link rel="apple-touch-icon" href="sl-icon-192.png">
 <style>
 :root{
   --bg:#070b16; --bg2:#0b1122; --card:#101829; --card2:#152038; --line:#22304f; --line2:#2d3d62;
@@ -241,7 +241,7 @@ input[type=date].inp{font-size:15px}
 <body>
 
 <header class="top"><div class="wrap">
-  <svg class="logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="190" fill="none" stroke="#3fd0ff" stroke-opacity=".35" stroke-width="16" stroke-dasharray="14 18"/><circle cx="256" cy="256" r="146" fill="none" stroke="#3fd0ff" stroke-width="22"/><circle cx="256" cy="256" r="98" fill="none" stroke="#f5b841" stroke-width="30"/><circle cx="256" cy="256" r="46" fill="#ffd27a"/></svg>
+  <img class="logo" src="sl-icon-192.png" alt="" style="border-radius:9px">
   <div class="brand">SIN LÍMITES<small>CAPITAL · DISCIPLINA · ENFOQUE</small></div>
   <div class="dia" id="topDia"></div>
 </div><div class="topbar" title="Avance a la meta"><i id="topBar" style="width:0"></i></div><div class="carr" id="carr"></div></header>
@@ -894,7 +894,7 @@ async function instalarApp(){
 }
 function tarjetaInstalar(){
   if (esApp()) return '';
-  return `<div class="card instalar"><img src="icon-192.png" alt=""><div style="flex:1"><div style="font-weight:800">Instala Sin Límites en tu teléfono</div><div class="muted" style="font-size:13px">Con su propio ícono, pantalla completa y sin internet.</div></div><button class="btn sm" style="width:auto;padding:10px 14px" onclick="instalarApp()">Instalar</button></div>`;
+  return `<div class="card instalar"><img src="sl-icon-192.png" alt=""><div style="flex:1"><div style="font-weight:800">Instala Sin Límites en tu teléfono</div><div class="muted" style="font-size:13px">Con su propio ícono, pantalla completa y sin internet.</div></div><button class="btn sm" style="width:auto;padding:10px 14px" onclick="instalarApp()">Instalar</button></div>`;
 }
 
 
@@ -1220,7 +1220,7 @@ function renderPlan(){
     <div class="sep"></div>
     <button class="lnk" style="color:var(--loss)" id="pDel">Borrar TODO lo de este teléfono</button>
   </div>
-  <div class="dim" style="text-align:center;font-size:11px;margin:18px 0 8px">Sin Límites v1.3 · uso personal</div>`;
+  <div class="dim" style="text-align:center;font-size:11px;margin:18px 0 8px">Sin Límites v1.4 · uso personal</div>`;
 
   const setNum = (id, key, f = x => x, ok = x => x > 0) => $('#'+id).addEventListener('change', e => {
     const v = parseNum(e.target.value);
@@ -1428,7 +1428,7 @@ function wizard(nueva){
 // ================= Arranque =================
 if (R) recalc();
 render();
-if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js', {scope: './'}).catch(()=>{});
 </script>
 </body>
 </html>

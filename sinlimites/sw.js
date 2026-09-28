@@ -1,6 +1,6 @@
 // Service worker de Sin Límites: solo toca SUS cachés (no los de CAVA, que vive en el mismo dominio)
-const CACHE = 'sinlimites-v4';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
+const CACHE = 'sinlimites-v5';
+const ASSETS = ['./', './index.html', './sl-manifest.webmanifest', './sl-icon-192.png', './sl-icon-512.png', './sl-icon-maskable-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith('sinlimites-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
