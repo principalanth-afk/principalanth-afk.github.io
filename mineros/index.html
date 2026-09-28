@@ -373,6 +373,16 @@ async function tokenVigente() {
   LS.set('mm_sesion', sesion);
   return sesion.idToken;
 }
+// repara listas que Windows PowerShell 5.1 guardaba como {"value":[...],"Count":n}
+function sanear(x) {
+  if (Array.isArray(x)) return x.map(sanear);
+  if (x && typeof x === 'object') {
+    const k = Object.keys(x);
+    if (k.length === 2 && 'value' in x && 'Count' in x) return sanear(x.value);
+    const o = {}; k.forEach(kk => { o[kk] = sanear(x[kk]); }); return o;
+  }
+  return x;
+}
 function tFirestore(s) { return Date.parse(String(s).replace(/(\.\d{3})\d+/, '$1')); }
 async function leerDoc(nombre, reintento) {
   const url = URLS.fs + '/v1/projects/' + encodeURIComponent(cfg.projectId) + '/databases/(default)/documents/' + encodeURIComponent(cfg.coleccion) + '/' + nombre;
@@ -384,7 +394,7 @@ async function leerDoc(nombre, reintento) {
   const j = await r.json();
   const s = j.fields && j.fields.json && j.fields.json.stringValue;
   if (!s) return null;
-  return { datos: JSON.parse(s), actualizado: tFirestore(j.updateTime) };
+  return { datos: sanear(JSON.parse(s)), actualizado: tFirestore(j.updateTime) };
 }
 
 async function escribirDoc(nombre, obj, reintento) {
@@ -497,11 +507,17 @@ async function refrescar() {
 // ------------------------------------------------------------------ ganancia del dia (estimado)
 // satoshis por cada hash = premio de los ultimos 144 bloques / (hashes de toda la red en un dia)
 function satsPorHash() { return (redInfo && redInfo.hash && redInfo.premio144) ? redInfo.premio144 / (redInfo.hash * 86400) : null; }
+const HORA_INICIO_DIA = 22;   // el dia minero va de 10:00 pm a 9:59 pm
+function inicioDiaMinero() {
+  const d = new Date(); const h = new Date(d); h.setHours(HORA_INICIO_DIA, 0, 0, 0);
+  if (d < h) h.setDate(h.getDate() - 1);
+  return h.getTime();
+}
 function thSegundosHoy(m) {
   // suma del trabajo hecho desde la medianoche: puntos de 5 min del historial + el tramo que va en curso
   if (!hist || !hist.d || !hist.ids) return null;
   const idx = hist.ids.indexOf(m.id); if (idx < 0) return null;
-  const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const t0 = hoy.getTime(), ahora = Date.now();
+  const t0 = inicioDiaMinero(), ahora = Date.now();
   let ths = 0, ultimo = null;
   hist.d.forEach(p => {
     if (p[0] + 300000 <= t0) return;
@@ -522,7 +538,7 @@ function gananciaHoy(m) {
 function monedita(g, grande) {
   if (!g) return '';
   const monto = g.usd != null ? '$' + g.usd.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : f0(g.sats) + ' sats';
-  return `<span class="coin" title="Estimado de lo minado hoy desde la medianoche, al precio del BTC en vivo"><i>₿</i>${monto}<small>${grande ? 'ganados hoy' : 'hoy'}</small></span>`;
+  return `<span class="coin" title="Estimado de lo minado en el día minero (desde las 10 pm), al precio del BTC en vivo"><i>₿</i>${monto}<small>${grande ? 'ganados hoy' : 'hoy'}</small></span>`;
 }
 
 // ------------------------------------------------------------------ pintar
@@ -576,7 +592,7 @@ function pintarMineros() {
     <div class="big num">${f1(viejo ? null : total)}<small>TH/s</small></div>
     <div class="msg"><span class="dot ${dot}"></span>${esc(msg)}</div>
     <div class="sub num">${viejo ? 'Últimos datos de ' + fFechaHora(doc.actualizado) : fGrande(total * 1e12) + ' de intentos por segundo · ' + f1(pot / 1000) + ' kW'}</div>
-    ${(() => { const gs = ms.map(gananciaHoy).filter(Boolean); if (!gs.length) return ''; return monedita({ sats: gs.reduce((a, g) => a + g.sats, 0), usd: gs.every(g => g.usd != null) ? gs.reduce((a, g) => a + g.usd, 0) : null }, true) + (redInfo && redInfo.usd ? `<div class="sub num" style="margin-top:6px">1 BTC = $${f0(redInfo.usd)} · estimado antes de la comisión del pool</div>` : ''); })()}
+    ${(() => { const gs = ms.map(gananciaHoy).filter(Boolean); if (!gs.length) return ''; return monedita({ sats: gs.reduce((a, g) => a + g.sats, 0), usd: gs.every(g => g.usd != null) ? gs.reduce((a, g) => a + g.usd, 0) : null }, true) + (redInfo && redInfo.usd ? `<div class="sub num" style="margin-top:6px">1 BTC = $${f0(redInfo.usd)} · día minero desde las 10 pm · estimado antes de la comisión del pool</div>` : ''); })()}
   </div>`;
 
   let b = '';
