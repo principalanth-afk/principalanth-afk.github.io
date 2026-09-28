@@ -89,6 +89,22 @@ h1,h2,h3{margin:0;font-weight:800;letter-spacing:.02em}
 .res.tres .rbtn small{margin-left:auto;font-weight:600;color:var(--dim);font-size:12px}
 .oblig{color:var(--loss);font-weight:800}
 
+/* Carreras */
+.carr{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 2px;max-width:560px;margin:0 auto;scrollbar-width:none}
+.carr::-webkit-scrollbar{display:none}
+.cchip{flex:none;border:1.5px solid var(--line2);background:var(--bg2);border-radius:14px;padding:7px 12px 8px;cursor:pointer;min-width:112px;text-align:left}
+.cchip .cn{font-weight:800;font-size:13px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.cchip .cp{font-size:11px;color:var(--muted);font-weight:700}
+.cchip .cb{height:4px;border-radius:99px;background:var(--card2);margin-top:5px;overflow:hidden}
+.cchip .cb i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold))}
+.cchip.on{border-color:var(--gold);background:rgba(245,184,65,.1)} .cchip.on .cn{color:var(--gold)}
+.cchip.add{min-width:auto;display:grid;place-items:center;font-size:22px;font-weight:900;color:var(--gold);padding:7px 16px}
+.cfila{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.cfila:last-child{border-bottom:0}
+.cfila.on .cn{color:var(--gold)}
+.instalar{display:flex;gap:12px;align-items:center}
+.instalar img{width:44px;height:44px;border-radius:11px;flex:none}
+
 /* Días que faltan */
 .tile{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 8px;text-align:center}
 .tile b{display:block;font-size:26px;font-weight:900;line-height:1.1}
@@ -228,7 +244,7 @@ input[type=date].inp{font-size:15px}
   <svg class="logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="190" fill="none" stroke="#3fd0ff" stroke-opacity=".35" stroke-width="16" stroke-dasharray="14 18"/><circle cx="256" cy="256" r="146" fill="none" stroke="#3fd0ff" stroke-width="22"/><circle cx="256" cy="256" r="98" fill="none" stroke="#f5b841" stroke-width="30"/><circle cx="256" cy="256" r="46" fill="#ffd27a"/></svg>
   <div class="brand">SIN LÍMITES<small>CAPITAL · DISCIPLINA · ENFOQUE</small></div>
   <div class="dia" id="topDia"></div>
-</div><div class="topbar" title="Avance a la meta"><i id="topBar" style="width:0"></i></div></header>
+</div><div class="topbar" title="Avance a la meta"><i id="topBar" style="width:0"></i></div><div class="carr" id="carr"></div></header>
 
 <main class="wrap">
   <section class="view on" id="v-hoy"></section>
@@ -410,12 +426,33 @@ function confeti(){
 
 // ================= Estado y guardado =================
 const KEY = 'sinlimites.v1';
-function blank(){ return { v:1, plan:null, dias:[], movs:[], borr:{}, hab:{}, ultResp:null, archivo:[], msgOff:0 }; }
+function blank(){ return { v:2, carreras:[], casas:[], activa:null, hab:{}, ultResp:null, msgOff:0 }; }
+const nombreBase = p => 'Carrera ' + money(p.inicial).replace(/,00$/, '');
+// Convierte respaldos viejos (un solo plan) al formato de varias carreras
+function migrar(src){
+  const s = Object.assign(blank(), src || {});
+  if (!Array.isArray(s.carreras)) s.carreras = [];
+  if (s.plan){
+    s.carreras.unshift({ id:'c1', nombre: nombreBase(s.plan), creada: s.plan.inicio || hoyISO(), plan: s.plan, dias: s.dias || [], movs: s.movs || [], borr: s.borr || {} });
+  }
+  (s.archivo || []).forEach((a, i) => { if (a && a.plan) s.carreras.push({ id:'ca' + i, nombre: 'Archivada ' + (a.cerrado || ''), creada: a.plan.inicio || '', plan: a.plan, dias: a.dias || [], movs: a.movs || [], borr: {} }); });
+  delete s.plan; delete s.dias; delete s.movs; delete s.borr; delete s.archivo;
+  s.carreras.forEach(c => { c.dias = c.dias || []; c.movs = c.movs || []; c.borr = c.borr || {}; });
+  if (!Array.isArray(s.casas)) s.casas = [];
+  if (!s.carreras.find(c => c.id === s.activa)) s.activa = s.carreras.length ? s.carreras[0].id : null;
+  s.v = 2;
+  return s;
+}
 function load(){
-  try { const raw = localStorage.getItem(KEY); if (raw){ const s = JSON.parse(raw); return Object.assign(blank(), s); } } catch(e){}
+  try { const raw = localStorage.getItem(KEY); if (raw) return migrar(JSON.parse(raw)); } catch(e){}
   return blank();
 }
 let S = load();
+let R = null;                                   // carrera activa
+function activar(id){ R = S.carreras.find(c => c.id === id) || null; S.activa = R ? R.id : null; }
+activar(S.activa);
+// Ejecuta fn con otra carrera como activa (para resúmenes) y regresa a la actual
+function conCarrera(c, fn){ const old = R; R = c; recalc(); const v = fn(); R = old; if (R) recalc(); return v; }
 let persistPedido = false;
 function save(){
   try { localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -441,13 +478,13 @@ function ganancia(res, stake, sp, cR, cP){
   return 0;
 }
 function recalc(){
-  if (!S.plan) return;
-  S.movs = S.movs || [];
-  const movsDe = anc => S.movs.filter(m => (m.tras || null) === anc);
-  let cap = S.plan.inicial;
+  if (!R || !R.plan) return;
+  R.movs = R.movs || [];
+  const movsDe = anc => R.movs.filter(m => (m.tras || null) === anc);
+  let cap = R.plan.inicial;
   const aplicar = m => { m.capAntes = r2(cap); cap = r2(Math.max(0, cap + m.monto)); m.capDesp = cap; };
   movsDe(null).forEach(aplicar);
-  S.dias.forEach((d, i) => {
+  R.dias.forEach((d, i) => {
     d.n = i + 1;
     d.capIni = r2(cap);
     d.stake = d.res === 'noaposte' ? 0 : r2(cap * d.pct);
@@ -461,21 +498,21 @@ function recalc(){
     movsDe(d.id).forEach(aplicar);
     d.capTras = cap;
   });
-  S._cap = cap;
+  R._cap = cap;
 }
-const capActual = () => { recalc(); return S._cap ?? S.plan.inicial; };
+const capActual = () => { recalc(); return R._cap ?? R.plan.inicial; };
 const q5 = (cR, cP) => (cP - 1) * cR / cP;              // ganancia por $1 si ganan las 2
 function kelly(p, cR, cP){ const b = q5(cR, cP); if (!(b > 0)) return 0; return (p.pG * b - p.pL) / (b * (p.pG + p.pL)); }
 function multTipico(p, f, cR, cP){ if (f >= 1) return 0; return Math.exp(p.pG * Math.log(1 + f * q5(cR, cP)) + p.pL * Math.log(1 - f)); }
-const extraProm = () => S.dias.length ? S.dias.reduce((a, d) => a + (d.extra || 0), 0) / S.dias.length : 0;
+const extraProm = () => R.dias.length ? R.dias.reduce((a, d) => a + (d.extra || 0), 0) / R.dias.length : 0;
 function simDias(C, M, m, e){ if (C >= M) return 0; let n = 0; while (C < M && n < 3650){ C = C * m + e; n++; } return C >= M ? n : null; }
 function proyeccion(){
-  const p = S.plan, C = capActual(), M = p.meta, n = S.dias.length;
+  const p = R.plan, C = capActual(), M = p.meta, n = R.dias.length;
   let real = null, realMsg = '';
   if (C >= M) real = 0;
   else if (n === 0) realMsg = 'Registra tu día 1';
   else {
-    const lg = S.dias.reduce((a, d) => a + (d.capIni > 0 && d.capFin > 0 ? Math.log(d.capFin / d.capIni) : 0), 0) / n;
+    const lg = R.dias.reduce((a, d) => a + (d.capIni > 0 && d.capFin > 0 ? Math.log(d.capFin / d.capIni) : 0), 0) / n;
     if (!(lg > 0) || !(C > 0)) realMsg = 'Aún no creces';
     else real = Math.ceil(Math.log(M / C) / lg - 1e-9);
   }
@@ -485,7 +522,7 @@ function proyeccion(){
   const mejor = simDias(C, M, 1 + p.pct * q5(p.cR, p.cP), e);
   return { real, realMsg, esp, mejor, e, m };
 }
-const recorrido = C => Math.max(0, Math.min(1, (C - S.plan.inicial) / (S.plan.meta - S.plan.inicial)));
+const recorrido = C => Math.max(0, Math.min(1, (C - R.plan.inicial) / (R.plan.meta - R.plan.inicial)));
 
 // ================= Mensajes =================
 function pilarDelDia(off=0){ const i = ((diaNum(hoyISO()) + off) % PILARES.length + PILARES.length) % PILARES.length; return PILARES[i]; }
@@ -503,8 +540,9 @@ function ir(v){
   window.scrollTo({top:0});
 }
 function render(){
-  if (!S.plan){ wizard(); return; }
-  $('#topDia').textContent = 'DÍA ' + (S.dias.length + 1);
+  if (!R){ wizard(); return; }
+  pintarCarreras();
+  $('#topDia').textContent = 'DÍA ' + (R.dias.length + 1);
   $('#topBar').style.width = (recorrido(capActual()) * 100) + '%';
   if (vista === 'hoy') renderHoy();
   if (vista === 'reg') renderReg();
@@ -523,18 +561,18 @@ function ringSVG(frac, size=108, stroke=9, col='url(#rg)'){
 function diasTxt(n){ return n === 1 ? '1 día' : n + ' días'; }
 
 function renderHoy(){
-  const p = S.plan, C = capActual(), n = S.dias.length, pr = proyeccion();
+  const p = R.plan, C = capActual(), n = R.dias.length, pr = proyeccion();
   const pil = pilarDelDia(S.msgOff), msg = msgDelDia(pil, S.msgOff);
   const fracMeta = C / p.meta, rec = recorrido(C);
-  const b = S.borr || {};
-  const cR = b.cR ?? (n ? S.dias[n-1].cR : p.cR) ?? p.cR;
-  const cP = b.cP ?? (n ? S.dias[n-1].cP : p.cP) ?? p.cP;
+  const b = R.borr || {};
+  const cR = b.cR ?? (n ? R.dias[n-1].cR : p.cR) ?? p.cR;
+  const cP = b.cP ?? (n ? R.dias[n-1].cP : p.cP) ?? p.cP;
   const hoy = hoyISO();
   const habHoy = S.hab[hoy] || {}, nHab = HABITOS.filter(h => habHoy[h.id]).length;
 
   // avisos
   let avisos = '';
-  const ult = S.dias.slice(-2);
+  const ult = R.dias.slice(-2);
   if (C >= p.meta) avisos += `<div class="aviso ok"><div><b class="t">¡Meta cumplida! ${money(C)}</b>Respaldo tus datos y define tu próxima meta en la pestaña Plan.</div></div>`;
   if (ult.length === 2 && ult.every(d => d.res === 'pierden')) avisos += `<div class="aviso bad"><div><b class="t">Dos pérdidas seguidas</b>Regla de oro: pausa de un día, revisa las cuotas y el historial. No subas el stake para recuperar.</div></div>`;
   if (p.piso > 0 && C < p.piso) avisos += `<div class="aviso bad"><div><b class="t">Tocaste tu piso de ${money(p.piso)}</b>Tu plan dice: detente y revisa antes de seguir apostando.</div></div>`;
@@ -560,9 +598,10 @@ function renderHoy(){
     <div class="txt"><span class="pil">${pil.t}</span><div class="msg">${esc(msg)}</div></div>
   </div>
   ${avisos}
+  ${tarjetaInstalar()}
   <div class="card">
     <div class="row" style="justify-content:space-between;align-items:flex-end">
-      <div><div class="caps">Capital actual</div><div class="big num">${money(C)}</div></div>
+      <div style="min-width:0"><div class="caps" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(R.nombre)} · capital</div><div class="big num">${money(C)}</div></div>
       <div style="text-align:right"><div class="caps">Meta</div><div class="num gold" style="font-size:22px;font-weight:900">${money(p.meta)}</div></div>
     </div>
     ${barraMeta(C)}
@@ -634,8 +673,8 @@ function renderHoy(){
   const upd = () => updJugada();
   ['jCR','jCP','jExtra','jReal','jFecha'].forEach(id => $('#'+id).addEventListener('input', upd));
   $$('#jRes .rbtn').forEach(bt => bt.onclick = () => {
-    const r = bt.dataset.r; S.borr.res = S.borr.res === r ? null : r;
-    $$('#jRes .rbtn').forEach(x => x.classList.toggle('on', x.dataset.r === S.borr.res));
+    const r = bt.dataset.r; R.borr.res = R.borr.res === r ? null : r;
+    $$('#jRes .rbtn').forEach(x => x.classList.toggle('on', x.dataset.r === R.borr.res));
     updJugada();
   });
   $('#jSave').onclick = cerrarDia;
@@ -645,11 +684,11 @@ function renderHoy(){
 function leerJugada(){
   const n = (id) => parseNum($('#'+id).value);
   const real = $('#jReal').value.trim() === '' ? null : n('jReal');
-  return { cR: n('jCR'), cP: n('jCP'), extra: $('#jExtra').value.trim()==='' ? 0 : n('jExtra'), ganReal: real, fecha: $('#jFecha').value || hoyISO(), res: S.borr.res || null };
+  return { cR: n('jCR'), cP: n('jCP'), extra: $('#jExtra').value.trim()==='' ? 0 : n('jExtra'), ganReal: real, fecha: $('#jFecha').value || hoyISO(), res: R.borr.res || null };
 }
 function updJugada(){
-  const p = S.plan, C = capActual(), j = leerJugada();
-  S.borr = { cR: isFinite(j.cR) ? j.cR : undefined, cP: isFinite(j.cP) ? j.cP : undefined, extra: $('#jExtra').value.trim()===''?undefined:j.extra, ganReal: (j.ganReal!==null && isFinite(j.ganReal)) ? j.ganReal : undefined, fecha: j.fecha, res: j.res };
+  const p = R.plan, C = capActual(), j = leerJugada();
+  R.borr = { cR: isFinite(j.cR) ? j.cR : undefined, cP: isFinite(j.cP) ? j.cP : undefined, extra: $('#jExtra').value.trim()===''?undefined:j.extra, ganReal: (j.ganReal!==null && isFinite(j.ganReal)) ? j.ganReal : undefined, fecha: j.fecha, res: j.res };
   save();
   const stake = j.res === 'noaposte' ? 0 : r2(C * p.pct);
   $('#jStake').textContent = money(r2(C * p.pct));
@@ -677,7 +716,7 @@ function updJugada(){
       <div class="row"><span>${RES_IC.prot.replace('class="ic"','class="ic" style="width:16px;height:16px;color:var(--gold)"')} Ganó 1 (solo la B)</span><b class="num gold">${money(r2(C+gP))} <span class="dim" style="font-weight:600">(${moneyS(gP)})</span></b></div>
       <div class="row"><span>${RES_IC.pierden.replace('class="ic"','class="ic" style="width:16px;height:16px;color:var(--loss)"')} Perdieron las 2</span><b class="num loss">${money(r2(C-S0))} <span class="dim" style="font-weight:600">(${moneyS(-S0)})</span></b></div>
       <div class="dim" style="font-size:11.5px;margin-top:4px">Sin contar el ingreso extra.</div>
-    </div>${kv}`;
+    </div>${kv}${htmlReparto(sp, S0, C)}`;
   }
   $('#jSplit').innerHTML = h;
 
@@ -702,14 +741,15 @@ function updJugada(){
 }
 
 function cerrarDia(){
-  const p = S.plan, j = leerJugada();
+  const p = R.plan, j = leerJugada();
   const antes = capActual();
   const d = { id: Date.now().toString(36), fecha: j.fecha, pct: p.pct, cR: isFinite(j.cR)?j.cR:null, cP: isFinite(j.cP)?j.cP:null, res: j.res, extra: j.extra || 0, ganReal: j.ganReal };
-  S.dias.push(d);
+  { const sp0 = split(r2(capActual() * p.pct), d.cR, d.cP); if (sp0 && casasActivas().length) d.reparto = repartir(sp0).filas.map(x => ({ casa: x.c.nombre, A: x.A, B: x.B })); }
+  R.dias.push(d);
   recalc();
-  S.borr = { cR: d.cR ?? undefined, cP: d.cP ?? undefined };
+  R.borr = { cR: d.cR ?? undefined, cP: d.cP ?? undefined };
   save();
-  const ult = S.dias[S.dias.length - 1];
+  const ult = R.dias[R.dias.length - 1];
   const hitosCruzados = HITOS.filter(h => recorrido(antes) < h.p && recorrido(ult.capFin) >= h.p);
   const pil = PILARES.find(x => x.id === 'apalancamiento');
   const col = {ganan:'win', prot:'gold', pierden:'loss', noaposte:'muted'}[ult.res];
@@ -732,7 +772,7 @@ function cerrarDia(){
 
 // ================= Barra de avance e imprevistos =================
 function barraMeta(C){
-  const p = S.plan, rec = recorrido(C), falta = r2(Math.max(0, p.meta - C)), n = S.dias.length;
+  const p = R.plan, rec = recorrido(C), falta = r2(Math.max(0, p.meta - C)), n = R.dias.length;
   let pie;
   if (C >= p.meta) pie = '<b class="win">¡Meta alcanzada!</b>';
   else if (C < p.inicial) pie = `Estás <b class="loss">${money(r2(p.inicial - C))}</b> por debajo de donde empezaste. Te faltan <b style="color:var(--text)">${money(falta)}</b>.`;
@@ -745,14 +785,14 @@ function barraMeta(C){
   </div>`;
 }
 function movsRecientes(){
-  const ms = (S.movs || []).slice(-3).reverse();
+  const ms = (R.movs || []).slice(-3).reverse();
   if (!ms.length) return '';
   return `<div class="sep"></div>` + ms.map(m => `<div class="kv" style="cursor:pointer" onclick="movModal(null,'${m.id}')"><span>${m.monto < 0 ? '<span class="loss">−</span> Imprevisto' : '<span class="cyan">+</span> Aporte'} · ${esc(m.motivo || '—')} <span class="dim">${fechaCorta(m.fecha)}</span></span><b class="num ${m.monto < 0 ? 'loss' : 'cyan'}">${moneyS(m.monto)}</b></div>`).join('');
 }
 function movModal(tipo, id){
-  const m = id ? S.movs.find(x => x.id === id) : null;
+  const m = id ? R.movs.find(x => x.id === id) : null;
   if (m) tipo = m.monto < 0 ? 'imp' : 'apo';
-  const p = S.plan, C = capActual(), esImp = tipo === 'imp';
+  const p = R.plan, C = capActual(), esImp = tipo === 'imp';
   let motivo = m ? m.motivo : '';
   modal(`
     <h3>${m ? 'Editar ' : ''}${esImp ? '<span class="loss">Imprevisto</span>' : '<span class="cyan">Aporte extra</span>'}</h3>
@@ -782,7 +822,7 @@ function movModal(tipo, id){
     if ($('#mX', ov)) $('#mX', ov).onclick = () => ov.remove();
     if ($('#mDel', ov)) $('#mDel', ov).onclick = () => {
       if (!confirm('¿Borrar este movimiento? El capital se recalcula.')) return;
-      S.movs = S.movs.filter(x => x.id !== m.id); recalc(); save(); ov.remove(); toast('Movimiento borrado'); render();
+      R.movs = R.movs.filter(x => x.id !== m.id); recalc(); save(); ov.remove(); toast('Movimiento borrado'); render();
     };
     $('#mOk', ov).onclick = () => {
       const v = parseNum($('#mM', ov).value);
@@ -791,7 +831,7 @@ function movModal(tipo, id){
       if (!motivo) return toast('Elige un motivo');
       const datos = { monto: esImp ? -r2(v) : r2(v), motivo, nota: $('#mT', ov).value.trim(), fecha: $('#mF', ov).value || hoyISO() };
       if (m) Object.assign(m, datos);
-      else S.movs.push(Object.assign({ id: 'm' + Date.now().toString(36), tras: S.dias.length ? S.dias[S.dias.length-1].id : null }, datos));
+      else R.movs.push(Object.assign({ id: 'm' + Date.now().toString(36), tras: R.dias.length ? R.dias[R.dias.length-1].id : null }, datos));
       recalc(); save(); ov.remove(); render();
       if (m) return toast('Movimiento corregido');
       const Cn = capActual();
@@ -806,11 +846,124 @@ function movModal(tipo, id){
   });
 }
 
+
+// ================= Carreras =================
+function resumenCarrera(c){
+  return conCarrera(c, () => { const C = capActual(); return { C, rec: recorrido(C), n: c.dias.length, meta: c.plan.meta, ini: c.plan.inicial }; });
+}
+function pintarCarreras(){
+  const el = $('#carr'); if (!el) return;
+  el.innerHTML = S.carreras.map(c => { const r = resumenCarrera(c); return `<button class="cchip ${c === R ? 'on' : ''}" data-c="${c.id}"><div class="cn">${esc(c.nombre)}</div><div class="cp num">${money(r.C)} · ${pct(r.rec)}</div><div class="cb"><i style="width:${r.rec*100}%"></i></div></button>`; }).join('')
+    + `<button class="cchip add" id="cAdd" title="Nueva carrera">+</button>`;
+  $$('.cchip[data-c]', el).forEach(b => b.onclick = () => cambiarCarrera(b.dataset.c));
+  $('#cAdd', el).onclick = () => wizard(true);
+  const on = $('.cchip.on', el); if (on) on.scrollIntoView({block:'nearest', inline:'nearest'});
+}
+function cambiarCarrera(id){
+  if (R && R.id === id) return;
+  activar(id); save(); recalc(); render(); window.scrollTo({top:0});
+  toast('Carrera: ' + R.nombre);
+}
+function renombrarCarrera(){
+  const n = prompt('Nombre de esta carrera:', R.nombre);
+  if (n === null) return; const t = n.trim(); if (!t) return toast('El nombre no puede quedar vacío');
+  R.nombre = t.slice(0, 40); save(); render(); toast('Nombre actualizado');
+}
+function borrarCarrera(){
+  const t = prompt(`Vas a borrar la carrera "${R.nombre}" con sus ${R.dias.length} días. Las demás carreras no se tocan.\nEscribe BORRAR para confirmar.`);
+  if (t !== 'BORRAR') return;
+  S.carreras = S.carreras.filter(c => c !== R);
+  activar(S.carreras.length ? S.carreras[0].id : null); save();
+  toast('Carrera borrada'); if (R) ir('hoy'); else wizard();
+}
+
+// ================= Instalar como app =================
+let promptInstalar = null;
+const esApp = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; if (R) render(); });
+window.addEventListener('appinstalled', () => { promptInstalar = null; toast('¡Instalada! Búscala con su ícono en tu teléfono.'); if (R) render(); });
+async function instalarApp(){
+  if (promptInstalar){ promptInstalar.prompt(); const r = await promptInstalar.userChoice.catch(() => ({})); promptInstalar = null; if (r.outcome !== 'accepted') toast('Puedes instalarla cuando quieras desde aquí'); render(); return; }
+  modal(`<h3>Instalar con su propio ícono</h3>
+    <div class="muted" style="font-size:14px;line-height:1.55">
+    <b style="color:var(--text)">1.</b> Abre este enlace en <b style="color:var(--text)">Google Chrome</b>, no dentro de WhatsApp ni de otro navegador. Si lo abriste desde WhatsApp, toca ⋮ y "Abrir en Chrome".<br>
+    <b style="color:var(--text)">2.</b> Toca los tres puntos <b style="color:var(--text)">⋮</b> arriba a la derecha.<br>
+    <b style="color:var(--text)">3.</b> Elige <b class="gold">"Instalar aplicación"</b>. Si solo sale "Agregar a pantalla principal", tócalo y luego elige <b class="gold">"Instalar"</b>, no "Crear acceso directo".<br>
+    <b style="color:var(--text)">4.</b> Aparece el ícono dorado de Sin Límites entre tus apps. Ábrela siempre desde ahí.</div>
+    <button class="btn" style="margin-top:14px" onclick="this.closest('.ov').remove()">Entendido</button>`);
+}
+function tarjetaInstalar(){
+  if (esApp()) return '';
+  return `<div class="card instalar"><img src="icon-192.png" alt=""><div style="flex:1"><div style="font-weight:800">Instala Sin Límites en tu teléfono</div><div class="muted" style="font-size:13px">Con su propio ícono, pantalla completa y sin internet.</div></div><button class="btn sm" style="width:auto;padding:10px 14px" onclick="instalarApp()">Instalar</button></div>`;
+}
+
+
+// ================= Casas de apuestas =================
+const casasActivas = () => (S.casas || []).filter(c => c.activa !== false && c.tope > 0);
+const cupoTotal = () => r2(casasActivas().reduce((a, c) => a + c.tope, 0));
+// Reparte B (la más grande) y luego A. Si una apuesta cabe entera en una casa, va entera en la que mejor calce.
+// Si no cabe, se divide entre las casas con más cupo, en proporción a lo que le queda a cada una (sin pedacitos).
+function repartir(sp){
+  const orden = casasActivas();
+  const cs = orden.map((c, i) => ({ c, i, libre: c.tope, A: 0, B: 0 }));
+  const falta = { A: 0, B: 0 };
+  for (const [k, monto] of [['B', sp.p], ['A', sp.r]]){
+    const m = r2(monto); if (!(m > 0)) continue;
+    const caben = cs.filter(x => x.libre >= m).sort((a, b) => a.libre - b.libre || a.i - b.i);
+    if (caben.length){ const x = caben[0]; x[k] = m; x.libre = r2(x.libre - m); continue; }
+    const grandes = cs.filter(x => x.libre > 0).sort((a, b) => b.libre - a.libre || a.i - b.i);
+    const usar = []; let suma = 0;
+    for (const x of grandes){ usar.push(x); suma = r2(suma + x.libre); if (suma >= m) break; }
+    const poner = Math.min(m, suma); let puesto = 0;
+    usar.forEach((x, j) => {
+      const t = j === usar.length - 1 ? r2(poner - puesto) : r2(poner * x.libre / suma);
+      x[k] = r2(x[k] + t); x.libre = r2(x.libre - t); puesto = r2(puesto + t);
+    });
+    falta[k] = r2(m - poner);
+  }
+  return { filas: cs.filter(x => x.A > 0 || x.B > 0).sort((a, b) => a.i - b.i), falta, cupo: cupoTotal(), total: orden.length };
+}
+function htmlReparto(sp, stake, C){
+  const p = R.plan;
+  if (!S.casas.length) return `<div class="aviso info"><div><b class="t">¿Dónde apostar?</b>Agrega tus casas de apuestas en la pestaña <button class="lnk" onclick="ir('plan')">Plan</button> y la app te reparte la A y la B según el tope de cada una.</div></div>`;
+  const rp = repartir(sp), faltaT = r2(rp.falta.A + rp.falta.B);
+  const filas = rp.filas.map(x => `<div class="kv"><span>🏦 <b>${esc(x.c.nombre)}</b></span><b class="num">${x.A ? `<span class="cyan">A ${money(x.A)}</span>` : ''}${x.A && x.B ? ' · ' : ''}${x.B ? `<span class="gold">B ${money(x.B)}</span>` : ''}</b></div>`).join('');
+  let nivel = '';
+  if (faltaT > 0) nivel = `<div class="aviso bad"><div><b class="t">Te faltan ${money(faltaT)} de cupo</b>Tus casas no alcanzan para el stake de hoy. Abre otra casa a tu nombre, sube un tope, o apuesta solo lo que cabe y registra la ganancia real.</div></div>`;
+  else if (stake > rp.cupo * .8) nivel = `<div class="aviso warn"><div><b class="t">Estás cerca del tope de tus casas</b>Usas ${pct(stake / rp.cupo)} de tu cupo. Cuando tu capital pase de ${money(r2(rp.cupo / p.pct))} vas a necesitar otra casa.</div></div>`;
+  return `<div style="margin-top:12px;border-top:1px dashed var(--line2);padding-top:10px">
+    <div class="row" style="justify-content:space-between"><span class="caps">Dónde apostar hoy</span><span class="dim" style="font-size:12px;font-weight:700">Nivel ${rp.filas.length} · usas ${rp.filas.length} de ${rp.total} ${rp.total === 1 ? 'casa' : 'casas'}</span></div>
+    ${filas}${nivel}
+    ${rp.filas.length > 1 ? '<div class="hint">Si una casa te da una cuota un poco distinta, no pasa nada: al cerrar el día puedes ajustar la ganancia real.</div>' : ''}</div>`;
+}
+function casaModal(id){
+  const c = id ? S.casas.find(x => x.id === id) : null;
+  modal(`<h3>${c ? 'Editar casa' : 'Nueva casa de apuestas'}</h3>
+    <label class="f">Nombre de la casa</label><input class="inp sm" id="kN" value="${esc(c ? c.nombre : '')}" maxlength="30" placeholder="Ej. Casa 1">
+    <label class="f" style="margin-top:12px">Tope por día (A + B)</label><div class="pre"><input class="inp num" id="kT" inputmode="decimal" value="${c ? c.tope : ''}" placeholder="50.00"></div>
+    <div class="hint">Lo máximo que quieres mover en esta casa en un día, para no llamar la atención con montos grandes.</div>
+    <label class="hab ${!c || c.activa !== false ? 'on' : ''}" id="kA" style="border:0;margin-top:6px"><div class="ck">${ICON_CHECK}</div><div><div class="ti">Activa</div><small>Si la pausas, la app no la usa para repartir</small></div></label>
+    <div class="grid2" style="margin-top:14px">${c ? '<button class="btn dang sm" id="kDel">Borrar</button>' : '<button class="btn sec sm" id="kX">Cancelar</button>'}<button class="btn sm" id="kOk">Guardar</button></div>`, ov => {
+    let activa = !c || c.activa !== false;
+    $('#kA', ov).onclick = () => { activa = !activa; $('#kA', ov).classList.toggle('on', activa); };
+    if ($('#kX', ov)) $('#kX', ov).onclick = () => ov.remove();
+    if ($('#kDel', ov)) $('#kDel', ov).onclick = () => { if (!confirm(`¿Borrar ${c.nombre}?`)) return; S.casas = S.casas.filter(x => x !== c); save(); ov.remove(); render(); };
+    $('#kOk', ov).onclick = () => {
+      const n = $('#kN', ov).value.trim(), t = parseNum($('#kT', ov).value);
+      if (!n) return toast('Ponle nombre a la casa');
+      if (!(t > 0)) return toast('El tope debe ser mayor que 0');
+      if (c) Object.assign(c, { nombre: n, tope: r2(t), activa });
+      else S.casas.push({ id: 'k' + Date.now().toString(36), nombre: n, tope: r2(t), activa });
+      save(); ov.remove(); render(); toast('Casa guardada');
+    };
+  });
+}
+
 // ================= REGISTRO =================
 function chartSVG(){
-  const p = S.plan, W = 360, H = 190, padL = 38, padR = 10, padT = 12, padB = 24;
-  const reales = [p.inicial, ...S.dias.map(d => d.capTras ?? d.capFin)];
-  const n = S.dias.length;
+  const p = R.plan, W = 360, H = 190, padL = 38, padR = 10, padT = 12, padB = 24;
+  const reales = [p.inicial, ...R.dias.map(d => d.capTras ?? d.capFin)];
+  const n = R.dias.length;
   const pr = proyeccion();
   const falta = pr.esp !== null ? Math.min(pr.esp, 120) : 0;
   const proj = [capActual()];
@@ -833,7 +986,7 @@ function chartSVG(){
   <div class="row" style="gap:14px;font-size:12px;margin-top:4px"><span><b class="gold">━</b> tu capital</span>${falta?'<span><b class="cyan">┅</b> lo esperado de aquí a la meta</span>':''}</div>`;
 }
 function renderReg(){
-  const p = S.plan, D = S.dias, n = D.length;
+  const p = R.plan, D = R.dias, n = D.length;
   const c = r => D.filter(d => d.res === r).length;
   const jugados = D.filter(d => d.res !== 'noaposte').length;
   const ganApu = r2(D.reduce((a, d) => a + d.gan, 0)), ext = r2(D.reduce((a, d) => a + (d.extra||0), 0));
@@ -850,8 +1003,8 @@ function renderReg(){
     <div style="margin-top:12px">
       <div class="kv"><span>Ganancia de las apuestas</span><b class="num ${ganApu>=0?'win':'loss'}">${moneyS(ganApu)}</b></div>
       <div class="kv"><span>Ingresos extra (mineros)</span><b class="num cyan">${moneyS(ext)}</b></div>
-      ${S.movs.length ? `<div class="kv"><span>Imprevistos</span><b class="num loss">${moneyS(r2(S.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0)))}</b></div>
-      ${S.movs.some(m=>m.monto>0) ? `<div class="kv"><span>Aportes fuera del cierre</span><b class="num cyan">${moneyS(r2(S.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0)))}</b></div>` : ''}` : ''}
+      ${R.movs.length ? `<div class="kv"><span>Imprevistos</span><b class="num loss">${moneyS(r2(R.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0)))}</b></div>
+      ${R.movs.some(m=>m.monto>0) ? `<div class="kv"><span>Aportes fuera del cierre</span><b class="num cyan">${moneyS(r2(R.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0)))}</b></div>` : ''}` : ''}
       <div class="kv"><span>"Ganaron las 2" real vs plan</span><b class="num">${jugados ? pct(c('ganan')/jugados) : '—'} <span class="dim">vs ${pct(p.pG)}</span></b></div>
       <div class="kv"><span>"Perdieron las 2" real vs plan</span><b class="num">${jugados ? pct(c('pierden')/jugados) : '—'} <span class="dim">vs ${pct(p.pL)}</span></b></div>
       <div class="kv"><span>Mejor racha sin perder</span><b class="num">${best} ${best===1?'día':'días'}</b></div>
@@ -861,15 +1014,15 @@ function renderReg(){
   <div class="card">
     <div class="row" style="justify-content:space-between"><h2 style="margin:0">Día por día</h2><button class="lnk" onclick="exportXLSX()">Exportar a Excel ↓</button></div>
     <div style="margin-top:6px">
-    ${(n || S.movs.length) ? lineaTiempo().reverse().map(x => x.m ? filaMov(x.m) : filaDia(x.d)).join('') : '<div class="muted" style="padding:10px 0">Aún no hay días registrados. Tu día 1 se cierra en la pestaña Hoy.</div>'}
+    ${(n || R.movs.length) ? lineaTiempo().reverse().map(x => x.m ? filaMov(x.m) : filaDia(x.d)).join('') : '<div class="muted" style="padding:10px 0">Aún no hay días registrados. Tu día 1 se cierra en la pestaña Hoy.</div>'}
     </div>
     ${n ? '<div class="hint">Toca un día o un imprevisto para corregirlo. Si cambias algo, todo lo siguiente se recalcula solo.</div>' : ''}
   </div>`;
   $$('#v-reg .dia-it').forEach(el => el.onclick = () => el.dataset.mov ? movModal(null, el.dataset.mov) : editarDia(el.dataset.id));
 }
 function lineaTiempo(){
-  const tl = []; S.movs.filter(m => !m.tras).forEach(m => tl.push({m}));
-  S.dias.forEach(d => { tl.push({d}); S.movs.filter(m => m.tras === d.id).forEach(m => tl.push({m})); });
+  const tl = []; R.movs.filter(m => !m.tras).forEach(m => tl.push({m}));
+  R.dias.forEach(d => { tl.push({d}); R.movs.filter(m => m.tras === d.id).forEach(m => tl.push({m})); });
   return tl;
 }
 function filaMov(m){
@@ -885,13 +1038,13 @@ function filaDia(d){
         <div class="dn">${d.n}</div>
         <div style="min-width:0">
           <div><span class="badge ${d.res}">${RES_TXT[d.res]}</span> <span class="dim" style="font-size:12px">${fechaCorta(d.fecha)}</span></div>
-          <div class="muted num" style="font-size:12.5px;margin-top:3px">${d.res==='noaposte' ? 'Sin apuesta' : `A ${money(d.apR)} @${fmt(d.cR)} · B ${money(d.apP)} @${fmt(d.cP)}`}${d.extra ? ` · <span class="cyan">extra ${moneyS(d.extra)}</span>` : ''}${typeof d.ganReal==='number' ? ' · ajustado' : ''}</div>
+          <div class="muted num" style="font-size:12.5px;margin-top:3px">${d.res==='noaposte' ? 'Sin apuesta' : `A ${money(d.apR)} @${fmt(d.cR)} · B ${money(d.apP)} @${fmt(d.cP)}`}${d.extra ? ` · <span class="cyan">extra ${moneyS(d.extra)}</span>` : ''}${typeof d.ganReal==='number' ? ' · ajustado' : ''}${d.reparto && d.reparto.length ? `<br><span class="dim">🏦 ${d.reparto.map(x => esc(x.casa)).join(', ')}</span>` : ''}</div>
         </div>
         <div style="text-align:right"><div class="num" style="font-weight:800">${money(d.capFin)}</div><div class="num ${d.capFin-d.capIni>=0?'win':'loss'}" style="font-size:12px;font-weight:700">${moneyS(r2(d.capFin-d.capIni))}</div></div>
       </div>`;
 }
 function editarDia(id){
-  const d = S.dias.find(x => x.id === id); if (!d) return;
+  const d = R.dias.find(x => x.id === id); if (!d) return;
   let res = d.res;
   const ov = modal(`
     <h3>Corregir día ${d.n}</h3>
@@ -922,9 +1075,9 @@ function editarDia(id){
       };
       $('#eDel', ov).onclick = () => {
         if (!confirm(`¿Borrar el día ${d.n}? Los días siguientes se recalculan.`)) return;
-        const ix = S.dias.findIndex(x => x.id === id), prevId = ix > 0 ? S.dias[ix-1].id : null;
-        S.movs.forEach(m => { if (m.tras === id) m.tras = prevId; });
-        S.dias = S.dias.filter(x => x.id !== id); recalc(); save(); ov.remove(); toast('Día borrado'); render();
+        const ix = R.dias.findIndex(x => x.id === id), prevId = ix > 0 ? R.dias[ix-1].id : null;
+        R.movs.forEach(m => { if (m.tras === id) m.tras = prevId; });
+        R.dias = R.dias.filter(x => x.id !== id); recalc(); save(); ov.remove(); toast('Día borrado'); render();
       };
     });
 }
@@ -978,8 +1131,8 @@ function renderDis(){
 
 // ================= PLAN / AJUSTES =================
 function renderPlan(){
-  const p = S.plan, k = kelly(p, p.cR, p.cP), pE = Math.max(0, 1 - p.pG - p.pL);
-  const n = S.dias.filter(d => d.res !== 'noaposte');
+  const p = R.plan, k = kelly(p, p.cR, p.cP), pE = Math.max(0, 1 - p.pG - p.pL);
+  const n = R.dias.filter(d => d.res !== 'noaposte');
   const avg = key => n.length ? n.reduce((a, d) => a + (d[key]||0), 0) / n.length : null;
   const aR = avg('cR'), aP = avg('cP');
   let kMsg, kCls;
@@ -989,7 +1142,14 @@ function renderPlan(){
   else { kMsg = 'Tu stake está dentro de lo prudente.'; kCls = 'ok'; }
   const resp = S.ultResp ? new Date(S.ultResp).toLocaleString('es-VE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'nunca';
   $('#v-plan').innerHTML = `
-  <div class="card"><h2>Tus datos</h2>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Tus carreras</h2><button class="lnk" onclick="wizard(true)">+ Nueva carrera</button></div>
+    <div style="margin-top:6px">${S.carreras.map(c => { const r = resumenCarrera(c); return `<div class="cfila ${c === R ? 'on' : ''}" data-c="${c.id}">
+      <div style="min-width:0"><div class="cn" style="font-weight:800">${c === R ? '● ' : ''}${esc(c.nombre)}</div><div class="dim num" style="font-size:12px">${money(r.ini)} → ${money(r.meta)} · ${r.n} ${r.n === 1 ? 'día' : 'días'}${r.C >= r.meta ? ' · 🏆' : ''}</div></div>
+      <div style="text-align:right"><div class="num" style="font-weight:800">${money(r.C)}</div><div class="num gold" style="font-size:12px;font-weight:700">${pct(r.rec)}</div></div>
+      <div class="bar" style="grid-column:1/-1;margin-top:2px"><i style="width:${r.rec*100}%"></i></div></div>`; }).join('')}</div>
+    <div class="hint">Cada carrera lleva su propio capital, meta, stake, días e imprevistos. La disciplina es una sola para todas.</div>
+  </div>
+  <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Datos de "${esc(R.nombre)}"</h2><button class="lnk" onclick="renombrarCarrera()">Renombrar</button></div><div style="height:10px"></div>
     <div class="grid2">
       <div><label class="f">Monto inicial</label><div class="pre"><input class="inp num" id="pI" inputmode="decimal" value="${p.inicial}"></div></div>
       <div><label class="f">Meta</label><div class="pre"><input class="inp num" id="pM" inputmode="decimal" value="${p.meta}"></div></div>
@@ -1005,6 +1165,12 @@ function renderPlan(){
     ${aR ? `<div class="hint">Tus cuotas promedio reales: ${fmt(aR)} / ${fmt(aP)}. <button class="lnk" id="pAvg">Usarlas como típicas</button></div>` : ''}
     <div style="margin-top:14px"><label class="f">Piso de capital (opcional)</label><div class="pre"><input class="inp num" id="pF" inputmode="decimal" value="${p.piso || ''}" placeholder="0 = sin piso"></div>
     <div class="hint">Si el capital baja de este monto, la app te pide detenerte y revisar.</div></div>
+  </div>
+
+  <div class="card"><div class="row" style="justify-content:space-between"><h2 style="margin:0">Casas de apuestas</h2><button class="lnk" onclick="casaModal()">+ Agregar casa</button></div>
+    <div style="margin-top:6px">${S.casas.length ? S.casas.map(c => `<div class="kv" style="cursor:pointer" onclick="casaModal('${c.id}')"><span>${c.activa === false ? '<span class="dim">⏸</span> ' : '🏦 '}<b>${esc(c.nombre)}</b>${c.activa === false ? ' <span class="dim">(pausada)</span>' : ''}</span><b class="num">tope ${money(c.tope)}/día</b></div>`).join('') : '<div class="muted" style="font-size:13px;padding:6px 0">Aún no has agregado casas. Agrega las casas donde tienes cuenta a tu nombre y el tope que quieres apostar en cada una por día.</div>'}</div>
+    ${S.casas.length ? (() => { const cupo = cupoTotal(); return `<div class="aviso info"><div>Cupo total: <b class="gold">${money(cupo)}/día</b>. Con stake de ${pct(p.pct)} te alcanza hasta un capital de <b>${money(r2(cupo / p.pct))}</b>. Después de eso vas a necesitar otra casa o subir los topes.</div></div>`; })() : ''}
+    <div class="hint">El tope es lo máximo que quieres mover en esa casa en un día (A + B juntas). Las casas son las mismas para todas tus carreras.</div>
   </div>
 
   <div class="card"><h2>Probabilidades del plan</h2>
@@ -1044,14 +1210,17 @@ function renderPlan(){
     <div class="hint">El respaldo es un archivo .json. Guárdalo en Drive o mándatelo por WhatsApp. Para volver a cargarlo usa Restaurar.</div>
   </div>
 
-  <div class="card"><h2>Empezar de nuevo</h2>
+  ${esApp() ? '' : `<div class="card"><h2>Instalar en el teléfono</h2><button class="btn sm" onclick="instalarApp()">📲 Instalar con su propio ícono</button></div>`}
+  <div class="card"><h2>Carreras</h2>
     <div class="grid2">
-      <button class="btn sec sm" id="pNew">Nuevo plan</button>
-      <button class="btn dang sm" id="pDel">Borrar todo</button>
+      <button class="btn sec sm" id="pNew">+ Nueva carrera</button>
+      <button class="btn dang sm" id="pDelC">Borrar esta carrera</button>
     </div>
-    <div class="hint">"Nuevo plan" guarda el plan actual en el archivo y te deja arrancar con otro monto y otra meta.${S.archivo.length ? ` Planes archivados: ${S.archivo.length}.` : ''}</div>
+    <div class="hint">Una carrera nueva arranca con su propio monto y meta. Las otras siguen intactas y cambias entre ellas arriba, en la barra de carreras.</div>
+    <div class="sep"></div>
+    <button class="lnk" style="color:var(--loss)" id="pDel">Borrar TODO lo de este teléfono</button>
   </div>
-  <div class="dim" style="text-align:center;font-size:11px;margin:18px 0 8px">Sin Límites v1.1 · uso personal</div>`;
+  <div class="dim" style="text-align:center;font-size:11px;margin:18px 0 8px">Sin Límites v1.3 · uso personal</div>`;
 
   const setNum = (id, key, f = x => x, ok = x => x > 0) => $('#'+id).addEventListener('change', e => {
     const v = parseNum(e.target.value);
@@ -1069,15 +1238,13 @@ function renderPlan(){
   $('#pS').onchange = e => { p.pct = Number(e.target.value)/100; save(); renderPlan(); toast('Stake: ' + e.target.value + '% desde el próximo día'); };
   $$('#v-plan .chip').forEach(c => c.onclick = () => { p.pct = Number(c.dataset.s)/100; save(); renderPlan(); toast('Stake: ' + c.dataset.s + '% desde el próximo día'); });
   if ($('#pAvg')) $('#pAvg').onclick = () => { p.cR = r2(aR); p.cP = r2(aP); save(); renderPlan(); toast('Cuotas típicas actualizadas'); };
-  $('#pNew').onclick = () => {
-    if (!confirm('¿Archivar este plan y empezar uno nuevo? Tus días quedan guardados en el archivo y en el respaldo.')) return;
-    S.archivo.push({ plan: p, dias: S.dias, movs: S.movs, cerrado: hoyISO() });
-    S.plan = null; S.dias = []; S.movs = []; S.borr = {}; save(); wizard();
-  };
+  $('#pNew').onclick = () => wizard(true);
+  $('#pDelC').onclick = borrarCarrera;
+  $$('#v-plan .cfila').forEach(el => el.onclick = () => { cambiarCarrera(el.dataset.c); });
   $('#pDel').onclick = () => {
-    const t = prompt('Esto borra TODO de este teléfono. Escribe BORRAR para confirmar.');
+    const t = prompt('Esto borra TODAS las carreras y la disciplina de este teléfono. Escribe BORRAR para confirmar.');
     if (t !== 'BORRAR') return;
-    S = blank(); save(); wizard();
+    S = blank(); R = null; save(); wizard();
   };
 }
 
@@ -1099,10 +1266,10 @@ $('#fileImp').onchange = e => {
   const rd = new FileReader();
   rd.onload = () => {
     try {
-      const j = JSON.parse(rd.result); const d = j.datos || j;
-      if (!d.plan || !Array.isArray(d.dias)) throw 0;
-      if (!confirm(`Restaurar respaldo con ${d.dias.length} días (meta ${money(d.plan.meta)}). Reemplaza lo que hay en este teléfono. ¿Seguir?`)) return;
-      S = Object.assign(blank(), d); recalc(); S.ultResp = Date.now(); save(); const wz = $('.wiz'); if (wz) wz.remove(); toast('Respaldo restaurado ✓'); ir('hoy');
+      const j = JSON.parse(rd.result); const d = migrar(j.datos || j);
+      if (!d.carreras.length) throw 0;
+      if (!confirm(`Restaurar respaldo con ${d.carreras.length} ${d.carreras.length === 1 ? 'carrera' : 'carreras'} (${d.carreras.map(c => c.nombre).join(', ')}). Reemplaza lo que hay en este teléfono. ¿Seguir?`)) return;
+      S = d; activar(S.activa); recalc(); S.ultResp = Date.now(); save(); const wz = $('.wiz'); if (wz) wz.remove(); toast('Respaldo restaurado ✓'); ir('hoy');
     } catch(err){ toast('Ese archivo no es un respaldo válido'); }
     e.target.value = '';
   };
@@ -1149,45 +1316,49 @@ function sheetXML(rows, widths){
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${body}</sheetData></worksheet>`;
 }
 function xlsxBytes(){
-  const p = S.plan, H = s => ({v:s, s:1}), M = v => ({v:r2(v), s:2}), P = v => ({v, s:3}), N = v => (v===null||v===undefined) ? '' : ({v, s:4});
-  const reg = [[H('Día'),H('Fecha'),H('Capital al empezar'),H('Stake %'),H('Stake del día'),H('Cuota A (U2.5)'),H('Cuota B (U3.5)'),H('Apuesta A (riesgo)'),H('Apuesta B (protección)'),H('Resultado'),H('Ganancia calculada'),H('Ganancia real'),H('Ingreso extra (mineros)'),H('Capital al terminar'),H('Progreso a la meta')]];
-  S.dias.forEach(d => reg.push([d.n, d.fecha, M(d.capIni), P(d.pct), M(d.stake), N(d.cR), N(d.cP), M(d.apR), M(d.apP), RES_TXT[d.res], M(d.ganCalc), typeof d.ganReal==='number' ? M(d.ganReal) : '', M(d.extra||0), M(d.capFin), P(r2(d.capFin/p.meta*10000)/10000)]));
+  const p = R.plan, H = s => ({v:s, s:1}), M = v => ({v:r2(v), s:2}), P = v => ({v, s:3}), N = v => (v===null||v===undefined) ? '' : ({v, s:4});
+  const reg = [[H('Día'),H('Fecha'),H('Capital al empezar'),H('Stake %'),H('Stake del día'),H('Cuota A (U2.5)'),H('Cuota B (U3.5)'),H('Apuesta A (riesgo)'),H('Apuesta B (protección)'),H('Resultado'),H('Ganancia calculada'),H('Ganancia real'),H('Ingreso extra (mineros)'),H('Capital al terminar'),H('Progreso a la meta'),H('Casas usadas')]];
+  R.dias.forEach(d => reg.push([d.n, d.fecha, M(d.capIni), P(d.pct), M(d.stake), N(d.cR), N(d.cP), M(d.apR), M(d.apP), RES_TXT[d.res], M(d.ganCalc), typeof d.ganReal==='number' ? M(d.ganReal) : '', M(d.extra||0), M(d.capFin), P(r2(d.capFin/p.meta*10000)/10000), (d.reparto || []).map(x => `${x.casa} (A ${fmt(x.A)} / B ${fmt(x.B)})`).join('; ')]));
   const imp = [[H('Fecha'),H('Tipo'),H('Motivo'),H('Detalle'),H('Monto'),H('Capital antes'),H('Capital después'),H('Después del día')]];
-  lineaTiempo().filter(x => x.m).forEach(({m}) => { const d = S.dias.find(x => x.id === m.tras); imp.push([m.fecha, m.monto < 0 ? 'Imprevisto' : 'Aporte', m.motivo, m.nota || '', M(m.monto), M(m.capAntes), M(m.capDesp), d ? d.n : 0]); });
+  lineaTiempo().filter(x => x.m).forEach(({m}) => { const d = R.dias.find(x => x.id === m.tras); imp.push([m.fecha, m.monto < 0 ? 'Imprevisto' : 'Aporte', m.motivo, m.nota || '', M(m.monto), M(m.capAntes), M(m.capDesp), d ? d.n : 0]); });
+  const car = [[H('Carrera'),H('Monto inicial'),H('Meta'),H('Capital actual'),H('Avance a la meta'),H('Días jugados'),H('Stake %')]];
+  S.carreras.forEach(c => { const r = resumenCarrera(c); car.push([c.nombre, M(r.ini), M(r.meta), M(r.C), P(r2(r.rec*10000)/10000), r.n, P(c.plan.pct)]); });
   const pr = proyeccion(), C = capActual(), k = kelly(p, p.cR, p.cP);
-  const c = r => S.dias.filter(d => d.res === r).length;
+  const c = r => R.dias.filter(d => d.res === r).length;
   const res = [
-    [{v:'SIN LÍMITES — Plan de capital con cobertura', s:5}], [`Exportado ${fechaLarga(hoyISO())}`], [],
+    [{v:'SIN LÍMITES — ' + R.nombre, s:5}], [`Exportado ${fechaLarga(hoyISO())}`], [],
     [H('Tus datos'), H('')], ['Monto inicial', M(p.inicial)], ['Meta', M(p.meta)], ['Stake diario', P(p.pct)],
     ['Cuota riesgosa típica', N(p.cR)], ['Cuota protección típica', N(p.cP)], ['Prob. ganan las 2', P(p.pG)], ['Prob. pierden las 2', P(p.pL)], [],
-    [H('Cómo vas'), H('')], ['Capital actual', M(C)], ['Días jugados', S.dias.length], ['Progreso a la meta', P(r2(C/p.meta*10000)/10000)],
-    ['Ganancia de las apuestas', M(S.dias.reduce((a,d)=>a+d.gan,0))], ['Ingresos extra (mineros)', M(S.dias.reduce((a,d)=>a+(d.extra||0),0))], ['Imprevistos (total)', M(S.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0))], ['Aportes fuera del cierre', M(S.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0))],
+    [H('Cómo vas'), H('')], ['Capital actual', M(C)], ['Días jugados', R.dias.length], ['Progreso a la meta', P(r2(C/p.meta*10000)/10000)],
+    ['Ganancia de las apuestas', M(R.dias.reduce((a,d)=>a+d.gan,0))], ['Ingresos extra (mineros)', M(R.dias.reduce((a,d)=>a+(d.extra||0),0))], ['Imprevistos (total)', M(R.movs.filter(m=>m.monto<0).reduce((a,m)=>a+m.monto,0))], ['Aportes fuera del cierre', M(R.movs.filter(m=>m.monto>0).reduce((a,m)=>a+m.monto,0))],
     ['Ganan 2 · solo prot. · pierden 2', `${c('ganan')} · ${c('prot')} · ${c('pierden')}`],
     ['Días que faltan a tu ritmo real', pr.real !== null ? pr.real : pr.realMsg], ['Días que faltan según el plan', pr.esp !== null ? pr.esp : 'No llega'],
     ['Llegarías más o menos el', pr.esp !== null ? fechaLarga(addDias(hoyISO(), pr.esp)) : ''],
     ['Kelly completo', P(r2(k*10000)/10000)], ['Stake máximo prudente (medio Kelly)', P(r2(Math.max(0,k/2)*10000)/10000)],
   ];
   const files = [
-    {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+    {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet3.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet4.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
     {name:'_rels/.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
-    {name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Resumen" sheetId="1" r:id="rId1"/><sheet name="Registro" sheetId="2" r:id="rId2"/><sheet name="Imprevistos" sheetId="3" r:id="rId4"/></sheets></workbook>'},
-    {name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/></Relationships>'},
+    {name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Resumen" sheetId="1" r:id="rId1"/><sheet name="Registro" sheetId="2" r:id="rId2"/><sheet name="Imprevistos" sheetId="3" r:id="rId4"/><sheet name="Todas las carreras" sheetId="4" r:id="rId5"/></sheets></workbook>'},
+    {name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet3.xml"/><Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet4.xml"/></Relationships>'},
     {name:'xl/styles.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0.00"/><numFmt numFmtId="165" formatCode="0.0%"/></numFmts><fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF1B2A4A"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1B2A4A"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="2" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>'},
     {name:'xl/worksheets/sheet1.xml', data:sheetXML(res, [38, 22])},
-    {name:'xl/worksheets/sheet2.xml', data:sheetXML(reg, [6,12,14,9,12,12,13,13,13,16,14,13,14,14,12])},
+    {name:'xl/worksheets/sheet2.xml', data:sheetXML(reg, [6,12,14,9,12,12,13,13,13,16,14,13,14,14,12,40])},
     {name:'xl/worksheets/sheet3.xml', data:sheetXML(imp, [12,12,12,24,12,14,14,14])},
+    {name:'xl/worksheets/sheet4.xml', data:sheetXML(car, [26,14,12,14,16,12,10])},
   ];
   return zipBytes(files);
 }
 function exportXLSX(){
-  descargar(new Blob([xlsxBytes()], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), `sinlimites-plan-${hoyISO()}.xlsx`);
+  descargar(new Blob([xlsxBytes()], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}), `sinlimites-${R.nombre.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}-${hoyISO()}.xlsx`);
   toast('Excel descargado ✓');
 }
 
 // ================= Asistente inicial =================
-function wizard(){
+function wizard(nueva){
   const prev = $('.wiz'); if (prev) prev.remove();
-  const t = { inicial: 30, meta: 100, pct: .25, cR: 1.8, cP: 1.3 };
+  const primera = !S.carreras.length;
+  const t = { nombre: 'Carrera ' + (S.carreras.length + 1), inicial: primera ? 30 : 100, meta: primera ? 100 : 300, pct: .25, cR: 1.8, cP: 1.3 };
   let paso = 0;
   const w = document.createElement('div'); w.className = 'wiz'; document.body.appendChild(w);
   const pasos = [
@@ -1195,7 +1366,8 @@ function wizard(){
       <h1>Sin pastilla.<br><span class="gold">Con método.</span></h1>
       <p>Esta es tu app personal para llevar el plan de capital con cobertura día a día, y para construir la disciplina que lo hace funcionar: enfoque, orden, aseo, apariencia, círculo, apalancamiento y conocimiento.</p>
       <p>Te voy a pedir 4 datos. Toma 30 segundos.</p>
-      <p style="font-size:13px">¿Cambiaste de teléfono? <button class="lnk" onclick="$('#fileImp').click()">Restaurar un respaldo</button></p>`,
+      <label class="f">Nombre de tu primera carrera</label><input class="inp" id="wn0" value="${esc(t.nombre)}" maxlength="40">
+      <p style="font-size:13px;margin-top:12px">¿Cambiaste de teléfono? <button class="lnk" onclick="$('#fileImp').click()">Restaurar un respaldo</button></p>`,
     () => `<div class="hero"><div class="art">${art('disciplina')}</div><div class="shade"></div></div>
       <h1>¿Con cuánto <span class="gold">empiezas</span>?</h1><p>El capital que hoy tienes en la bolsa de apuestas.</p>
       <div class="pre"><input class="inp num" id="wv" inputmode="decimal" value="${t.inicial}" style="font-size:28px"></div>`,
@@ -1212,7 +1384,12 @@ function wizard(){
       <div class="grid2"><div><label class="f">Cuota A · riesgo (U2.5)</label><input class="inp num" id="wr" inputmode="decimal" value="${t.cR}"></div>
       <div><label class="f">Cuota B · protección (U3.5)</label><input class="inp num" id="wp" inputmode="decimal" value="${t.cP}"></div></div>`,
   ];
+  if (!primera) pasos[0] = () => `<div class="hero"><div class="art">${art('cuerpo')}</div><div class="shade"></div></div>
+      <h1>Nueva <span class="gold">carrera</span></h1>
+      <p>Una carrera es un plan aparte, con su propio monto, meta y stake. Las que ya tienes siguen igual.</p>
+      <label class="f">¿Cómo se llama?</label><input class="inp" id="wn0" value="${esc(t.nombre)}" maxlength="40" placeholder="Ej. Fondo moto, Carrera $100">`;
   const leer = () => {
+    if (paso === 0){ const v = ($('#wn0', w).value || '').trim(); if (!v) return 'Ponle un nombre a la carrera'; t.nombre = v.slice(0, 40); }
     if (paso === 1){ const v = parseNum($('#wv', w).value); if (!(v > 0)) return 'Escribe un monto mayor que 0'; t.inicial = v; }
     if (paso === 2){ const v = parseNum($('#wv', w).value); if (!(v > t.inicial)) return 'La meta tiene que ser mayor que el monto inicial'; t.meta = v; }
     if (paso === 3){ const v = parseNum($('#wv', w).value); if (!(v >= 1 && v <= 90)) return 'El stake debe estar entre 1% y 90%'; t.pct = v/100; }
@@ -1222,19 +1399,22 @@ function wizard(){
   const pintar = () => {
     w.innerHTML = `<div class="wrap">${pasos[paso]()}
       <div class="dots">${pasos.map((_, i) => `<i class="${i===paso?'on':''}"></i>`).join('')}</div>
-      <div class="grid2">${paso ? '<button class="btn sec" id="wb">Atrás</button>' : '<div></div>'}<button class="btn" id="wn">${paso === pasos.length-1 ? 'Empezar' : 'Siguiente'}</button></div></div>`;
+      <div class="grid2">${paso ? '<button class="btn sec" id="wb">Atrás</button>' : (primera ? '<div></div>' : '<button class="btn sec" id="wc">Cancelar</button>')}<button class="btn" id="wn">${paso === pasos.length-1 ? 'Empezar' : 'Siguiente'}</button></div></div>`;
     $('#wn', w).onclick = () => {
       const err = leer(); if (err) return toast(err);
       if (paso < pasos.length - 1){ paso++; pintar(); return; }
-      S.plan = { inicial: t.inicial, meta: t.meta, pct: t.pct, cR: t.cR, cP: t.cP, pG: .63, pL: .11, piso: 0, inicio: hoyISO() };
-      S.borr = { cR: t.cR, cP: t.cP };
+      const base = R ? { pG: R.plan.pG, pL: R.plan.pL } : { pG: .63, pL: .11 };
+      const c = { id: 'c' + Date.now().toString(36), nombre: t.nombre, creada: hoyISO(), dias: [], movs: [], borr: { cR: t.cR, cP: t.cP },
+        plan: { inicial: t.inicial, meta: t.meta, pct: t.pct, cR: t.cR, cP: t.cP, pG: base.pG, pL: base.pL, piso: 0, inicio: hoyISO() } };
+      S.carreras.push(c); activar(c.id);
       save(); w.remove(); vista = 'hoy'; ir('hoy');
-      modal(`<div class="celebra"><div class="caps">Plan creado</div><div class="big num" style="margin:8px 0">${money(t.inicial)} → <span class="gold">${money(t.meta)}</span></div>
+      modal(`<div class="celebra"><div class="caps">${esc(t.nombre)} creada</div><div class="big num" style="margin:8px 0">${money(t.inicial)} → <span class="gold">${money(t.meta)}</span></div>
         <p style="font-weight:700">Día 1: apuestas ${money(r2(t.inicial*t.pct))} (${pct(t.pct)}).</p>
         <p class="muted">Escribe las cuotas del día, mira cuánto va a cada apuesta y, cuando termine el partido, cierra el día. La app hace el resto.</p>
         <button class="btn" onclick="this.closest('.ov').remove()">Vamos</button></div>`);
     };
     if ($('#wb', w)) $('#wb', w).onclick = () => { leer(); paso--; pintar(); };
+    if ($('#wc', w)) $('#wc', w).onclick = () => w.remove();
     const wv = $('#wv', w);
     if (paso === 3){
       $$('#wch .chip', w).forEach(c => c.onclick = () => { wv.value = c.dataset.s; wv.dispatchEvent(new Event('input')); });
@@ -1246,7 +1426,7 @@ function wizard(){
 }
 
 // ================= Arranque =================
-if (S.plan) recalc();
+if (R) recalc();
 render();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
