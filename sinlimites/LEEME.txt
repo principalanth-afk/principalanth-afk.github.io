@@ -1,4 +1,4 @@
-SIN LÍMITES v1.4
+SIN LÍMITES v2.0
 
 Dirección:  https://principalanth-afk.github.io/sinlimites/
 CAVA:       https://principalanth-afk.github.io/
@@ -8,3 +8,11 @@ principal del repositorio. Nunca subas archivos sueltos en la raíz (pisarían a
 
 Los archivos viejos manifest.json, icon-192.png, icon-512.png e icon-maskable-512.png
 que quedaron DENTRO de la carpeta sinlimites ya no se usan. Puedes dejarlos o borrarlos.
+
+NOVEDADES 2.0
+- Pestaña TICKETS: gráfico de puntos cuota vs monto (el último boleto cargado sale en dorado),
+  lector de capturas del historial de la casa, partidos, prob. del motor, cuota mínima,
+  cuota de cierre (dinero inteligente) y aviso programado a MATRIX Alertas.
+- En HOY: el gráfico de tus boletos, la prob. del motor para A y B, y un botón para cerrar
+  el día con el neto real de los boletos.
+- La carpeta ocr/ es el lector de capturas. Va completa dentro de sinlimites.
