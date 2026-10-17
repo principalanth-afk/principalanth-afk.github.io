@@ -18,6 +18,18 @@
     let m;
     while ((m = re.exec(t))) marcas.push({ i: m.index, tipo: m[1], legs: m[2] ? +m[2] : 1, cuotaTxt: m[3] });
     const out = [];
+    // captura del detalle bajada con el dedo: se ven los partidos pero no la cabecera del boleto
+    if (!marcas.length) {
+      const partidos = leerPartidos(t, {});
+      if (!partidos.length) return out;
+      const ev = t.match(/completad\w*[^\n]*?(\d+)\s*$/im);
+      const legs = ev && +ev[1] >= partidos.length && +ev[1] <= 20 ? +ev[1] : partidos.length;
+      const prod = partidos.length === legs && partidos.every(x => x.cuota > 1) ? Math.floor(partidos.reduce((a, x) => a * x.cuota, 1) * 1000 + 1e-6) / 1000 : null;
+      out.push({ sinCabecera: true, nro: null, fecha: null, legs, cuota: prod, monto: null, cobro: null, estado: null, partidos,
+        partido: partidos[0].partido, mercado: partidos[0].mercado, liga: partidos[0].liga,
+        avisos: ['sin la parte de arriba del boleto (N.º, fecha y monto)'], completo: false });
+      return out;
+    }
     marcas.forEach((mk, k) => {
       const trozo = t.slice(mk.i, k + 1 < marcas.length ? marcas[k + 1].i : t.length);
       const nro = trozo.match(/N\W{0,3}\s*(\d{10,12})/);
@@ -64,11 +76,24 @@
   }
 
   const MESES = { enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12 };
-  const letras = s => s.replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/, '').replace(/\s+/g, ' ').trim();
+  // quita la basura que deja el escudo del equipo al inicio ("LZ Saint George…"), pero respeta FC, CA, CD…
+  const SIGLAS = /^(FC|CA|CD|SC|AC|AS|CS|US|SD|UD|CF|IF|FK|SK|BK|KV|RC|AD|CR|CE|SE|EC|AA|AFC|JS|ES|MC|CR|NK|HNK|OFK|PFC)$/;
+  const letras = s => {
+    let t = s.replace(/^[^A-Za-zÁÉÍÓÚÑáéíóúñ]+/, '').replace(/\s+/g, ' ').trim();
+    const m = t.match(/^(\S{1,2})\s+(?=[A-ZÁÉÍÓÚÑ])/);
+    if (m && !SIGLAS.test(m[1].toUpperCase())) t = t.slice(m[0].length);
+    return t;
+  };
   function leerPartidos(trozo, tk) {
     const out = []; let cur = null;
     const anio = tk.fecha ? +tk.fecha.slice(0, 4) : new Date().getFullYear();
+    let previo = null; // línea anterior fue el nombre del partido (puede seguir en la línea de abajo)
     trozo.split('\n').map(s => s.trim()).filter(Boolean).forEach(l => {
+      const fuePartido = previo; previo = null;
+      if (fuePartido && fuePartido.partido && !fuePartido.mercado && /^[A-Za-zÁÉÍÓÚÑáéíóúñ][A-Za-zÁÉÍÓÚÑáéíóúñ .'’-]{1,30}$/.test(l)
+          && !/^(Total|Tiempo|No establecida|Ganad|Perdid|Juego|Doble|1X2|Eventos)/i.test(l) && !/F[uú]tbol/i.test(l)) {
+        fuePartido.partido += ' ' + l.replace(/([a-záéíóú])ii([aeiou])/g, '$1ñ$2'); return;
+      }
       const lg = l.match(/F[uú]tbol\b\.?\s*(.*)/i);
       if (lg) {
         const liga = lg[1].replace(/\s*\.\s*/g, '. ').replace(/\.\s*$/, '').trim();
@@ -91,7 +116,7 @@
       if (cu && cur && cur.partido && !cur.cuota) { cur.cuota = num(cu[1]); return; }
       if (/\S\s[-–]\s\S/.test(l) && !/\d{2}\/\d{2}|USDT|Importe|N\W{0,3}\s*\d{9}/i.test(l) && l.length < 80) {
         if (!cur || cur.partido) { cur = {}; out.push(cur); }
-        cur.partido = letras(l);
+        cur.partido = letras(l).replace(/([a-záéíóú])ii([aeiou])/g, '$1ñ$2'); previo = cur;
       }
     });
     return out.filter(p => p.partido);
@@ -114,14 +139,18 @@
     });
     return res;
   }
-  const clave = s => (s || '').toLowerCase().replace(/[^a-z]/g, '').slice(0, 8);
+  // mismo partido aunque el lector cambie alguna letra: local completo + primeras letras del visitante, sin tildes
+  const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '');
+  const clave = s => { const [l, v] = String(s || '').split(/\s[-–]\s/); return norm(l) + '|' + norm(v).slice(0, 5); };
+  const igual = (a, b) => !!a && !!b && clave(a) === clave(b);
   function juntarPartidos(a = [], b = []) {
     const base = a.length >= b.length ? a.map(p => ({ ...p })) : b.map(p => ({ ...p })), otro = a.length >= b.length ? b : a;
-    base.forEach(p => { const q = otro.find(x => clave(x.partido) === clave(p.partido)); if (q) for (const k of ['liga', 'hora', 'mercado', 'cuota']) if (p[k] == null && q[k] != null) p[k] = q[k]; });
+    base.forEach(p => { const q = otro.find(x => igual(x.partido, p.partido)); if (q) for (const k of ['liga', 'hora', 'mercado', 'cuota']) if (p[k] == null && q[k] != null) p[k] = q[k]; });
     return base;
   }
 
   function revisar(tk) {
+    if (tk.sinCabecera) return tk;
     tk.avisos = (tk.avisos || []).filter(a => a.startsWith('cobro'));
     if (!tk.nro || tk.nro.length !== 11) tk.avisos.push('número de boleto dudoso');
     if (!tk.fecha) tk.avisos.push('sin fecha');
@@ -132,7 +161,17 @@
 
   // el mismo ticket en dos capturas: igual N.º, o igual fecha+hora y cuota
   const firma = tk => tk.fecha && tk.cuota ? tk.fecha + '|' + tk.cuota : null;
+  // partidos sin cabecera ↔ boleto: misma cantidad de partidos y (producto de cuotas ≈ cuota del boleto, o mismos equipos)
+  function mismosPartidos(sc, t) {
+    if ((t.legs || 1) !== sc.legs) return false;
+    if (sc.cuota && t.cuota && Math.abs(sc.cuota - t.cuota) / t.cuota < 0.006) return true;
+    const a = t.partidos || [];
+    return a.length > 0 && sc.partidos.every(x => a.some(y => igual(x.partido, y.partido)));
+  }
   function mismo(a, b) {
+    if (a.sinCabecera && b.sinCabecera) return a.partidos.length === b.partidos.length && a.partidos.every((x, i) => igual(x.partido, b.partidos[i].partido));
+    if (a.sinCabecera) return mismosPartidos(a, b);
+    if (b.sinCabecera) return mismosPartidos(b, a);
     if (a.nro && b.nro && a.nro === b.nro) return true;
     if (firma(a) && firma(a) === firma(b)) return true;
     // N.º leído con un dígito de menos
@@ -147,8 +186,9 @@
   function unir(listas) {
     const lista = [];
     listas.flat().forEach(tk => {
-      const ya = lista.find(x => mismo(x, tk));
+      let ya = lista.find(x => mismo(x, tk));
       if (!ya) { lista.push(tk); return; }
+      if (ya.sinCabecera && !tk.sinCabecera) { lista[lista.indexOf(ya)] = tk; [ya, tk] = [tk, ya]; }
       if ((!ya.nro || ya.nro.length !== 11) && tk.nro && tk.nro.length === 11) ya.nro = tk.nro;
       for (const k of ['fecha', 'monto', 'cobro', 'estado', 'partido', 'mercado', 'liga'])
         if (ya[k] == null && tk[k] != null) ya[k] = tk[k];
@@ -159,6 +199,6 @@
     return { tickets: lista };
   }
 
-  const api = { leerTickets, leerCaptura, unir, mismo, revisar };
+  const api = { igual, leerTickets, leerCaptura, unir, mismo, mismosPartidos, juntarPartidos, revisar };
   if (typeof module !== 'undefined') module.exports = api; else raiz.Lector = api;
 })(this);

@@ -296,7 +296,7 @@ async function leerCapturas(files){
     }
     if (box) box.style.display = 'none';
     const { tickets } = Lector.unir(listas);
-    if (!tickets.length){ toast('No encontré boletos en esas capturas'); return; }
+    if (!tickets.length){ toast('No encontré boletos ni partidos. Usa la captura del historial o la del boleto (arriba o abajo).', 4500); return; }
     revisarLote(tickets);
   } catch (err){
     if (box) box.style.display = 'none';
@@ -307,7 +307,14 @@ async function leerCapturas(files){
 function revisarLote(nuevos){
   const ts = TX();
   const items = nuevos.map(n => {
-    const ya = ts.find(t => Lector.mismo(t, n));
+    if (n.sinCabecera){
+      // partidos sin cabecera: buscar su boleto (abiertos primero, luego los más recientes)
+      const cands = ts.filter(t => Lector.mismosPartidos(n, t)).sort((a, b) => (b.estado === 'abierta') - (a.estado === 'abierta') || (b.fecha || '').localeCompare(a.fecha || ''));
+      const ya = cands[0] || null;
+      const accion = !ya ? 'huerfano' : (ya.partidos || []).length >= n.partidos.length ? 'ya' : 'partidos';
+      return { n, ya, accion, usar: accion !== 'ya' };
+    }
+    const ya = ts.find(t => !t.sinCabecera && Lector.mismo(t, n));
     let accion = 'nuevo';
     if (ya){
       if (ya.estado === 'abierta' && n.estado && n.estado !== 'abierta') accion = 'resultado';
@@ -317,7 +324,34 @@ function revisarLote(nuevos){
     return { n, ya, accion, usar: accion !== 'ya' };
   }).sort((a, b) => (a.accion === 'ya') - (b.accion === 'ya') || (b.n.fecha || '').localeCompare(a.n.fecha || ''));
   const cuenta = k => items.filter(i => i.accion === k).length;
+  const tarjetaPartidos = t => (t.partidos || []).map(p => `<div class="tx-part" style="padding:8px 10px;margin:0 0 6px"><div class="row" style="justify-content:space-between"><b style="font-size:13px">${esc(p.partido)}</b><b class="num" style="font-size:13px">${p.cuota ? fmt(p.cuota, 2) : ''}</b></div><div class="dim" style="font-size:11.5px">${esc(p.mercado || '')}${p.liga ? ' · ' + esc(p.liga) : ''}${p.hora ? ' · juega ' + fechaHora(p.hora) : ''}</div></div>`).join('');
+  const etiquetaBoleto = t => `N.º ${t.nro} · @ ${fmt(t.cuota, 3)} · ${money(t.monto)} · ${fechaHora(t.fecha)}${t.estado === 'abierta' ? ' · abierto' : ''}`;
+  const filaSinCabecera = (it, i) => {
+    const t = it.n;
+    if (it.accion === 'partidos' || it.accion === 'ya') return `<div class="tx-rev ${it.accion === 'ya' ? 'ya' : ''}" data-i="${i}">
+      <div class="row" style="justify-content:space-between"><div><span class="badge ${it.accion === 'ya' ? 'noaposte' : 'prot'}">${it.accion === 'ya' ? 'YA ESTABA' : 'AGREGA PARTIDOS'}</span></div>
+        ${it.accion !== 'ya' ? `<label style="font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center"><input type="checkbox" class="rUsar" checked> guardar</label>` : ''}</div>
+      <div class="dim" style="font-size:12px;margin:4px 0 8px">Son del boleto ${esc(etiquetaBoleto(it.ya))}</div>
+      ${it.accion === 'ya' ? '' : tarjetaPartidos(t)}</div>`;
+    const opciones = TX().filter(x => (x.legs || 1) === t.legs).sort((a, b) => (b.estado === 'abierta') - (a.estado === 'abierta') || (b.fecha || '').localeCompare(a.fecha || '')).slice(0, 12);
+    const abiertos = opciones.filter(x => x.estado === 'abierta');
+    const pre = abiertos.length === 1 ? abiertos[0].nro : '';
+    return `<div class="tx-rev mal" data-i="${i}">
+      <div class="row" style="justify-content:space-between"><div><span class="tx-nuevo">PARTIDOS SIN BOLETO</span></div>
+        <label style="font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center"><input type="checkbox" class="rUsar" checked> guardar</label></div>
+      <div class="dim" style="font-size:12px;margin:4px 0 8px">La captura no muestra la parte de arriba del boleto. ${t.legs} partido${t.legs > 1 ? 's' : ''}${t.cuota ? ' · cuotas multiplicadas @ ' + fmt(t.cuota, 3) : ''}</div>
+      ${tarjetaPartidos(t)}
+      <label class="f" style="margin-top:6px">¿De qué boleto son?</label>
+      <select class="inp sm rB"><option value="">— elige —</option>${opciones.map(x => `<option value="${esc(x.nro)}" ${x.nro === pre ? 'selected' : ''}>${esc(etiquetaBoleto(x))}</option>`).join('')}<option value="__nuevo">Es un boleto nuevo (escribo los datos)</option></select>
+      <div class="rNuevo" style="display:none;margin-top:8px"><div class="grid3">
+        <div><label class="f">Cuota</label><input class="inp num rC" inputmode="decimal" value="${t.cuota ?? ''}"></div>
+        <div><label class="f">Monto</label><input class="inp num rM" inputmode="decimal"></div>
+        <div><label class="f">Estado</label><select class="inp rE" style="font-size:14px;padding:9px 6px"><option value="abierta">abierta</option><option value="ganada">ganada</option><option value="perdida">perdida</option></select></div></div>
+        <label class="f" style="margin-top:8px">Fecha y hora de la apuesta</label><input class="inp sm rF" type="datetime-local"></div>
+      <div class="hint">Mejor aún: toma la captura con el boleto arriba del todo, donde se ven el N.º y la fecha.</div></div>`;
+  };
   const fila = (it, i) => {
+    if (it.n.sinCabecera) return filaSinCabecera(it, i);
     const t = it.n, mal = !t.completo && it.accion === 'nuevo';
     const etiqueta = { nuevo: '<span class="tx-nuevo">NUEVO</span>', resultado: '<span class="badge ganan">TRAE RESULTADO</span>', completa: '<span class="badge prot">COMPLETA DATOS</span>', ya: '<span class="badge noaposte">YA ESTABA</span>' }[it.accion];
     return `<div class="tx-rev ${mal ? 'mal' : ''} ${it.accion === 'ya' ? 'ya' : ''}" data-i="${i}">
@@ -334,12 +368,13 @@ function revisarLote(nuevos){
     </div>`;
   };
   modal(`<h3>Lo que leí</h3>
-    <div class="muted" style="font-size:13px;margin-bottom:6px">${cuenta('nuevo')} nuevo${cuenta('nuevo') !== 1 ? 's' : ''} · ${cuenta('resultado')} con resultado · ${cuenta('completa')} completa${cuenta('completa') !== 1 ? 'n' : ''} datos · ${cuenta('ya')} repetido${cuenta('ya') !== 1 ? 's' : ''}. Revisa los marcados en rojo antes de guardar.</div>
+    <div class="muted" style="font-size:13px;margin-bottom:6px">${[[cuenta('nuevo'), 'nuevo', 'nuevos'], [cuenta('resultado'), 'con resultado', 'con resultado'], [cuenta('completa') + cuenta('partidos'), 'completa datos', 'completan datos'], [cuenta('huerfano'), 'sin boleto', 'sin boleto'], [cuenta('ya'), 'repetido', 'repetidos']].filter(x => x[0]).map(x => x[0] + ' ' + (x[0] === 1 ? x[1] : x[2])).join(' · ')}.${items.some(it => it.accion !== 'ya' && (it.accion === 'huerfano' || (!it.n.sinCabecera && !it.n.completo && it.accion === 'nuevo'))) ? ' Revisa los marcados en rojo antes de guardar.' : ''}</div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0"><input type="checkbox" id="rMotor" checked> Estos boletos salieron del motor</label>
     ${items.some(it => it.accion !== 'ya' && (it.n.partidos || []).some(p => p.hora && new Date(p.hora).getTime() > Date.now())) ? `<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0"><input type="checkbox" id="rAviso" ${S.txCfg.canal ? 'checked' : 'disabled'}> Avisarme ${S.txCfg.minAntes} min antes de cada partido para la cuota de cierre${S.txCfg.canal ? '' : ' <span class="dim">(falta el canal, abajo en Tickets)</span>'}</label>` : ''}
     ${items.map((it, i) => it.accion === 'ya' ? '' : fila(it, i)).join('')}
     ${cuenta('ya') ? `<details style="margin:10px 0"><summary>${cuenta('ya')} que ya estaban guardados</summary>${items.map((it, i) => it.accion === 'ya' ? fila(it, i) : '').join('')}</details>` : ''}
     <button class="btn" id="rGuardar" style="margin-top:8px">Guardar</button>`, ov => {
+    $$('.rB', ov).forEach(s => s.onchange = () => { $('.rNuevo', s.closest('.tx-rev')).style.display = s.value === '__nuevo' ? 'block' : 'none'; });
     $('#rGuardar', ov).onclick = () => {
       const lote = 'L' + Date.now().toString(36), motor = $('#rMotor', ov).checked, avisar = !!($('#rAviso', ov) && $('#rAviso', ov).checked);
       const paraAvisar = [];
@@ -348,6 +383,27 @@ function revisarLote(nuevos){
       items.forEach((it, i) => {
         const el = $(`.tx-rev[data-i="${i}"]`, ov);
         if (it.accion === 'ya' || !$('.rUsar', el).checked) return;
+        if (it.n.sinCabecera){
+          let t = it.ya;
+          if (it.accion === 'huerfano'){
+            const sel = $('.rB', el).value;
+            if (!sel){ errores++; el.classList.add('mal'); return; }
+            if (sel === '__nuevo'){
+              const cuota = parseNum($('.rC', el).value), monto = parseNum($('.rM', el).value), estado = $('.rE', el).value, fecha = $('.rF', el).value;
+              if (!(cuota > 1) || !(monto > 0) || !fecha){ errores++; el.classList.add('mal'); return; }
+              S.tickets.push({ nro: 'M' + Date.now().toString(36) + i, fecha, legs: it.n.legs, cuota, monto, cobro: estado === 'ganada' ? r2(monto * cuota) : estado === 'perdida' ? 0 : null, estado, motor,
+                partidos: partidosDe(it, cuota), origen: 'captura', lote, registrado: new Date().toISOString() });
+              if (avisar) paraAvisar.push(S.tickets[S.tickets.length - 1]);
+              n++; return;
+            }
+            t = TX().find(x => x.nro === sel);
+          }
+          const antes = { partidos: (t.partidos || []).length };
+          t.partidos = juntarEn(t.partidos || [], partidosDe(it, null)); t.lote = lote;
+          (t.cambios = t.cambios || []).push({ cuando: new Date().toISOString(), por: 'captura de partidos', antes });
+          if (avisar) paraAvisar.push(t);
+          n++; return;
+        }
         const cuota = parseNum($('.rC', el).value), monto = parseNum($('.rM', el).value), estado = $('.rE', el).value;
         const fF = $('.rF', el), fecha = it.n.fecha || (fF && fF.value) || null;
         if (!(cuota > 1) || !(monto > 0) || !fecha){ errores++; el.classList.add('mal'); return; }
@@ -491,6 +547,17 @@ function corregirTicket(t){
       save(); ov.remove(); detalleTicket(t.nro); toast('Corregido ✓');
     };
   });
+}
+
+// suma los partidos leídos a los que ya tiene el boleto, sin pisar lo que ya cargaste (cierre, prob.)
+function juntarEn(viejos, nuevos){
+  const out = viejos.map(p => ({ ...p }));
+  nuevos.forEach(q => {
+    const p = out.find(x => Lector.igual(x.partido, q.partido));
+    if (!p) out.push({ ...q });
+    else for (const c of ['liga', 'hora', 'mercado', 'cuota']) if (p[c] == null || p[c] === '') p[c] = q[c];
+  });
+  return out;
 }
 
 // programa la alarma de cuota de cierre de cada partido que todavía no empieza
