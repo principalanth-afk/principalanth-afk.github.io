@@ -246,16 +246,28 @@ async function lector(onProg){
   return ocrWorker;
 }
 // agranda, pasa a gris y limpia el fondo: así lee hasta las fechas en gris claro
-function prepararImagen(file){
+// modo 'claro': texto oscuro sobre fondo claro (la lista); 'oscuro': texto blanco sobre fondo azul (la cabecera del detalle)
+function prepararImagen(file, modo = 'claro'){
   return new Promise((ok, mal) => {
     const url = URL.createObjectURL(file), img = new Image();
     img.onload = () => {
       const k = Math.min(2, 1600 / img.width), w = Math.round(img.width * k), h = Math.round(img.height * k);
       const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
-      const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, w, h);
+      const cx = cv.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(img, 0, 0, w, h);
       const d = cx.getImageData(0, 0, w, h), px = d.data;
-      for (let i = 0; i < px.length; i += 4){ const g = .299 * px[i] + .587 * px[i + 1] + .114 * px[i + 2], v = g < 200 ? 0 : 255; px[i] = px[i + 1] = px[i + 2] = v; }
-      cx.putImageData(d, 0, 0); URL.revokeObjectURL(url); ok(cv);
+      for (let i = 0; i < px.length; i += 4){ const g = .299 * px[i] + .587 * px[i + 1] + .114 * px[i + 2], v = modo === 'oscuro' ? 255 - g : (g < 200 ? 0 : 255); px[i] = px[i + 1] = px[i + 2] = v; }
+      cx.putImageData(d, 0, 0); URL.revokeObjectURL(url);
+      if (modo !== 'oscuro') return ok(cv);
+      // solo la franja de arriba con fondo oscuro (ya invertida, ahora es clara): ahí vienen el N.º y la fecha
+      // termina donde empieza la hoja blanca (invertida queda casi negra)
+      let fin = 0;
+      for (let y = Math.round(h * .05); y < h * .8; y += 4){
+        let s = 0; for (let x = 0; x < w; x += 8) s += px[(y * w + x) * 4];
+        if (s / Math.ceil(w / 8) < 60){ fin = y; break; }
+      }
+      if (fin < 80) return ok(cv);
+      const c2 = document.createElement('canvas'); c2.width = w; c2.height = Math.min(h, fin + 20);
+      c2.getContext('2d').drawImage(cv, 0, 0); ok(c2);
     };
     img.onerror = () => { URL.revokeObjectURL(url); mal(new Error('imagen')); };
     img.src = url;
@@ -271,9 +283,15 @@ async function leerCapturas(files){
     const listas = [];
     for (let i = 0; i < files.length; i++){
       prog(i, `Leyendo captura ${i + 1} de ${files.length}…`, 0.1);
-      const cv = await prepararImagen(files[i]);
-      const { data } = await w.recognize(cv);
-      listas.push(Lector.leerTickets(data.text));
+      const textos = [(await w.recognize(await prepararImagen(files[i], 'claro'))).data.text];
+      let ts = Lector.leerCaptura(textos);
+      // pantalla de detalle: el N.º y la fecha vienen en blanco sobre azul → segunda lectura
+      if (!ts.length || ts.some(t => !t.completo)){
+        prog(i, `Leyendo captura ${i + 1} de ${files.length} (2ª pasada)…`, 0.5);
+        textos.push((await w.recognize(await prepararImagen(files[i], 'oscuro'))).data.text);
+        ts = Lector.leerCaptura(textos);
+      }
+      listas.push(ts);
       prog(i + 1, `Leída ${i + 1} de ${files.length}`, 0);
     }
     if (box) box.style.display = 'none';
@@ -293,7 +311,7 @@ function revisarLote(nuevos){
     let accion = 'nuevo';
     if (ya){
       if (ya.estado === 'abierta' && n.estado && n.estado !== 'abierta') accion = 'resultado';
-      else if (ya.monto == null && n.monto != null) accion = 'completa';
+      else if ((ya.monto == null && n.monto != null) || (!(ya.partidos || []).length && (n.partidos || []).length)) accion = 'completa';
       else accion = 'ya';
     }
     return { n, ya, accion, usar: accion !== 'ya' };
@@ -305,7 +323,8 @@ function revisarLote(nuevos){
     return `<div class="tx-rev ${mal ? 'mal' : ''} ${it.accion === 'ya' ? 'ya' : ''}" data-i="${i}">
       <div class="row" style="justify-content:space-between"><div>${etiqueta} <span class="dim num" style="font-size:12px">N.º ${esc(t.nro || '—')}</span></div>
         ${it.accion !== 'ya' ? `<label style="font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center"><input type="checkbox" class="rUsar" ${it.usar ? 'checked' : ''}> guardar</label>` : ''}</div>
-      <div class="dim" style="font-size:12px;margin:4px 0 8px">${t.fecha ? fechaHora(t.fecha) : '<span class="loss">sin fecha</span>'} · ${t.legs || 1} partido${(t.legs || 1) > 1 ? 's' : ''}${t.partido ? ' · ' + esc(t.partido) : ''}</div>
+      <div class="dim" style="font-size:12px;margin:4px 0 8px">${t.fecha ? fechaHora(t.fecha) : '<span class="loss">sin fecha</span>'} · ${t.legs || 1} partido${(t.legs || 1) > 1 ? 's' : ''}${(t.partidos || []).length ? '' : t.partido ? ' · ' + esc(t.partido) : ''}</div>
+      ${it.accion !== 'ya' && (t.partidos || []).length ? t.partidos.map(p => `<div class="tx-part" style="padding:8px 10px;margin:0 0 6px"><div class="row" style="justify-content:space-between"><b style="font-size:13px">${esc(p.partido)}</b><b class="num" style="font-size:13px">${p.cuota ? fmt(p.cuota, 2) : ''}</b></div><div class="dim" style="font-size:11.5px">${esc(p.mercado || '')}${p.liga ? ' · ' + esc(p.liga) : ''}${p.hora ? ' · juega ' + fechaHora(p.hora) : ''}</div></div>`).join('') : ''}
       ${it.accion === 'ya' ? '' : `<div class="grid3">
         <div><label class="f">Cuota</label><input class="inp num rC" inputmode="decimal" value="${t.cuota ?? ''}"></div>
         <div><label class="f">Monto</label><input class="inp num rM" inputmode="decimal" value="${t.monto ?? ''}"></div>
@@ -317,11 +336,14 @@ function revisarLote(nuevos){
   modal(`<h3>Lo que leí</h3>
     <div class="muted" style="font-size:13px;margin-bottom:6px">${cuenta('nuevo')} nuevo${cuenta('nuevo') !== 1 ? 's' : ''} · ${cuenta('resultado')} con resultado · ${cuenta('completa')} completa${cuenta('completa') !== 1 ? 'n' : ''} datos · ${cuenta('ya')} repetido${cuenta('ya') !== 1 ? 's' : ''}. Revisa los marcados en rojo antes de guardar.</div>
     <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0"><input type="checkbox" id="rMotor" checked> Estos boletos salieron del motor</label>
+    ${items.some(it => it.accion !== 'ya' && (it.n.partidos || []).some(p => p.hora && new Date(p.hora).getTime() > Date.now())) ? `<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:8px 0"><input type="checkbox" id="rAviso" ${S.txCfg.canal ? 'checked' : 'disabled'}> Avisarme ${S.txCfg.minAntes} min antes de cada partido para la cuota de cierre${S.txCfg.canal ? '' : ' <span class="dim">(falta el canal, abajo en Tickets)</span>'}</label>` : ''}
     ${items.map((it, i) => it.accion === 'ya' ? '' : fila(it, i)).join('')}
     ${cuenta('ya') ? `<details style="margin:10px 0"><summary>${cuenta('ya')} que ya estaban guardados</summary>${items.map((it, i) => it.accion === 'ya' ? fila(it, i) : '').join('')}</details>` : ''}
     <button class="btn" id="rGuardar" style="margin-top:8px">Guardar</button>`, ov => {
     $('#rGuardar', ov).onclick = () => {
-      const lote = 'L' + Date.now().toString(36), motor = $('#rMotor', ov).checked;
+      const lote = 'L' + Date.now().toString(36), motor = $('#rMotor', ov).checked, avisar = !!($('#rAviso', ov) && $('#rAviso', ov).checked);
+      const paraAvisar = [];
+      const partidosDe = (it, cuota) => (it.n.partidos || []).map(p => ({ partido: p.partido, liga: p.liga || '', mercado: p.mercado || '', cuota: p.cuota || ((it.n.legs || 1) === 1 ? cuota : null), hora: p.hora || null }));
       let n = 0, errores = 0;
       items.forEach((it, i) => {
         const el = $(`.tx-rev[data-i="${i}"]`, ov);
@@ -333,12 +355,13 @@ function revisarLote(nuevos){
         if (it.ya){
           const t = it.ya, antes = { estado: t.estado, monto: t.monto, cobro: t.cobro };
           t.estado = estado; t.monto = monto; t.cobro = cobro; t.cuota = cuota; t.lote = lote;
-          if (it.n.partido && !(t.partidos || []).length) t.partidos = [{ partido: it.n.partido, mercado: it.n.mercado || '', cuota }];
+          if ((it.n.partidos || []).length && !(t.partidos || []).length) t.partidos = partidosDe(it, cuota);
+          if (avisar) paraAvisar.push(t);
           (t.cambios = t.cambios || []).push({ cuando: new Date().toISOString(), por: 'captura', antes });
         } else {
           S.tickets.push({ nro: it.n.nro || 'M' + Date.now().toString(36) + i, fecha, legs: it.n.legs || 1, cuota, monto, cobro, estado, motor,
-            partidos: it.n.partido ? [{ partido: it.n.partido, liga: it.n.liga || '', mercado: it.n.mercado || '', cuota }] : [],
-            origen: 'captura', lote, registrado: new Date().toISOString() });
+            partidos: partidosDe(it, cuota), origen: 'captura', lote, registrado: new Date().toISOString() });
+          if (avisar) paraAvisar.push(S.tickets[S.tickets.length - 1]);
         }
         n++;
       });
@@ -346,6 +369,7 @@ function revisarLote(nuevos){
       if (n){ S.txUltLote = lote; save(); }
       ov.remove(); txSel = null; render();
       toast(n ? `${n} boleto${n > 1 ? 's' : ''} guardado${n > 1 ? 's' : ''} ✓` : 'No había nada nuevo');
+      if (paraAvisar.length) programarAvisos(paraAvisar);
     };
   });
 }
@@ -467,6 +491,19 @@ function corregirTicket(t){
       save(); ov.remove(); detalleTicket(t.nro); toast('Corregido ✓');
     };
   });
+}
+
+// programa la alarma de cuota de cierre de cada partido que todavía no empieza
+async function programarAvisos(tickets){
+  let ok = 0, mal = 0;
+  for (const t of tickets) for (const p of (t.partidos || [])){
+    if (!p.hora || p.aviso) continue;
+    const cuando = new Date(p.hora).getTime() - S.txCfg.minAntes * 60000;
+    if (cuando < Date.now() + 60000) continue;
+    const r = await mandarAviso('Cuota de cierre', `${p.partido} · ${p.mercado || ''} @ ${p.cuota ? fmt(p.cuota, 2) : '?'}. Captura la cuota ahora y cárgala en el boleto ${t.nro}.`, cuando);
+    if (r){ p.aviso = true; ok++; } else mal++;
+  }
+  if (ok || mal){ save(); toast(mal ? `⚠ ${mal} aviso${mal > 1 ? 's' : ''} no salió` : `⏰ ${ok} aviso${ok > 1 ? 's' : ''} programado${ok > 1 ? 's' : ''}`); }
 }
 
 // ---------- aviso a MATRIX Alertas (ntfy) ----------

@@ -1,5 +1,5 @@
 // Service worker de Sin Límites: solo toca SUS cachés (no los de CAVA, que vive en el mismo dominio)
-const CACHE = 'sinlimites-v6';
+const CACHE = 'sinlimites-v7';
 const ASSETS = ['./', './index.html', './sl-manifest.webmanifest', './sl-icon-192.png', './sl-icon-512.png', './sl-icon-maskable-512.png', './tickets.js', './tickets.css', './parser.js', './precarga.js'];
 // el lector de capturas (ocr/) se guarda solo la primera vez que se usa
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
