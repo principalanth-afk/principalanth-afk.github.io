@@ -1,5 +1,5 @@
 // Service worker de Sin Límites: solo toca SUS cachés (CAVA vive en el mismo dominio)
-const CACHE = 'sinlimites-v8';
+const CACHE = 'sinlimites-v9';
 const ASSETS = ['./', './index.html', './sl-manifest.webmanifest', './sl-icon-192.png', './sl-icon-512.png', './sl-icon-maskable-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {

@@ -163,6 +163,16 @@ ol.steps{margin:6px 0 0;padding-left:20px;font-size:14px;display:flex;flex-direc
 .list{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px;font-size:14px}
 blockquote{margin:6px 0 0;font-size:19px;font-weight:800;line-height:1.3;color:var(--gold2);text-align:center}
 
+/* marcar resultados durante el día */
+.acts{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.gol{width:84px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:7px 8px;font-size:14px}
+.mini{border:1px solid var(--line2);background:var(--bg2);border-radius:10px;padding:7px 10px;font-weight:800;font-size:13px;cursor:pointer}
+.mini.win{color:var(--win);border-color:rgba(53,212,154,.5)} .mini.loss{color:var(--loss);border-color:rgba(255,93,108,.5)}
+.mini:focus-visible,.gol:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.dot.prov{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--gold)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav) + var(--sab) + 12px);z-index:40;max-width:min(92vw,520px);
+  background:var(--card2);border:1px solid var(--gold);border-radius:14px;padding:10px 14px;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+
 /* navegación inferior */
 nav.bot{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(9,14,28,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding-bottom:var(--sab)}
 nav.bot .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);height:var(--nav);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
@@ -402,6 +412,17 @@ nav.bot button.on{color:var(--gold)}
 <!-- ======================= CARGAR ======================= -->
 <section class="view" id="v-carga" aria-label="Cargar">
   <div class="card hl">
+    <h2>Validar con el Excel (al momento)</h2>
+    <p class="small">En cuanto pongas los goles en el CONSTRUCK y guardes el Excel, elige aquí <b>registro_partidos.xlsx</b>. La app busca cada apuesta pendiente por su PARTIDO, lee GL y GV igual que plan80 (SR = anulada) y marca las que ya terminaron. No hace falta esperar a mañana.</p>
+    <label class="file" style="margin-top:12px;position:relative"><b>Elegir registro_partidos.xlsx</b><span class="small">se lee solo la pestaña CONSTRUCK</span><input type="file" id="xIn" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+    <div id="xPrev" hidden style="margin-top:12px">
+      <div class="kv" id="xRes"></div>
+      <div class="btns"><button class="btn gold" id="xOk">Validar estos resultados</button></div>
+    </div>
+    <p class="msg" id="xMsg" aria-live="polite"></p>
+  </div>
+
+  <div class="card">
     <h2>Cargar el día</h2>
     <p class="small">Después de correr plan80.py, elige el archivo <b>plan80_estado.json</b> de la carpeta omega. Verás el resumen antes de guardar.</p>
     <label class="file" style="margin-top:12px;position:relative"><b>Elegir plan80_estado.json</b><span class="small">desde el teléfono o la computadora</span><input type="file" id="fIn" accept=".json,application/json"></label>
@@ -413,6 +434,12 @@ nav.bot button.on{color:var(--gold)}
       </div>
     </div>
     <p class="msg" id="fMsg" aria-live="polite"></p>
+  </div>
+
+  <div class="card">
+    <h2>Sin el Excel a mano: marcar uno por uno</h2>
+    <p class="small">Si estás fuera de la computadora, en cuanto termine un partido ve a <b>Hoy</b>: en cada apuesta pendiente aparecen los botones <b>Ganada</b>, <b>Perdida</b> y <b>Anulada</b> (escribe el marcador, por ejemplo 1-0, y pulsa uno). El saldo, el acierto y los gráficos cambian al momento y se publican solos.</p>
+    <p class="small muted" style="margin-top:6px">Los botones solo aparecen en el teléfono que tiene la llave de GitHub. Lo validado con el Excel o marcado a mano sale con un anillo dorado hasta que cargues el archivo de plan80.py del día siguiente: ese archivo manda, confirma lo marcado y avisa si algo no cuadra.</p>
   </div>
 
   <div class="card">
@@ -447,6 +474,8 @@ nav.bot button.on{color:var(--gold)}
 
 </main>
 
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
 <nav class="bot" aria-label="Secciones"><div class="in">
   <button data-v="hoy" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>Hoy</button>
   <button data-v="graf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M5 16l4-5 4 3 6-8"/></svg>Gráficos</button>
@@ -459,9 +488,9 @@ nav.bot button.on{color:var(--gold)}
 (function(){
 'use strict';
 /* ------------------------------------------------------------ constantes del plan (iguales a plan80.py) */
-const OWNER='principalanth-afk', REPO='principalanth-afk.github.io', RUTA='sinlimites/data/estado.json';
+const OWNER='principalanth-afk', REPO='principalanth-afk.github.io', RUTA='sinlimites/data/estado.json', RUTA_V='sinlimites/data/vivo.json';
 const META=15000, DIAS=80, INICIAL=10, PICKS_VAL=25, ESCALAR=.82, PARAR=.75, PISO=3, CAIDA=.5, TODO_PERDIDO=3, HIST=.86;
-const LS_E='sl80_estado', LS_T='sl80_token';
+const LS_E='sl80_estado', LS_T='sl80_token', LS_V='sl80_vivo';
 
 /* ------------------------------------------------------------ utilidades */
 const $=id=>document.getElementById(id);
@@ -481,18 +510,45 @@ function compacto(e){const c=JSON.parse(JSON.stringify(e));delete c.anterior;ret
 function orden(e){return e?`${e.fecha}|${String(e.dia).padStart(3,'0')}|${String((e.cerrados||[]).length).padStart(4,'0')}`:'';}
 const ganancia=x=>x.resultado==='G'?x.monto*(x.cuota-1):x.resultado==='P'?-x.monto:0;
 
-/* ------------------------------------------------------------ datos */
-let E=null, PUB=null, LOC=null, SRC='ninguno';
-async function leerPublicado(){
-  try{const r=await fetch('data/estado.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return null;const j=await r.json();return valido(j)?j:null;}catch(_){return null;}
+/* ------------------------------------------------------------ datos
+   BASE  = estado oficial de plan80.py (data/estado.json o la copia del teléfono)
+   MARCAS = resultados marcados a mano durante el día (data/vivo.json), hasta que plan80 los liquide
+   E     = lo que se muestra: BASE con las marcas aplicadas */
+let BASE=null, E=null, PUB=null, LOC=null, SRC='ninguno', MARCAS={}, MARCAS_PUB={};
+async function leerJSON(ruta){
+  try{const r=await fetch(ruta+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)return null;return await r.json();}catch(_){return null;}
 }
 function leerLocal(){try{const j=JSON.parse(lsGet(LS_E)||'null');return valido(j)?j:null;}catch(_){return null;}}
+function leerMarcasLocal(){try{const j=JSON.parse(lsGet(LS_V)||'null');return j&&typeof j.marcas==='object'?j.marcas:{};}catch(_){return {};}}
+function unir(a,b){const o={...a};for(const k in b){if(!o[k]||String(b[k].at||'')>String(o[k].at||''))o[k]=b[k];}return o;}
 async function cargar(){
-  PUB=await leerPublicado(); LOC=leerLocal();
-  if(PUB&&LOC){ if(orden(LOC)>orden(PUB)){E=LOC;SRC='local';}else{E=PUB;SRC='publicado';} }
-  else if(PUB){E=PUB;SRC='publicado';} else if(LOC){E=LOC;SRC='local';} else {E=null;SRC='ninguno';}
+  const [p,v]=await Promise.all([leerJSON('data/estado.json'),leerJSON('data/vivo.json')]);
+  PUB=valido(p)?p:null; LOC=leerLocal();
+  MARCAS_PUB=v&&typeof v.marcas==='object'?v.marcas:{};
+  MARCAS=unir(MARCAS_PUB,leerMarcasLocal());
+  if(PUB&&LOC){ if(orden(LOC)>orden(PUB)){BASE=LOC;SRC='local';}else{BASE=PUB;SRC='publicado';} }
+  else if(PUB){BASE=PUB;SRC='publicado';} else if(LOC){BASE=LOC;SRC='local';} else {BASE=null;SRC='ninguno';}
   renderTodo();
 }
+function aplicar(b,m){
+  if(!b)return null;
+  const e=JSON.parse(JSON.stringify(b)); e.cerrados=e.cerrados||[]; e.anulados=e.anulados||0;
+  const ofi={}; e.cerrados.forEach(x=>ofi[x.pid]=x);
+  e._prov=[]; e._dif=[]; const sigue=[];
+  (e.pendientes||[]).forEach(x=>{const mk=m[x.pid];
+    if(mk&&mk.r){const y={...x,resultado:mk.r,goles:mk.goles||'',prov:true,fuente:mk.f||'mano'};e.cerrados.push(y);e._prov.push(y);
+      if(mk.r==='G'){e.ganados++;e.historial.push('G');}else if(mk.r==='P'){e.perdidos++;e.historial.push('P');}else e.anulados++;}
+    else sigue.push(x);});
+  e.pendientes=sigue;
+  for(const k in m){const mk=m[k];if(mk&&mk.r&&ofi[k]&&ofi[k].resultado!==mk.r)e._dif.push({nombre:ofi[k].nombre,mano:mk.r,ofi:ofi[k].resultado});}
+  // dinero: plan80 resta las apuestas de hoy del saldo al liquidar; las de días anteriores ya están restadas
+  const stakesHoy=(b.pendientes||[]).filter(x=>x.dia===b.dia).reduce((s,x)=>s+x.monto,0);
+  const retorno=e._prov.reduce((s,x)=>s+(x.resultado==='G'?x.monto*x.cuota:x.resultado==='A'?x.monto:0),0);
+  e._caja=b.saldo_inicio_dia-stakesHoy+retorno;
+  e._enJuego=e.pendientes.reduce((s,x)=>s+x.monto,0);
+  return e;
+}
+const dueno=()=>!!lsGet(LS_T);
 
 /* ------------------------------------------------------------ cálculos */
 function calc(e){
@@ -513,11 +569,13 @@ function renderHoy(){
   $('pDia').textContent=has?`DÍA ${E.dia}/${DIAS}`:'SIN DATOS';
   if(!has)return;
   const c=calc(E);
+  const np=E._prov.length;
   $('hFase').textContent=`Fase ${E.fase||''} · datos al ${fdate(E.fecha)}`;
-  $('hSaldo').textContent=f2(c.saldo)+' $';
-  $('hSaldoT').textContent=`en la cuenta al empezar el día ${E.dia} · máximo alcanzado ${f2(E.saldo_maximo||c.saldo)} $`;
+  $('hSaldo').textContent=f2(E._caja+E._enJuego)+' $';
+  $('hSaldoT').textContent=`Dinero del plan ahora: ${f2(E._caja)} $ en la cuenta + ${f2(E._enJuego)} $ en apuestas sin resolver.`
+    +(np?` Incluye ${np} resultado${np>1?'s':''} validado${np>1?'s':''} hoy (Excel o a mano), sin confirmar por plan80.`:'')+` Al empezar el día ${E.dia} había ${f2(c.saldo)} $.`;
   $('hPuesto').textContent=f2(c.aportado)+' $';
-  const neto=c.saldo-c.aportado; const hn=$('hNeto'); hn.textContent=sg(neto)+' $'; hn.className=neto>0.004?'win':neto<-0.004?'loss':'';
+  const neto=E._caja+E._enJuego-c.aportado; const hn=$('hNeto'); hn.textContent=sg(neto)+' $'; hn.className=neto>0.004?'win':neto<-0.004?'loss':'';
   const rd=(E.indice||1)-1; const hr=$('hRend'); hr.textContent=(rd>=0?'+':'−')+pct(Math.abs(rd)); hr.className=rd>0.0004?'win':rd<-0.0004?'loss':'';
   const src=$('hSrc'); src.innerHTML='';
   const dotc=el('i',SRC==='local'?'loc':SRC==='publicado'?'':'no');
@@ -529,7 +587,8 @@ function renderHoy(){
   $('hAcFill').style.background=c.ac==null?'var(--dim)':c.ac>=ESCALAR?'var(--win)':c.ac>=PARAR?'var(--gold)':'var(--loss)';
   $('hAcBar').setAttribute('aria-label',c.n?`Acierto ${pct(c.ac)} contra 75% para parar, 82% para subir y 86% histórico`:'Sin apuestas resueltas');
   const d=$('hDots'); d.innerHTML='';
-  E.historial.forEach(r=>d.appendChild(el('span','dot '+(r==='G'?'g':'p'),r)));
+  const nOf=E.historial.length-E._prov.filter(x=>x.resultado!=='A').length;
+  E.historial.forEach((r,i)=>{const s=el('span','dot '+(r==='G'?'g':'p')+(i>=nOf?' prov':''),r);if(i>=nOf)s.title='validado durante el día, falta confirmar con plan80';d.appendChild(s);});
   c.pen.forEach(()=>d.appendChild(el('span','dot e','?')));
   d.setAttribute('aria-label',`Resultados: ${c.g} ganadas, ${c.p} perdidas, ${c.pen.length} pendientes`);
   $('hVal').textContent=c.n>=PICKS_VAL?`Validación completa: ${c.n} apuestas resueltas.`:`Validación: ${c.n} de ${PICKS_VAL} apuestas resueltas para decidir si se sube a 50%.`;
@@ -537,15 +596,19 @@ function renderHoy(){
   // hoy
   const h=$('hHoy'); h.innerHTML=''; $('hEsc').innerHTML='';
   $('hHoyT').textContent=`Apuestas de hoy · ${fdate(E.fecha)}`;
-  if(!c.hoy.length){h.appendChild(el('p','muted','Hoy no se apuesta: ningún partido cumplió los criterios, o el plan está en pausa. Es parte del sistema.'));}
+  const hoyTodas=[...E._prov.filter(x=>x.dia===E.dia),...c.hoy];
+  if(!hoyTodas.length){h.appendChild(el('p','muted','Hoy no se apuesta: ningún partido cumplió los criterios, o el plan está en pausa. Es parte del sistema.'));}
   else{
-    c.hoy.forEach(x=>h.appendChild(betCard(x,true)));
+    hoyTodas.forEach(x=>h.appendChild(betCard(x,!x.prov)));
+    const res=hoyTodas.filter(x=>x.prov), gHoy=res.reduce((s,x)=>s+ganancia(x),0);
     const ries=c.hoy.reduce((s,x)=>s+x.monto,0), win=c.hoy.reduce((s,x)=>s+x.monto*(x.cuota-1),0);
-    const a=el('div','kv');a.append(el('span',null,c.hoy.length>1?'Si salen todas':'Si sale'));const ab=el('b','win','+'+f2(win)+' $');a.appendChild(ab);
-    const b=el('div','kv');b.append(el('span',null,c.hoy.length>1?'Si fallan todas':'Si falla'));const bb=el('b','loss','−'+f2(ries)+' $');b.appendChild(bb);
-    $('hEsc').append(a,b);
+    if(res.length){const k=el('div','kv');k.append(el('span',null,`Resultado de hoy (${res.length} de ${hoyTodas.length})`),el('b',gHoy>=0?'win':'loss',sg(gHoy)+' $'));$('hEsc').appendChild(k);}
+    if(c.hoy.length){const a=el('div','kv');a.append(el('span',null,res.length?'Si salen las que faltan':c.hoy.length>1?'Si salen todas':'Si sale'),el('b','win','+'+f2(win)+' $'));
+      const b=el('div','kv');b.append(el('span',null,res.length?'Si fallan las que faltan':c.hoy.length>1?'Si fallan todas':'Si falla'),el('b','loss','−'+f2(ries)+' $'));
+      $('hEsc').append(a,b);}
   }
-  $('hPendC').hidden=!c.viejas.length; const pv=$('hPend'); pv.innerHTML=''; c.viejas.forEach(x=>pv.appendChild(betCard(x,true)));
+  const viejasTodas=[...E._prov.filter(x=>x.dia<E.dia),...c.viejas];
+  $('hPendC').hidden=!viejasTodas.length; const pv=$('hPend'); pv.innerHTML=''; viejasTodas.forEach(x=>pv.appendChild(betCard(x,!x.prov)));
   // brújula
   $('bNec').textContent=c.nec==null?'—':pct(c.nec)+' al día';
   $('bReal').textContent=c.real==null?'—':(c.real>=0?'+':'−')+pct(Math.abs(c.real))+' al día';
@@ -565,6 +628,7 @@ function renderHoy(){
   freno(fr,c.n>=PICKS_VAL&&c.ac<PARAR?'bad':c.n>=PICKS_VAL&&c.ac<ESCALAR?'warn':'ok','Acierto mínimo',c.n>=PICKS_VAL?`Acierto ${pct(c.ac)} con ${c.n} apuestas.`:`Se evalúa al llegar a 25 apuestas (van ${c.n}).`);
   // auditoría
   const au=$('audit'); au.innerHTML='';
+  E._dif.forEach(x=>freno(au,'bad',x.nombre,`Validado durante el día como ${x.mano==='G'?'ganada':x.mano==='P'?'perdida':'anulada'}, pero plan80 la liquidó como ${x.ofi==='G'?'ganada':x.ofi==='P'?'perdida':'anulada'}. Manda plan80.`,'no cuadra'));
   const rep=E.reportes||{}; const dd={}; E.diario.forEach(x=>dd[x.fecha]=x.dia);
   const filas=Object.keys(rep).sort().reverse().map(k=>{
     const m=/Saldo esperado:\s*([\d.,]+)\s*\$[^\n]*?Saldo usado hoy:\s*([\d.,]+)\s*\$[^\n]*?(OK|diferencia de\s*(-?[\d.,]+))/.exec(rep[k]);
@@ -589,8 +653,38 @@ function betCard(x,pend){
   c.appendChild(rs);
   const res=r==='G'?`ganada ${x.goles||''}`:r==='P'?`perdida ${x.goles||''}`:r==='A'?'no se jugó':`si gana: +${f2(x.monto*(x.cuota-1))} $`;
   c.appendChild(el('span','mt',`Día ${x.dia} · ${fdate(x.fecha)} · criterio ${x.crit} · cuota ${x.cuota.toFixed(2)} · ${f2(x.monto)} $ · ${res}`.trim()));
+  if(x.prov)c.appendChild(el('span','mt gold',(x.fuente==='excel'?'Validado con el Excel':'Marcado a mano')+' · falta que plan80 lo confirme'));
+  if(dueno()&&(pend||x.prov)){
+    const row=el('div','acts');
+    if(pend){
+      const gi=el('input','gol');gi.placeholder='marcador';gi.setAttribute('aria-label','Marcador de '+x.nombre);gi.inputMode='text';gi.maxLength=7;
+      const mk=(res,t,cl)=>{const b=el('button','mini '+cl,t);b.onclick=()=>marcar(x.pid,res,gi.value.trim());return b;};
+      row.append(gi,mk('G','Ganada','win'),mk('P','Perdida','loss'),mk('A','Anulada',''));
+    }else{const b=el('button','mini','Deshacer');b.onclick=()=>marcar(x.pid,null,'');row.appendChild(b);}
+    c.appendChild(row);
+  }
   return c;
 }
+async function marcar(pid,r,goles){
+  if(r&&goles&&!/^\d{1,2}\s*-\s*\d{1,2}$/.test(goles)){toast('Escribe el marcador como 1-0, o déjalo vacío.');return;}
+  if(r==='P'&&goles){const [a,b]=goles.split('-').map(Number);if(a+b<=2){toast(`Con ${goles} hay menos de 3 goles: esa apuesta se gana. Revisa.`);return;}}
+  if(r==='G'&&goles){const [a,b]=goles.split('-').map(Number);if(a+b>=3){toast(`Con ${goles} hay 3 goles o más: esa apuesta se pierde. Revisa.`);return;}}
+  return guardarMarcas({[pid]:{r:r||null,goles:(goles||'').replace(/\s/g,''),f:'mano'}},r?`Plan80 en vivo: resultado marcado (${BASE.fecha})`:`Plan80 en vivo: marca deshecha (${BASE.fecha})`);
+}
+async function guardarMarcas(cambios,mensaje){
+  const vivos=new Set((BASE.pendientes||[]).map(x=>x.pid)), at=new Date().toISOString();
+  for(const k in cambios)MARCAS[k]={...cambios[k],at};
+  for(const k in MARCAS)if(!vivos.has(k))delete MARCAS[k];
+  lsSet(LS_V,JSON.stringify({base:BASE.fecha,marcas:MARCAS}));
+  renderTodo();
+  if(!dueno()){toast('Guardado en este teléfono. Para publicarlo hace falta la llave de GitHub.');return false;}
+  toast('Guardado. Publicando…');
+  try{await publicarArchivo(RUTA_V,{base:BASE.fecha,actualizado:at,marcas:MARCAS},mensaje);
+    MARCAS_PUB={...MARCAS}; toast('Publicado: en 1 o 2 minutos lo ve cualquiera que abra la app.'); return true;}
+  catch(err){toast((err.message||'No se pudo publicar.')+' Quedó guardado en este teléfono.'); return false;}
+}
+let tT=null;
+function toast(t){const e=$('toast');e.textContent=t;e.hidden=false;clearTimeout(tT);tT=setTimeout(()=>{e.hidden=true;},5000);}
 
 /* ------------------------------------------------------------ gráficos (SVG a mano) */
 const NS='http://www.w3.org/2000/svg';
@@ -737,6 +831,8 @@ function renderCarga(){
   const ce=$('cEstado'); ce.innerHTML='';
   const fila=(t,e)=>{const p=el('p');p.appendChild(el('b',null,t+': '));p.appendChild(document.createTextNode(e?`día ${e.dia} · ${fdate(e.fecha)} · saldo ${f2(e.saldo_inicio_dia)} $ · ${e.ganados||0}G ${e.perdidos||0}P`:'no hay'));ce.appendChild(p);};
   fila('Publicado',PUB); fila('En este teléfono',LOC);
+  const nm=Object.values(MARCAS).filter(m=>m&&m.r).length;
+  if(nm)ce.appendChild(el('p',null,`Resultados validados durante el día (Excel o a mano), sin liquidar por plan80: ${nm}.`));
   ce.appendChild(el('p','muted',SRC==='ninguno'?'La app no tiene datos todavía.':`La app muestra la versión ${SRC==='local'?'de este teléfono (es más nueva que la publicada)':'publicada'}.`));
   const t=lsGet(LS_T); $('tMsg').textContent=t?'Hay una llave guardada en este teléfono.':'Sin llave: puedes guardar en este teléfono, pero no publicar.';
   $('fPub').disabled=!t;
@@ -747,7 +843,7 @@ $('fIn').addEventListener('change',async ev=>{
   if(!valido(e)){$('fMsg').textContent='El archivo no tiene la forma de plan80_estado.json (faltan el diario, el historial o el saldo).';return;}
   NUEVO=compacto(e);
   const r=$('fRes'); r.innerHTML='';
-  const prevE=E, idsPrev=new Set((prevE?.cerrados||[]).map(x=>x.pid));
+  const prevE=BASE, idsPrev=new Set((prevE?.cerrados||[]).map(x=>x.pid));
   const nuevos=(e.cerrados||[]).filter(x=>!idsPrev.has(x.pid));
   r.appendChild(el('b',null,`Día ${e.dia} · ${fdate(e.fecha)} · saldo ${f2(e.saldo_inicio_dia)} $`));
   r.appendChild(el('p','small',`${e.ganados||0} ganadas, ${e.perdidos||0} perdidas, ${(e.pendientes||[]).length} pendientes · fase ${e.fase||''}`));
@@ -755,20 +851,89 @@ $('fIn').addEventListener('change',async ev=>{
   const hoy=(e.pendientes||[]).filter(x=>x.dia===e.dia);
   r.appendChild(el('p','small',hoy.length?`Apuestas de hoy: ${hoy.map(x=>`${x.nombre} @${x.cuota.toFixed(2)} · ${f2(x.monto)} $`).join('; ')}.`:'Hoy sin apuestas.'));
   if(prevE&&orden(e)<orden(prevE))r.appendChild(el('p','small loss',`Ojo: este archivo es más viejo que el que muestra la app (día ${prevE.dia}).`));
+  const ofi={}; (e.cerrados||[]).forEach(x=>ofi[x.pid]=x);
+  const conf=[],dif=[]; for(const k in MARCAS){const m=MARCAS[k];if(!m||!m.r||!ofi[k])continue;(ofi[k].resultado===m.r?conf:dif).push(ofi[k]);}
+  if(conf.length)r.appendChild(el('p','small win',`plan80 confirma ${conf.length} resultado${conf.length>1?'s':''} que validaste durante el día.`));
+  dif.forEach(x=>r.appendChild(el('p','small loss',`No cuadra: ${x.nombre} la validaste distinto durante el día; plan80 dice ${x.resultado==='G'?'ganada':x.resultado==='P'?'perdida':'anulada'} (${x.goles||''}). Manda plan80.`)));
   $('fPrev').hidden=false; renderCarga();
 });
+/* ------------------------------------------------------------ validar con el Excel (misma regla que plan80.resultado) */
+let XL=null, XCAMBIOS=null;
+function cargarXLSX(){
+  if(window.XLSX)return Promise.resolve(window.XLSX);
+  if(!XL)XL=new Promise((ok,mal)=>{const sc=document.createElement('script');
+    sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';sc.crossOrigin='anonymous';
+    sc.onload=()=>ok(window.XLSX);sc.onerror=()=>{XL=null;mal(new Error('No se pudo cargar el lector de Excel. Revisa internet.'));};document.head.appendChild(sc);});
+  return XL;
+}
+/* lee del CONSTRUCK: PARTIDO (B), GL (H), GV (I) desde la fila 4 — igual que plan80.resultado() */
+function leerConstruck(XLSX,buf){
+  const wb=XLSX.read(buf,{type:'array',sheets:['CONSTRUCK'],cellFormula:false,cellHTML:false,cellText:false,cellStyles:false,dense:true});
+  const ws=wb.Sheets['CONSTRUCK']; if(!ws)throw new Error('El Excel no tiene la pestaña CONSTRUCK. ¿Es registro_partidos.xlsx?');
+  const ref=XLSX.utils.decode_range(ws['!ref']||'A1:A1');
+  const filas=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,blankrows:true,defval:null,range:{s:{r:0,c:0},e:{r:ref.e.r,c:8}}});
+  const enc=filas[2]||[]; if(String(enc[1]||'').trim().toUpperCase()!=='PARTIDO'||String(enc[7]||'').trim().toUpperCase()!=='GL'||String(enc[8]||'').trim().toUpperCase()!=='GV')
+    throw new Error('El CONSTRUCK no tiene las columnas esperadas (PARTIDO en B, GL en H, GV en I).');
+  const m=new Map();
+  for(let i=3;i<filas.length;i++){const r=filas[i]||[];const pid=r[1];if(pid==null||String(pid).trim()==='')continue;
+    const k=String(pid).trim().toLowerCase(); if(!m.has(k))m.set(k,[]); m.get(k).push([r[7],r[8]]);}
+  return m;
+}
+function numX(v){if(v==null||typeof v==='boolean')return null;if(typeof v==='number')return v;const s=String(v).trim();if(!s||s[0]==='=')return null;const n=Number(s.replace(',','.'));return isNaN(n)?null:n;}
+function resultadoX(m,pid){
+  const l=m.get(String(pid).trim().toLowerCase()); if(!l)return {r:null,goles:'',hay:false};
+  let g=null;
+  for(const [a,b] of l){if(String(a??'').trim().toUpperCase()==='SR'||String(b??'').trim().toUpperCase()==='SR')return {r:'A',goles:'SR',hay:true};
+    const x=numX(a),y=numX(b); if(x!=null&&y!=null)g=[x,y];}
+  if(!g)return {r:null,goles:'',hay:true};
+  return {r:g[0]+g[1]<=2?'G':'P',goles:`${Math.trunc(g[0])}-${Math.trunc(g[1])}`,hay:true};
+}
+$('xIn').addEventListener('change',async ev=>{
+  const f=ev.target.files[0]; $('xMsg').textContent=''; $('xPrev').hidden=true; XCAMBIOS=null; if(!f)return;
+  if(!BASE){$('xMsg').textContent='Primero hace falta el plan publicado (plan80_estado.json).';return;}
+  const pend=BASE.pendientes||[];
+  if(!pend.length){$('xMsg').textContent='No hay apuestas pendientes que validar.';$('xIn').value='';return;}
+  $('xMsg').textContent='Leyendo el Excel…';
+  let m; try{const X=await cargarXLSX(); m=leerConstruck(X,new Uint8Array(await f.arrayBuffer()));}
+  catch(err){$('xMsg').textContent=err.message||'No se pudo leer ese Excel.';$('xIn').value='';return;}
+  const r=$('xRes'); r.innerHTML=''; XCAMBIOS={}; let n=0;
+  r.appendChild(el('b',null,`${m.size} partidos en el CONSTRUCK · ${pend.length} apuesta${pend.length>1?'s':''} pendiente${pend.length>1?'s':''}`));
+  pend.forEach(x=>{const z=resultadoX(m,x.pid), mk=MARCAS[x.pid];
+    let t,cl='small';
+    if(!z.hay)t=`${x.nombre}: no está en este Excel. Revisa que sea el registro correcto.`,cl='small loss';
+    else if(!z.r)t=`${x.nombre}: sin resultado todavía (sigue pendiente).`,cl='small muted';
+    else{const nom=z.r==='G'?'ganada':z.r==='P'?'perdida':'anulada';
+      if(mk&&mk.r&&mk.r!==z.r){t=`${x.nombre}: ${z.goles} → ${nom}. Estaba marcada distinto a mano: manda el Excel.`;cl='small loss';}
+      else t=`${x.nombre}: ${z.goles} → ${nom}${z.r==='G'?` (+${f2(x.monto*(x.cuota-1))} $)`:z.r==='P'?` (−${f2(x.monto)} $)`:' (se devuelve)'}`,cl='small '+(z.r==='G'?'win':z.r==='P'?'loss':'');
+      if(!mk||mk.r!==z.r||mk.goles!==z.goles){XCAMBIOS[x.pid]={r:z.r,goles:z.goles,f:'excel'};n++;}}
+    r.appendChild(el('p',cl,t));});
+  $('xOk').hidden=!n; $('xPrev').hidden=false;
+  $('xMsg').textContent=n?'':'Nada nuevo: la app ya muestra estos resultados.';
+});
+$('xOk').addEventListener('click',async()=>{
+  if(!XCAMBIOS||!Object.keys(XCAMBIOS).length)return; const b=$('xOk'); b.disabled=true;
+  const n=Object.keys(XCAMBIOS).length;
+  await guardarMarcas(XCAMBIOS,`Plan80 en vivo: ${n} resultado${n>1?'s':''} del Excel (${BASE.fecha})`);
+  XCAMBIOS=null; $('xPrev').hidden=true; $('xIn').value=''; b.disabled=false;
+  $('xMsg').textContent=`Listo: ${n} resultado${n>1?'s':''} validado${n>1?'s':''}. Míralo en Hoy.`;
+});
+function marcasVigentes(e){const vivos=new Set((e.pendientes||[]).map(x=>x.pid));const o={};for(const k in MARCAS)if(vivos.has(k))o[k]=MARCAS[k];return o;}
 $('fLocal').addEventListener('click',()=>{
   if(!NUEVO)return;
   if(!lsSet(LS_E,JSON.stringify(NUEVO))){$('fMsg').textContent='Este navegador no deja guardar datos (¿modo privado?).';return;}
-  LOC=NUEVO;E=NUEVO;SRC='local';NUEVO=null;$('fPrev').hidden=true;$('fIn').value='';
+  MARCAS=marcasVigentes(NUEVO); lsSet(LS_V,JSON.stringify({base:NUEVO.fecha,marcas:MARCAS}));
+  LOC=NUEVO;BASE=NUEVO;SRC='local';NUEVO=null;$('fPrev').hidden=true;$('fIn').value='';
   $('fMsg').textContent='Guardado en este teléfono. Para que tu esposa lo vea, publícalo.';renderTodo();
 });
 $('fPub').addEventListener('click',async()=>{
   if(!NUEVO)return; const b=$('fPub'); b.disabled=true; $('fMsg').textContent='Publicando…';
   try{
-    await publicar(NUEVO);
-    lsSet(LS_E,JSON.stringify(NUEVO)); LOC=NUEVO; PUB=NUEVO; E=NUEVO; SRC='publicado'; NUEVO=null;
-    $('fPrev').hidden=true; $('fIn').value='';
+    await publicarArchivo(RUTA,NUEVO,`Plan80: día ${NUEVO.dia} (${NUEVO.fecha})`);
+    lsSet(LS_E,JSON.stringify(NUEVO)); LOC=NUEVO; PUB=NUEVO; BASE=NUEVO; SRC='publicado';
+    const quedan=marcasVigentes(NUEVO), cambia=Object.keys(quedan).length!==Object.keys(MARCAS_PUB).length;
+    MARCAS=quedan; lsSet(LS_V,JSON.stringify({base:NUEVO.fecha,marcas:MARCAS}));
+    if(cambia){try{await publicarArchivo(RUTA_V,{base:NUEVO.fecha,actualizado:new Date().toISOString(),marcas:MARCAS},`Plan80 en vivo: limpiar marcas ya liquidadas (${NUEVO.fecha})`);MARCAS_PUB={...MARCAS};}catch(_){}}
+    NUEVO=null; $('fPrev').hidden=true; $('fIn').value='';
     $('fMsg').textContent='Publicado. En 1 o 2 minutos lo ve cualquiera que abra la app.'; renderTodo();
   }catch(err){$('fMsg').textContent=err.message||'No se pudo publicar.';}
   finally{b.disabled=!lsGet(LS_T);}
@@ -787,16 +952,16 @@ $('tTest').addEventListener('click',async()=>{
   }catch(_){$('tMsg').textContent='Sin conexión con GitHub. Revisa internet.';}
 });
 function b64(s){const by=new TextEncoder().encode(s);let bin='';for(let i=0;i<by.length;i+=8192)bin+=String.fromCharCode.apply(null,by.subarray(i,i+8192));return btoa(bin);}
-async function publicar(e){
-  const t=lsGet(LS_T); if(!t)throw new Error('Falta la llave de GitHub (abajo, en esta misma pestaña).');
+async function publicarArchivo(ruta,obj,mensaje){
+  const t=lsGet(LS_T); if(!t)throw new Error('Falta la llave de GitHub (pestaña Cargar).');
   const H={Authorization:'Bearer '+t,Accept:'application/vnd.github+json'};
-  const api=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${RUTA}`;
+  const api=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${ruta}`;
   let sha=null, r;
   try{r=await fetch(api+'?ref=main',{headers:H,cache:'no-store'});}catch(_){throw new Error('Sin conexión con GitHub. Lo guardé en este teléfono; publícalo cuando tengas señal.');}
   if(r.status===200)sha=(await r.json()).sha;
   else if(r.status===401)throw new Error('La llave de GitHub no es válida o venció.');
   else if(r.status!==404)throw new Error('GitHub respondió '+r.status+' al leer el archivo. Revisa los permisos de la llave.');
-  const body={message:`Plan80: día ${e.dia} (${e.fecha})`,content:b64(JSON.stringify(e)),branch:'main'}; if(sha)body.sha=sha;
+  const body={message:mensaje,content:b64(JSON.stringify(obj)),branch:'main'}; if(sha)body.sha=sha;
   const p=await fetch(api,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(p.ok)return;
   if(p.status===409||p.status===422)throw new Error('El archivo cambió en GitHub mientras publicabas. Vuelve a pulsar Publicar.');
@@ -817,10 +982,13 @@ function ir(v){
 document.querySelectorAll('nav.bot button').forEach(b=>b.addEventListener('click',()=>ir(b.dataset.v)));
 window.addEventListener('hashchange',()=>ir(location.hash.slice(1)));
 
-function renderTodo(){renderHoy();renderGraf();renderApu();renderPlan();renderCarga();}
+function renderTodo(){E=aplicar(BASE,MARCAS);renderHoy();renderGraf();renderApu();renderPlan();renderCarga();}
 ir(location.hash.slice(1)||'hoy');
 renderTodo();
 cargar();
+// quien solo mira recibe los resultados nuevos sin recargar: se vuelve a leer cada 2 minutos con la app abierta
+setInterval(()=>{if(document.visibilityState==='visible'&&!NUEVO&&!document.activeElement?.matches?.('input'))cargar();},120000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!NUEVO)cargar();});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 })();
 </script>
