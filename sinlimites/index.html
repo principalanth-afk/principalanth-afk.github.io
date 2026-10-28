@@ -9,6 +9,7 @@
 <link rel="icon" href="sl-icon-192.png">
 <link rel="apple-touch-icon" href="sl-icon-192.png">
 <style>
+[hidden]{display:none!important}
 /* Sin Límites · Plan 80 — una sola app oscura: tarjetas apiladas, oro para lo importante, cian para datos */
 :root{
   --bg:#070b16; --bg2:#0b1122; --card:#101829; --card2:#152038; --line:#22304f; --line2:#2d3d62;
@@ -195,6 +196,11 @@ nav.bot button.on{color:var(--gold)}
 
 <!-- ======================= HOY ======================= -->
 <section class="view on" id="v-hoy" aria-label="Hoy">
+  <div class="card hl" id="sinPub" hidden>
+    <h2>Falta publicar</h2>
+    <p class="small" id="sinPubTxt"></p>
+    <div class="btns"><button class="btn gold" id="hPub">Publicar ahora</button></div>
+  </div>
   <div class="card" id="noData" hidden>
     <h2>Sin datos todavía</h2>
     <p>Todavía no hay un estado del plan cargado. Ve a <b>Cargar</b> y elige el archivo <b>plan80_estado.json</b> que genera plan80.py.</p>
@@ -446,6 +452,7 @@ nav.bot button.on{color:var(--gold)}
     <h2>Lo que muestra la app ahora</h2>
     <div id="cEstado" class="small"></div>
     <div class="btns">
+      <button class="btn gold" id="cPub" hidden>Publicar lo guardado aquí</button>
       <button class="btn" id="cRec">Volver a leer lo publicado</button>
       <button class="btn" id="cBorrar">Borrar la copia de este teléfono</button>
     </div>
@@ -680,7 +687,7 @@ async function guardarMarcas(cambios,mensaje){
   if(!dueno()){toast('Guardado en este teléfono. Para publicarlo hace falta la llave de GitHub.');return false;}
   toast('Guardado. Publicando…');
   try{await publicarArchivo(RUTA_V,{base:BASE.fecha,actualizado:at,marcas:MARCAS},mensaje);
-    MARCAS_PUB={...MARCAS}; toast('Publicado: en 1 o 2 minutos lo ve cualquiera que abra la app.'); return true;}
+    MARCAS_PUB={...MARCAS}; renderPend(); toast('Publicado: en 1 o 2 minutos lo ve cualquiera que abra la app.'); return true;}
   catch(err){toast((err.message||'No se pudo publicar.')+' Quedó guardado en este teléfono.'); return false;}
 }
 let tT=null;
@@ -836,6 +843,7 @@ function renderCarga(){
   ce.appendChild(el('p','muted',SRC==='ninguno'?'La app no tiene datos todavía.':`La app muestra la versión ${SRC==='local'?'de este teléfono (es más nueva que la publicada)':'publicada'}.`));
   const t=lsGet(LS_T); $('tMsg').textContent=t?'Hay una llave guardada en este teléfono.':'Sin llave: puedes guardar en este teléfono, pero no publicar.';
   $('fPub').disabled=!t;
+  renderPend();
 }
 $('fIn').addEventListener('change',async ev=>{
   const f=ev.target.files[0]; $('fMsg').textContent=''; $('fPrev').hidden=true; NUEVO=null; if(!f)return;
@@ -905,7 +913,7 @@ $('xIn').addEventListener('change',async ev=>{
     else{const nom=z.r==='G'?'ganada':z.r==='P'?'perdida':'anulada';
       if(mk&&mk.r&&mk.r!==z.r){t=`${x.nombre}: ${z.goles} → ${nom}. Estaba marcada distinto a mano: manda el Excel.`;cl='small loss';}
       else t=`${x.nombre}: ${z.goles} → ${nom}${z.r==='G'?` (+${f2(x.monto*(x.cuota-1))} $)`:z.r==='P'?` (−${f2(x.monto)} $)`:' (se devuelve)'}`,cl='small '+(z.r==='G'?'win':z.r==='P'?'loss':'');
-      if(!mk||mk.r!==z.r||mk.goles!==z.goles){XCAMBIOS[x.pid]={r:z.r,goles:z.goles,f:'excel'};n++;}}
+      const pu=MARCAS_PUB[x.pid];if(!pu||pu.r!==z.r||pu.goles!==z.goles){XCAMBIOS[x.pid]={r:z.r,goles:z.goles,f:'excel'};n++;}}
     r.appendChild(el('p',cl,t));});
   $('xOk').hidden=!n; $('xPrev').hidden=false;
   $('xMsg').textContent=n?'':'Nada nuevo: la app ya muestra estos resultados.';
@@ -982,6 +990,30 @@ function ir(v){
 document.querySelectorAll('nav.bot button').forEach(b=>b.addEventListener('click',()=>ir(b.dataset.v)));
 window.addEventListener('hashchange',()=>ir(location.hash.slice(1)));
 
+function sinPublicar(){
+  const est=SRC==='local'&&LOC&&(!PUB||orden(LOC)>orden(PUB));
+  const vivos=new Set(((BASE&&BASE.pendientes)||[]).map(x=>x.pid)); let n=0;
+  for(const k of vivos){const a=MARCAS[k]||{},b=MARCAS_PUB[k]||{};if((a.r||null)!==(b.r||null)||(a.r&&(a.goles||'')!==(b.goles||'')))n++;}
+  return {est,n};
+}
+function renderPend(){
+  const q=sinPublicar(), hay=dueno()&&(q.est||q.n>0);
+  $('sinPub').hidden=!hay; $('cPub').hidden=!hay;
+  if(hay)$('sinPubTxt').textContent=[q.est?`El día ${LOC.dia} está guardado solo en este aparato.`:'',q.n?`${q.n} resultado${q.n>1?'s':''} validado${q.n>1?'s':''} solo en este aparato.`:'','Hasta que lo publiques, el celular y tu esposa no lo ven.'].filter(Boolean).join(' ');
+}
+async function publicarPendiente(btn){
+  const q=sinPublicar(); if(!dueno()){toast('Falta la llave de GitHub (Cargar → Llave).');return;}
+  btn.disabled=true; toast('Publicando…');
+  try{
+    if(q.est){await publicarArchivo(RUTA,LOC,`Plan80: día ${LOC.dia} (${LOC.fecha})`);PUB=LOC;SRC='publicado';}
+    const vivos=new Set((BASE.pendientes||[]).map(x=>x.pid)); for(const k in MARCAS)if(!vivos.has(k))delete MARCAS[k];
+    if(q.n||q.est){const at=new Date().toISOString();await publicarArchivo(RUTA_V,{base:BASE.fecha,actualizado:at,marcas:MARCAS},`Plan80 en vivo: publicar resultados guardados (${BASE.fecha})`);MARCAS_PUB={...MARCAS};}
+    toast('Publicado: en 1 o 2 minutos se ve en el celular.');
+  }catch(err){toast(err.message||'No se pudo publicar.');}
+  finally{btn.disabled=false;renderTodo();}
+}
+$('hPub').addEventListener('click',e=>publicarPendiente(e.currentTarget));
+$('cPub').addEventListener('click',e=>publicarPendiente(e.currentTarget));
 function renderTodo(){E=aplicar(BASE,MARCAS);renderHoy();renderGraf();renderApu();renderPlan();renderCarga();}
 ir(location.hash.slice(1)||'hoy');
 renderTodo();
