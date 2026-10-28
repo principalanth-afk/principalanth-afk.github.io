@@ -1,18 +1,20 @@
-SIN LÍMITES v2.0
+SIN LÍMITES · PLAN 80 (v3)
 
 Dirección:  https://principalanth-afk.github.io/sinlimites/
 CAVA:       https://principalanth-afk.github.io/
 
-PARA ACTUALIZAR: arrastra SIEMPRE la carpeta "sinlimites" completa desde la página
-principal del repositorio. Nunca subas archivos sueltos en la raíz (pisarían a CAVA).
+QUÉ ES
+Módulo de carga y de supervisión del plan de 80 días (plan80.py, sistema MATRIX).
+- HOY: saldo, acierto en vivo, apuestas del día, brújula, frenos y auditoría del saldo.
+- GRÁFICOS: saldo diario, acierto acumulado, ganancia por día y cuota contra monto.
+- APUESTAS: todas las apuestas, resumen por criterio y el reporte completo de cada día.
+- EL PLAN: la explicación del sistema (flujo, mapa mental, criterios, frenos).
+- CARGAR: se sube plan80_estado.json; se guarda en el teléfono y, con la llave de GitHub,
+  se publica en data/estado.json para que cualquiera que abra la app lo vea.
 
-Los archivos viejos manifest.json, icon-192.png, icon-512.png e icon-maskable-512.png
-que quedaron DENTRO de la carpeta sinlimites ya no se usan. Puedes dejarlos o borrarlos.
+DATOS
+- data/estado.json es el estado publicado (el mismo plan80_estado.json, sin la copia "anterior").
+- El repositorio es público: lo que está en data/ lo puede ver cualquiera con el enlace.
+- La llave de GitHub se guarda solo en el teléfono donde se escribe.
 
-NOVEDADES 2.0
-- Pestaña TICKETS: gráfico de puntos cuota vs monto (el último boleto cargado sale en dorado),
-  lector de capturas del historial de la casa, partidos, prob. del motor, cuota mínima,
-  cuota de cierre (dinero inteligente) y aviso programado a MATRIX Alertas.
-- En HOY: el gráfico de tus boletos, la prob. del motor para A y B, y un botón para cerrar
-  el día con el neto real de los boletos.
-- La carpeta ocr/ es el lector de capturas. Va completa dentro de sinlimites.
+PARA ACTUALIZAR EL CÓDIGO: sube SIEMPRE la carpeta "sinlimites" completa. Nunca archivos sueltos en la raíz.
