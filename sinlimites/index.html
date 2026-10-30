@@ -597,7 +597,8 @@ function renderHoy(){
   $('hSaldoT').textContent=`Dinero del plan ahora: ${f2(E._caja)} $ en la cuenta + ${f2(E._enJuego)} $ en apuestas sin resolver.`
     +(np?` Incluye ${np} resultado${np>1?'s':''} validado${np>1?'s':''} hoy (Excel o a mano), sin confirmar por plan80.`:'')+` Al empezar el día ${E.dia} había ${f2(c.saldo)} $.`;
   $('hPuesto').textContent=f2(c.aportado)+' $';
-  const neto=E._caja+E._enJuego-c.aportado; const hn=$('hNeto'); hn.textContent=sg(neto)+' $'; hn.className=neto>0.004?'win':neto<-0.004?'loss':'';
+  const fc=fondoCombo(); if(fc!==null)$('hSaldoT').textContent+=` Aparte, el fondo de combinadas tiene ${f2(fc)} $ (salió de este mismo dinero, no es aporte nuevo).`;
+  const neto=E._caja+E._enJuego+(fc||0)-c.aportado; const hn=$('hNeto'); hn.textContent=sg(neto)+' $'; hn.className=neto>0.004?'win':neto<-0.004?'loss':'';
   const rd=(E.indice||1)-1; const hr=$('hRend'); hr.textContent=(rd>=0?'+':'−')+pct(Math.abs(rd)); hr.className=rd>0.0004?'win':rd<-0.0004?'loss':'';
   const src=$('hSrc'); src.innerHTML='';
   const dotc=el('i',SRC==='local'?'loc':SRC==='publicado'?'':'no');
@@ -684,6 +685,12 @@ function simCombo(e){
     det.push({d,r});});
   return {s,n,g,p,ab,det};
 }
+function fondoCombo(){   // dinero total del fondo de combinadas ahora (cuenta + en juego), o null si todavía no arrancó
+  const c=BASE&&BASE.combo; if(!c)return null;
+  let t=c.saldo_inicio_dia-(c.pendientes||[]).filter(x=>x.dia_fondo===c.dia).reduce((s,x)=>s+x.monto,0);
+  (c.pendientes||[]).forEach(x=>{const o=resCombo(BASE,MARCAS,x); if(o.r==='G')t+=x.monto*o.cu; else if(o.r!=='P')t+=x.monto;});
+  return t;
+}
 function renderCombo(){
   const card=$('cbC'); if(!E){card.hidden=true;return;} card.hidden=false;
   const c=BASE.combo;
@@ -718,7 +725,7 @@ function renderCombo(){
   $('cbSaldo').textContent=f2(total)+' $';
   $('cbAc').textContent=n?pct(g/n):'—';
   const ne=total-C_INI, cn=$('cbNeto'); cn.textContent=sg(ne)+' $'; cn.className=ne>0.004?'win':ne<-0.004?'loss':'';
-  $('cbTxt').textContent=`Empezó con 10 $ el ${fdate(c.inicio)} · ${f2(caja)} $ en la cuenta + ${f2(juego)} $ en juego · máximo ${f2(c.saldo_maximo)} $`
+  $('cbTxt').textContent=`Empezó con 10 $ sacados del plan principal el ${fdate(c.inicio)} · ${f2(caja)} $ en la cuenta + ${f2(juego)} $ en juego · máximo ${f2(c.saldo_maximo)} $`
     +(c.fase==='pausa'?' · en pausa por un freno':'');
   [...(c.historial||[]),...prov].forEach((r,i,a)=>{const pv=i>=(c.historial||[]).length;const s=el('span','dot '+(r==='G'?'g':'p')+(pv?' prov':''),r);dd.appendChild(s);});
   (c.pendientes||[]).filter(x=>!resCombo(BASE,MARCAS,x).r).forEach(()=>dd.appendChild(el('span','dot e','?')));
