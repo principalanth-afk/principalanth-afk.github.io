@@ -1,5 +1,5 @@
 // Service worker de Sin Límites: solo toca SUS cachés (CAVA vive en el mismo dominio)
-const CACHE = 'sinlimites-v12';
+const CACHE = 'sinlimites-v13';
 const ASSETS = ['./', './index.html', './sl-manifest.webmanifest', './sl-icon-192.png', './sl-icon-512.png', './sl-icon-maskable-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
@@ -14,7 +14,7 @@ self.addEventListener('fetch', e => {
   if (esDoc || esDato) {
     // red primero: la app y los datos del plan llegan frescos cuando hay señal; sin señal, la última copia
     const clave = esDoc ? './index.html' : url.pathname;
-    e.respondWith(fetch(req).then(r => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(clave, cp)); } return r; })
+    e.respondWith(fetch(req, {cache: 'no-store'}).then(r => { if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(clave, cp)); } return r; })
       .catch(() => caches.match(clave, {ignoreSearch: true})));
   } else {
     e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(r => { const cp = r.clone(); caches.open(CACHE).then(c => c.put(req, cp)); return r; })));

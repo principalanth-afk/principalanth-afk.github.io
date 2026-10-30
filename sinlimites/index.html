@@ -445,6 +445,7 @@ nav.bot button.on{color:var(--gold)}
 
   <div class="card">
     <h2>Cargar el día</h2>
+    <p class="small muted">Versión de la app: 13 (combinadas con traspaso del plan)</p>
     <p class="small">Después de correr plan80.py, elige el archivo <b>plan80_estado.json</b> de la carpeta omega. Verás el resumen antes de guardar.</p>
     <label class="file" style="margin-top:12px;position:relative"><b>Elegir plan80_estado.json</b><span class="small">desde el teléfono o la computadora</span><input type="file" id="fIn" accept=".json,application/json"></label>
     <div id="fPrev" hidden style="margin-top:12px">
@@ -1104,7 +1105,11 @@ cargar();
 // quien solo mira recibe los resultados nuevos sin recargar: se vuelve a leer cada 2 minutos con la app abierta
 setInterval(()=>{if(document.visibilityState==='visible'&&!NUEVO&&!document.activeElement?.matches?.('input'))cargar();},120000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!NUEVO)cargar();});
-if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+if('serviceWorker' in navigator){
+  const habia=!!navigator.serviceWorker.controller; let recargo=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(habia&&!recargo){recargo=true;location.reload();}});   // versión nueva -> se recarga sola una vez
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));
+}
 })();
 </script>
 </body>
