@@ -234,6 +234,21 @@ nav.bot button.on{color:var(--gold)}
       <div class="grid2" id="hEsc" style="margin-top:10px"></div>
     </div>
 
+    <div class="card" id="cbC" hidden>
+      <h2>Combinada · fondo paralelo</h2>
+      <p class="muted small">Fondo aparte de 10 $ desde el 30/10. Cada día con 2 o 3 picks se hace una doble con el #1 y el #2, apostando el 25% del fondo.</p>
+      <div class="grid3" style="margin-top:10px">
+        <div class="kv"><span>Fondo</span><b id="cbSaldo">—</b></div>
+        <div class="kv"><span>Acierto</span><b id="cbAc">—</b></div>
+        <div class="kv"><span>Neto</span><b id="cbNeto">—</b></div>
+      </div>
+      <p class="muted small" id="cbTxt" style="margin-top:8px"></p>
+      <div class="bets" id="cbHoy" style="margin-top:10px"></div>
+      <div class="dots" id="cbDots" style="margin-top:10px"></div>
+      <div class="kv" style="margin-top:12px"><span>Simulación desde el día 1 del plan</span><b id="cbSimS">—</b></div>
+      <p class="muted small" id="cbSim"></p>
+    </div>
+
     <div class="card" id="hPendC" hidden>
       <h2>Sin cobrar de días anteriores</h2>
       <div class="bets" id="hPend"></div>
@@ -647,6 +662,67 @@ function renderHoy(){
     freno(au,ok?'ok':'warn',`Día ${dia||'?'} · ${fdate(k)}`,ok?`Esperado ${m[1]} $ · usado ${m[2]} $ · cuadra`:`Esperado ${m[1]} $ · usado ${m[2]} $ · diferencia ${m[4]} $ (cuota distinta en la casa)`,ok?'cuadra':'revisar');
   });
 }
+/* ------------------------------------------------------------ COMBINADA (fondo paralelo, igual que plan80.py v5) */
+const C_INI=10, C_RIESGO=.25;
+const p2=x=>Math.floor(x*100+1e-9)/100;
+function resPierna(b,m,pid){const mk=m[pid];if(mk&&mk.r)return mk.r;const o=(b.cerrados||[]).find(z=>z.pid===pid);return o?o.resultado:null;}
+function resCombo(b,m,x){
+  const rs=x.piernas.map(q=>resPierna(b,m,q.pid));
+  if(rs.includes('P'))return {r:'P',rs};
+  if(rs.includes(null)||rs.includes(undefined))return {r:null,rs};
+  const v=x.piernas.filter((q,i)=>rs[i]==='G').map(q=>q.cuota);
+  return v.length?{r:'G',cu:v.reduce((a,c)=>a*c,1),rs}:{r:'A',cu:1,rs};
+}
+function simCombo(e){
+  const rm={};(e.cerrados||[]).forEach(x=>{rm[x.pid]=x.resultado;});const por={};[...(BASE.cerrados||[]),...(BASE.pendientes||[])].forEach(x=>{(por[x.dia]=por[x.dia]||[]).push({...x,resultado:rm[x.pid]||null});});
+  let s=C_INI,n=0,g=0,p=0,ab=0;const det=[];
+  Object.keys(por).map(Number).sort((a,b)=>a-b).forEach(d=>{const l=por[d];if(l.length<2)return;const a=l[0],b=l[1];
+    const m=p2(s*C_RIESGO),ra=a.resultado||null,rb=b.resultado||null;let r;
+    if(ra==='P'||rb==='P'){s-=m;n++;p++;r='P';}
+    else if(!ra||!rb){ab++;r='E';}
+    else{const v=[[a,ra],[b,rb]].filter(z=>z[1]==='G').map(z=>z[0].cuota);if(v.length){s+=m*(v.reduce((x,y)=>x*y,1)-1);n++;g++;r='G';}else r='A';}
+    det.push({d,r});});
+  return {s,n,g,p,ab,det};
+}
+function renderCombo(){
+  const card=$('cbC'); if(!E){card.hidden=true;return;} card.hidden=false;
+  const c=BASE.combo;
+  const sim=simCombo(E);
+  $('cbSimS').textContent=f2(sim.s)+' $';
+  $('cbSim').textContent=`Si la combinada #1 + #2 se hubiera hecho desde el día 1 (25% de 10 $): ${sim.n} combinadas, ${sim.g} ganadas, ${sim.p} perdidas`
+    +(sim.ab?`, ${sim.ab} en juego`:'')+'. Incluye los resultados validados hoy.';
+  const hc=$('cbHoy'); hc.innerHTML=''; const dd=$('cbDots'); dd.innerHTML='';
+  if(!c){
+    $('cbSaldo').textContent=f2(C_INI)+' $'; $('cbAc').textContent='—'; $('cbNeto').textContent='0,00 $'; $('cbNeto').className='';
+    $('cbTxt').textContent='El fondo arranca con 10 $ la próxima vez que se corra plan80 (versión 5) y se publique su estado.';
+    return;
+  }
+  const stakes=(c.pendientes||[]).filter(x=>x.dia_fondo===c.dia).reduce((s,x)=>s+x.monto,0);
+  let caja=c.saldo_inicio_dia-stakes, juego=0, g=c.ganados||0, p=c.perdidos||0; const prov=[];
+  (c.pendientes||[]).forEach(x=>{const o=resCombo(BASE,MARCAS,x);
+    if(o.r==='G'){caja+=x.monto*o.cu;g++;prov.push('G');}else if(o.r==='P'){p++;prov.push('P');}else if(o.r==='A'){caja+=x.monto;}else juego+=x.monto;
+    const card=el('div','bet '+(o.r==='G'?'g':o.r==='P'?'p':'e'));
+    card.appendChild(el('span','nm',x.nombre));
+    card.appendChild(el('span','rs '+(o.r==='G'?'win':o.r==='P'?'loss':'gold'),o.r==='G'?sg(x.monto*(o.cu-1))+' $':o.r==='P'?sg(-x.monto)+' $':o.r==='A'?'anulada':'pendiente'));
+    const pier=x.piernas.map((q,i)=>`${q.nombre}: ${o.rs[i]==='G'?'ganada':o.rs[i]==='P'?'perdida':o.rs[i]==='A'?'anulada':'en juego'}`).join(' · ');
+    card.appendChild(el('span','mt',`Día ${x.dia} · ${fdate(x.fecha)} · cuota ${x.cuota.toFixed(2)} (${x.piernas.map(q=>q.cuota.toFixed(2)).join(' × ')}) · ${f2(x.monto)} $ · si gana: +${f2(x.monto*(x.cuota-1))} $`));
+    card.appendChild(el('span','mt',pier));
+    if(o.r)card.appendChild(el('span','mt gold','Resultado según el Excel o las marcas del día · falta que plan80 lo confirme'));
+    hc.appendChild(card);});
+  (c.cerrados||[]).slice(-3).reverse().forEach(x=>{const r=x.resultado,cu=x.cuota_final||x.cuota;
+    const card=el('div','bet '+(r==='G'?'g':r==='P'?'p':''));card.appendChild(el('span','nm',x.nombre));
+    card.appendChild(el('span','rs '+(r==='G'?'win':r==='P'?'loss':''),r==='G'?sg(x.monto*(cu-1))+' $':r==='P'?sg(-x.monto)+' $':'anulada'));
+    card.appendChild(el('span','mt',`Día ${x.dia} · ${fdate(x.fecha)} · cuota ${cu.toFixed(2)} · ${f2(x.monto)} $ · ${x.goles||''}`));hc.appendChild(card);});
+  if(!hc.children.length)hc.appendChild(el('p','muted','Todavía no hay combinadas: se hacen los días en que el plan elige 2 o 3 picks.'));
+  const total=caja+juego, n=g+p;
+  $('cbSaldo').textContent=f2(total)+' $';
+  $('cbAc').textContent=n?pct(g/n):'—';
+  const ne=total-C_INI, cn=$('cbNeto'); cn.textContent=sg(ne)+' $'; cn.className=ne>0.004?'win':ne<-0.004?'loss':'';
+  $('cbTxt').textContent=`Empezó con 10 $ el ${fdate(c.inicio)} · ${f2(caja)} $ en la cuenta + ${f2(juego)} $ en juego · máximo ${f2(c.saldo_maximo)} $`
+    +(c.fase==='pausa'?' · en pausa por un freno':'');
+  [...(c.historial||[]),...prov].forEach((r,i,a)=>{const pv=i>=(c.historial||[]).length;const s=el('span','dot '+(r==='G'?'g':'p')+(pv?' prov':''),r);dd.appendChild(s);});
+  (c.pendientes||[]).filter(x=>!resCombo(BASE,MARCAS,x).r).forEach(()=>dd.appendChild(el('span','dot e','?')));
+}
 function freno(cont,nivel,titulo,texto,etq){
   const r=el('div','st');r.appendChild(el('span','tag '+nivel,etq||(nivel==='ok'?'bien':nivel==='warn'?'atento':'activo')));
   const p=el('p');p.appendChild(el('b',null,titulo));p.appendChild(document.createTextNode(texto));r.appendChild(p);cont.appendChild(r);
@@ -1014,7 +1090,7 @@ async function publicarPendiente(btn){
 }
 $('hPub').addEventListener('click',e=>publicarPendiente(e.currentTarget));
 $('cPub').addEventListener('click',e=>publicarPendiente(e.currentTarget));
-function renderTodo(){E=aplicar(BASE,MARCAS);renderHoy();renderGraf();renderApu();renderPlan();renderCarga();}
+function renderTodo(){E=aplicar(BASE,MARCAS);renderHoy();renderCombo();renderGraf();renderApu();renderPlan();renderCarga();}
 ir(location.hash.slice(1)||'hoy');
 renderTodo();
 cargar();

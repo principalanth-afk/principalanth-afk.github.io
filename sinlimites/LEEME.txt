@@ -1,11 +1,12 @@
-SIN LÍMITES · PLAN 80 (v3)
+SIN LÍMITES · PLAN 80 (v4: con fondo de combinadas)
 
 Dirección:  https://principalanth-afk.github.io/sinlimites/
 CAVA:       https://principalanth-afk.github.io/
 
 QUÉ ES
 Módulo de carga y de supervisión del plan de 80 días (plan80.py, sistema MATRIX).
-- HOY: saldo, acierto en vivo, apuestas del día, brújula, frenos y auditoría del saldo.
+- HOY: saldo, acierto en vivo, apuestas del día, COMBINADA (fondo paralelo de 10 $, #1 + #2, 25%),
+  simulación de la combinada desde el día 1, brújula, frenos y auditoría del saldo.
 - GRÁFICOS: saldo diario, acierto acumulado, ganancia por día y cuota contra monto.
 - APUESTAS: todas las apuestas, resumen por criterio y el reporte completo de cada día.
 - EL PLAN: la explicación del sistema (flujo, mapa mental, criterios, frenos).
